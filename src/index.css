@@ -1,0 +1,24 @@
+/* src/index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom global styling */
+
+body {
+  @apply bg-gradient-to-b from-white/80 to-gray-100 dark:from-[#111111] dark:to-[#000000] text-gray-900 dark:text-gray-100 transition-colors duration-300;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optional Glass Morphism Layer Helpers */
+.glass {
+  @apply bg-white/10 backdrop-blur-md border border-white/10 rounded-xl shadow-xl;
+}
+
+.glass-button {
+  @apply px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-lg hover:bg-white/20 transition-all;
+}

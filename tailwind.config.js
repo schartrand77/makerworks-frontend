@@ -1,26 +1,25 @@
-import './styles/globals.css'
-
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}"
-  ],
-  darkMode: 'class', // Enables system-wide or manual dark/light theming
+// tailwind.config.js
+module.exports = {
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
-      boxShadow: {
-        glass: '0 8px 32px 0 rgba(31,38,135,0.37)',
+      colors: {
+        glass: 'rgba(255,255,255,0.1)',
       },
       backdropBlur: {
         xs: '2px',
-        sm: '6px',
-        xl: '18px',
       },
-      colors: {
-        glass: {
-          light: 'rgba(255, 255, 255, 0.05)',
-          dark: 'rgba(0, 0, 0, 0.3)',
-        }
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      keyframes: {
+        'fade-in-up': {
+          '0%': { opacity: 0, transform: 'translateY(8px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fade-in-up 0.6s ease-out both',
       },
     },
   },

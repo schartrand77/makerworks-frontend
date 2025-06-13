@@ -1,139 +1,90 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useEstimateStore } from '../store/useEstimateStore'
-import GlassCard from '../components/GlassCard'
-import GlassButton from '../components/GlassButton'
-import GlassToggle from '../components/GlassToggle'
-import STLPreviewCanvas from '../components/STLPreviewCanvas'
+import axios from '../api/axios'
+import toast from 'react-hot-toast'
+import ModelCard from '../components/Browse/ModelCard'
+import FiltersBar from '../components/Browse/FiltersBar'
+import PaginationControls from '../components/Browse/PaginationControls'
+import { useBrowseStore } from '../store/browseStore'
+
+function ShowFavoritesToggle() {
+  const { showOnlyFavorites, toggleFavorites } = useBrowseStore()
+  return (
+    <div className="flex items-center justify-end mb-4">
+      <label className="flex items-center gap-2 cursor-pointer text-sm text-white bg-white/10 border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
+        <input
+          type="checkbox"
+          checked={showOnlyFavorites}
+          onChange={toggleFavorites}
+          className="form-checkbox accent-blue-500"
+        />
+        <span>Show Only Favorites</span>
+      </label>
+    </div>
+  )
+}
 
 export default function Browse() {
   const [models, setModels] = useState([])
-  const [favorites, setFavorites] = useState(new Set())
-  const [user, setUser] = useState(null)
-  const [rotatePreview, setRotatePreview] = useState(false)
-  const { setModel } = useEstimateStore()
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const { query, filters, page, perPage, showOnlyFavorites } = useBrowseStore()
+  const [suggestions, setSuggestions] = useState([])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) return
-
-    const fetchAll = async () => {
+    const fetchModels = async () => {
       try {
-        const [modelsRes, userRes, favRes] = await Promise.all([
-          fetch('/api/models'),
-          fetch('/auth/me', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('/api/favorites', { headers: { Authorization: `Bearer ${token}` } }),
-        ])
+        const res = await axios.get('/models')
+        setModels(res.data)
 
-        const modelsData = await modelsRes.json()
-        const userData = await userRes.json()
-        const favData = await favRes.json()
-
-        setModels(modelsData.models)
-        setUser(userData)
-        setFavorites(new Set(favData.ids))
+        const allTitles = res.data.map((m) => m.title)
+        setSuggestions([...new Set(allTitles)])
       } catch (err) {
-        console.error('Error loading models or user:', err)
+        toast.error('Failed to load models')
+      } finally {
+        setLoading(false)
       }
     }
 
-    fetchAll()
+    fetchModels()
   }, [])
 
-  const toggleFavorite = async (modelId) => {
-    const token = localStorage.getItem('token')
-    if (!token) return
-
-    const isFav = favorites.has(modelId)
-    const method = isFav ? 'DELETE' : 'POST'
-
-    await fetch(`/api/favorites/${modelId}`, {
-      method,
-      headers: { Authorization: `Bearer ${token}` },
+  const filtered = models
+    .filter((m) => {
+      const matchesSearch = m.title.toLowerCase().includes(query.toLowerCase())
+      const matchesFilament = filters.filament ? m.filament_type === filters.filament : true
+      const matchesFavorite = showOnlyFavorites ? m.is_favorite : true
+      return matchesSearch && matchesFilament && matchesFavorite
+    })
+    .sort((a, b) => {
+      if (filters.sort === 'popular') return b.favorite_count - a.favorite_count
+      return new Date(b.created_at) - new Date(a.created_at)
     })
 
-    setFavorites((prev) => {
-      const updated = new Set(prev)
-      isFav ? updated.delete(modelId) : updated.add(modelId)
-      return updated
-    })
-  }
-
-  const handleEstimate = (model) => {
-    setModel(model)
-    navigate('/estimate')
-  }
-
-  const deleteModel = async (modelId) => {
-    const token = localStorage.getItem('token')
-    if (!token) return
-    if (!window.confirm('Are you sure you want to delete this model?')) return
-
-    const res = await fetch(`/api/models/${modelId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-
-    if (res.ok) {
-      setModels((prev) => prev.filter((m) => m.id !== modelId))
-    } else {
-      alert('Failed to delete model.')
-    }
-  }
-
-  const canDelete = (model) =>
-    user && (user.uid === model.uploader || user.role === 'admin')
+  const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="max-w-sm mx-auto">
-        <GlassToggle
-          enabled={rotatePreview}
-          setEnabled={setRotatePreview}
-          label="Rotate Preview"
-        />
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-white/80 to-slate-100 dark:from-[#101010] dark:to-[#050505] px-4 py-10">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-bold mb-8 text-center text-black dark:text-white">
+          Browse Models
+        </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {models.map((model) => (
-          <GlassCard key={model.id} className="space-y-2">
-            {rotatePreview ? (
-              <STLPreviewCanvas url={`/models/${model.filename}`} />
-            ) : (
-              <img
-                src={model.preview_image}
-                alt={model.name}
-                className="w-full h-48 object-cover rounded"
-              />
-            )}
+        <FiltersBar suggestions={suggestions} />
+        <ShowFavoritesToggle />
 
-            <h3 className="text-lg font-semibold">{model.name}</h3>
-            <p className="text-sm text-gray-500">
-              Uploaded by <strong>{model.uploader}</strong><br />
-              {new Date(model.uploaded_at).toLocaleString()}
-            </p>
-
-            <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
-              <GlassButton onClick={() => toggleFavorite(model.id)} className="text-sm">
-                {favorites.has(model.id) ? '★ Saved' : '☆ Save'}
-              </GlassButton>
-
-              <GlassButton onClick={() => handleEstimate(model)} className="text-sm">
-                Submit to Estimates
-              </GlassButton>
-
-              {canDelete(model) && (
-                <GlassButton
-                  onClick={() => deleteModel(model.id)}
-                  className="text-sm text-red-500"
-                >
-                  Delete
-                </GlassButton>
-              )}
+        {loading ? (
+          <p className="text-center text-gray-500 dark:text-gray-400">Loading...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-500 dark:text-gray-400">No matching models found.</p>
+        ) : (
+          <>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              {paged.map((model) => (
+                <ModelCard key={model.id} model={model} />
+              ))}
             </div>
-          </GlassCard>
-        ))}
+            <PaginationControls total={filtered.length} />
+          </>
+        )}
       </div>
     </div>
   )

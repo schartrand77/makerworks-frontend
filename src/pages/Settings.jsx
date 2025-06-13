@@ -1,143 +1,123 @@
-import { useEffect, useRef, useState } from 'react'
-import GlassCard from '../components/GlassCard'
-import GlassButton from '../components/GlassButton'
-import GlassToggle from '../components/GlassToggle'
+import { useEffect, useState } from 'react'
+import axios from '../api/axios'
+import toast from 'react-hot-toast'
+import { useAuthStore } from '../store/authStore'
 
 export default function Settings() {
-  const token = localStorage.getItem('token')
-  const [user, setUser] = useState(null)
-  const [status, setStatus] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [avatarPreview, setAvatarPreview] = useState(null)
-  const fileInputRef = useRef()
+  const { user, setUser } = useAuthStore()
+  const [form, setForm] = useState({
+    username: '',
+    avatar: '',
+    language: 'en',
+    theme: 'system',
+  })
 
   useEffect(() => {
-    fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.json())
-      .then(setUser)
-      .finally(() => setLoading(false))
-  }, [])
+    if (user) {
+      setForm({
+        username: user.username,
+        avatar: user.avatar || '',
+        language: user.language || 'en',
+        theme: user.theme || 'system',
+      })
+    }
+  }, [user])
 
-  const updateUser = async () => {
-    const res = await fetch('/api/users/me', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(user)
-    })
-    if (res.ok) setStatus('✅ Saved')
-    else setStatus('❌ Error saving')
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm((f) => ({ ...f, [name]: value }))
   }
 
-  const deleteAccount = async () => {
-    if (!confirm("This cannot be undone. Delete your account?")) return
-    await fetch('/api/users/me', {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    localStorage.clear()
-    window.location.href = "/"
-  }
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const res = await fetch('/api/users/me/avatar', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData
-    })
-
-    if (res.ok) {
-      const url = await res.text()
-      setUser({ ...user, avatar: url })
-      setAvatarPreview(url)
-      setStatus('✅ Avatar updated')
-    } else {
-      setStatus('❌ Failed to upload avatar')
+  const handleSave = async () => {
+    try {
+      const res = await axios.patch('/users/me', form)
+      setUser(res.data)
+      toast.success('Settings updated')
+    } catch {
+      toast.error('Failed to update settings')
     }
   }
 
-  if (loading) return <div className="text-center mt-12">Loading settings...</div>
-  if (!user) return <div className="text-center text-red-500 mt-12">Unable to load user data.</div>
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete your account?')) return
+    try {
+      await axios.delete('/users/me')
+      toast.success('Account deleted')
+      window.location.href = '/signout'
+    } catch {
+      toast.error('Could not delete account')
+    }
+  }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">⚙️ Settings</h1>
+    <div className="min-h-screen px-4 py-10 text-white bg-gradient-to-b from-black to-gray-900">
+      <div className="max-w-xl mx-auto bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/10 shadow-lg space-y-6">
+        <h1 className="text-3xl font-bold text-center mb-4">User Settings</h1>
 
-      {/* Profile Info */}
-      <GlassCard className="space-y-4">
-        <h2 className="text-xl font-semibold">Profile</h2>
-        <input
-          type="text"
-          value={user.username}
-          onChange={(e) => setUser({ ...user, username: e.target.value })}
-          placeholder="Username"
-          className="w-full p-2 rounded"
-        />
-        <input
-          type="text"
-          value={user.bio || ''}
-          onChange={(e) => setUser({ ...user, bio: e.target.value.slice(0, 140) })}
-          placeholder="Short bio (max 140 characters)"
-          className="w-full p-2 rounded"
-        />
-        <p className="text-xs text-white/60">
-          {user.bio?.length || 0}/140 characters
-        </p>
-
-        <div className="flex items-center gap-4">
-          {avatarPreview || user.avatar ? (
-            <img
-              src={avatarPreview || user.avatar}
-              alt="Avatar preview"
-              className="w-16 h-16 rounded-full border"
-            />
-          ) : null}
-          <GlassButton onClick={() => fileInputRef.current.click()}>
-            Upload Avatar
-          </GlassButton>
+        <div className="space-y-4">
+          <label className="block text-sm font-medium">Username</label>
           <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={handleAvatarUpload}
+            type="text"
+            name="username"
+            value={form.username}
+            onChange={handleChange}
+            onBlur={handleSave}
+            className="w-full px-3 py-2 rounded bg-white/10 border border-white/20"
           />
+
+          <label className="block text-sm font-medium">Avatar URL</label>
+          <input
+            type="text"
+            name="avatar"
+            value={form.avatar}
+            onChange={handleChange}
+            onBlur={handleSave}
+            className="w-full px-3 py-2 rounded bg-white/10 border border-white/20"
+          />
+          {form.avatar && (
+            <img src={form.avatar} alt="avatar" className="w-16 h-16 rounded-full border" />
+          )}
+
+          <label className="block text-sm font-medium">Theme</label>
+          <select
+            name="theme"
+            value={form.theme}
+            onChange={handleChange}
+            onBlur={handleSave}
+            className="w-full px-3 py-2 rounded bg-white/10 border border-white/20"
+          >
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+
+          <label className="block text-sm font-medium">Language</label>
+          <select
+            name="language"
+            value={form.language}
+            onChange={handleChange}
+            onBlur={handleSave}
+            className="w-full px-3 py-2 rounded bg-white/10 border border-white/20"
+          >
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+          </select>
         </div>
 
-        <div className="flex justify-between items-center">
-          <GlassButton onClick={updateUser}>Save Changes</GlassButton>
-          {status && <span className="text-white/60">{status}</span>}
+        <div className="text-sm text-gray-300 space-y-1">
+          <p>Last Login: {user?.last_login}</p>
+          <p>Created At: {user?.created_at}</p>
         </div>
-      </GlassCard>
 
-      {/* Appearance */}
-      <GlassCard className="space-y-4">
-        <h2 className="text-xl font-semibold">Appearance</h2>
-        <GlassToggle
-          label="Dark Mode"
-          enabled={user.theme === 'dark'}
-          setEnabled={(val) => setUser({ ...user, theme: val ? 'dark' : 'light' })}
-        />
-        <p className="text-sm text-white/50">Toggle between light and dark UI.</p>
-      </GlassCard>
-
-      {/* Danger Zone */}
-      <GlassCard className="space-y-4 border border-red-400">
-        <h2 className="text-xl font-semibold text-red-400">Danger Zone</h2>
-        <GlassButton onClick={deleteAccount} className="bg-red-500 hover:bg-red-600">
+        <button
+          onClick={handleDelete}
+          className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded"
+        >
           Delete My Account
-        </GlassButton>
-      </GlassCard>
+        </button>
+      </div>
     </div>
   )
 }

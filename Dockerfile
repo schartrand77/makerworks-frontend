@@ -1,30 +1,27 @@
-# --- Stage 1: Build the frontend ---
+# === STAGE 1: Build the app ===
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-
-# Copy and install dependencies (handle missing lock file)
-COPY package*.json ./
-RUN npm ci || npm install
-
-# Copy source
 COPY . .
 
-# Build Vite production output
-RUN npm run build
+# Install deps and build
+RUN npm install && npm run build
 
-# --- Stage 2: Serve with NGINX ---
-FROM nginx:alpine
+# === STAGE 2: Serve with Brotli-enabled NGINX ===
+FROM anigeo/nginx-brotli:latest
 
-WORKDIR /usr/share/nginx/html
+ENV NODE_ENV=production
 
-# Optional: clean default site
-RUN rm -rf ./*
+# Copy built app to NGINX
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy built frontend
-COPY --from=builder /app/dist .
+# Copy NGINX config
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
+# Optional: Ensure service worker and manifest are present
+# COPY ./public/manifest.webmanifest /usr/share/nginx/html/
+
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/index.html || exit 1

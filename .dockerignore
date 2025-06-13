@@ -1,0 +1,42 @@
+# === Node and dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
+
+# === Build outputs
+dist
+build
+
+# === VCS / IDE / editor artifacts
+.git
+.gitignore
+.gitattributes
+*.swp
+*.swo
+*.swn
+.idea
+.vscode
+*.code-workspace
+
+# === OS/system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+*.bak
+*.tmp
+
+# === Env and secrets
+.env
+.env.local
+.env.*.local
+
+# === Docker & NGINX artifacts
+Dockerfile
+docker-compose.yml
+nginx.conf
+
+# === CI/CD artifacts
+.github
+.vercel

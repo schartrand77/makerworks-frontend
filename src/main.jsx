@@ -1,17 +1,16 @@
+// src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import App from './App'
-import './styles/globals.css';
+import './index.css' // Tailwind entry (if using it)
 
-
-const rootElement = document.getElementById('root')
-
-if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
       <App />
-    </React.StrictMode>
-  )
-} else {
-  console.error('Root element not found. App failed to mount.')
-}
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+    </BrowserRouter>
+  </React.StrictMode>
+)

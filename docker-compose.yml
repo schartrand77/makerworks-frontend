@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  makerworks-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: makerworks-frontend:latest
+    container_name: makerworks-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/index.html"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Optional: mount static manifest or service worker files
+      # - ./public:/usr/share/nginx/html/:ro
