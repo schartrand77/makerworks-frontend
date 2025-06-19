@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useEstimateStore } from '../store/estimateStore'
 import { useCartStore } from '../store/cartStore'
-import ModelViewer from '../components/Preview/ModelViewer'
+import ModelViewer from '../components/ModelViewer'
 import toast from 'react-hot-toast'
-import axios from '../api/axios'
+import api from '../api/axios'
 
 const PRINT_SPEEDS = {
   standard: 14,

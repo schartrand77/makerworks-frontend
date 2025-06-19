@@ -12,9 +12,9 @@ export default function Cart() {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center text-white px-6 py-20">
         <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
-        <Link to="/browse" className="text-blue-400 underline hover:text-blue-200">
-          Browse Models
-        </Link>
+<Link to="/browse" className="text-blue-400 underline hover:text-blue-200">
+  Browse Models
+</Link>
       </div>
     )
   }

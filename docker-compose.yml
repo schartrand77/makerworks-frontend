@@ -9,7 +9,7 @@ services:
     container_name: makerworks-frontend
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "3233:80"
     environment:
       NODE_ENV: production
     healthcheck:

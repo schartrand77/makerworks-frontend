@@ -1,112 +1,140 @@
-// src/pages/Dashboard.jsx
-import { useEffect, useState } from 'react'
-import axios from '../api/axios'
-import toast from 'react-hot-toast'
-import ModelCard from '../components/Browse/ModelCard'
-import { useAuthStore } from '../store/authStore'
-import PaginationControls from '../components/Browse/PaginationControls'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/useAuthStore'
+import { motion } from 'framer-motion'
+
+// Primary cards
+import UserDashboardCard from '@/components/dashboard/UserDashboardCard'
+import UploadsSection from '@/components/ui/UploadsSection'
+import FavoritesSection from '@/components/ui/FavoritesSection'
+import EstimateHistory from '@/components/dashboard/EstimateHistory'
+import Notifications from '@/components/dashboard/Notifications'
+import CartPreview from '@/components/dashboard/CartPreview'
+
+// Shared UI
+import GlassCard from '@/components/ui/GlassCard'
+
+// Skeletons
+import SkeletonDashboardCard from '@/components/dashboard/SkeletonDashboardCard'
+import SkeletonFavoritesCard from '@/components/dashboard/SkeletonFavoritesCard'
 
 export default function Dashboard() {
-  const [myModels, setMyModels] = useState([])
-  const [favorites, setFavorites] = useState([])
-  const [loadingUploads, setLoadingUploads] = useState(true)
-  const [loadingFavorites, setLoadingFavorites] = useState(true)
-  const [favPage, setFavPage] = useState(1)
-  const favPerPage = 8
-  const { user } = useAuthStore()
+  const { user, loading, authLoaded, fetchUser } = useAuthStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchMyModels = async () => {
-      try {
-        const res = await axios.get('/models', {
-          params: { mine: true },
-        })
-        setMyModels(res.data)
-      } catch (err) {
-        toast.error('Failed to load your models.')
-      } finally {
-        setLoadingUploads(false)
-      }
-    }
-
-    const fetchFavorites = async () => {
-      try {
-        const res = await axios.get('/models')
-        const favs = res.data.filter((m) => m.is_favorite)
-        setFavorites(favs)
-      } catch (err) {
-        toast.error('Failed to load your favorites.')
-      } finally {
-        setLoadingFavorites(false)
-      }
-    }
-
-    fetchMyModels()
-    fetchFavorites()
+    fetchUser()
   }, [])
 
-  const pagedFavorites = favorites.slice(
-    (favPage - 1) * favPerPage,
-    favPage * favPerPage
-  )
+  if (!authLoaded || loading) {
+    return (
+      <div className="pt-[72px] pb-16 px-4 bg-gradient-to-b from-white/80 to-slate-100 dark:from-[#101010] dark:to-[#050505]">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-6xl mx-auto w-full">
+          <div className="md:col-span-4">
+            <SkeletonDashboardCard />
+          </div>
+          <div className="md:col-span-8 space-y-6">
+            <SkeletonFavoritesCard onUploadClick={() => navigate('/upload')} />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  const handleUnfavorite = (id) => {
-    setFavorites((prev) => prev.filter((m) => m.id !== id))
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <p>You must be signed in to view this page.</p>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white/80 to-slate-100 dark:from-[#101010] dark:to-[#050505] px-4 py-10">
-      <div className="max-w-6xl mx-auto space-y-12">
+    <motion.div
+      key="dashboard"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="pt-[119px] pb-16 px-4 bg-gradient-to-b from-white/80 to-slate-100 dark:from-[#101010] dark:to-[#050505] min-h-screen"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-6xl mx-auto w-full">
+        <motion.div
+          className="md:col-span-4"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+        >
+          <GlassCard size="compact" elevation="md">
+            <UserDashboardCard user={user} />
+          </GlassCard>
+        </motion.div>
 
-        {/* Uploaded models */}
-        <section>
-          <h1 className="text-4xl font-bold mb-6 text-center text-black dark:text-white">
-            {user?.username}&apos;s Uploads
-          </h1>
-
-          {loadingUploads ? (
-            <p className="text-center text-gray-400">Loading your uploads...</p>
-          ) : myModels.length === 0 ? (
-            <p className="text-center text-gray-500">You haven't uploaded any models yet.</p>
-          ) : (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-              {myModels.map((model) => (
-                <ModelCard key={model.id} model={model} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Favorited models */}
-        <section>
-          <h2 className="text-3xl font-bold mb-4 text-center text-black dark:text-white">
-            Your Favorites
-          </h2>
-
-          {loadingFavorites ? (
-            <p className="text-center text-gray-400">Loading favorites...</p>
-          ) : favorites.length === 0 ? (
-            <p className="text-center text-gray-500">No favorites yet.</p>
-          ) : (
-            <>
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-                {pagedFavorites.map((model) => (
-                  <ModelCard
-                    key={model.id}
-                    model={model}
-                    onFavoriteToggle={() => handleUnfavorite(model.id)}
-                  />
-                ))}
-              </div>
-              <PaginationControls
-                total={favorites.length}
-                page={favPage}
-                setPage={setFavPage}
-              />
-            </>
-          )}
-        </section>
-      </div>
+        <motion.div
+          className="md:col-span-8"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <GlassCard size="expanded" elevation="xl" hoverEffect>
+  <div className="relative z-10">
+    <button
+      onClick={() => navigate('/upload')}
+      className="absolute top-3 right-3 z-20 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur border border-white/20 shadow-md transition"
+    >
+      Upload
+    </button>
+    <div className="relative z-0">
+      <UploadsSection user={user} />
     </div>
+  </div>
+</GlassCard>
+        </motion.div>
+
+        <motion.div
+          className="md:col-span-4"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
+          <GlassCard size="medium" elevation="glass" hoverEffect>
+            <EstimateHistory userId={user.id} />
+          </GlassCard>
+        </motion.div>
+
+        <motion.div
+          className="md:col-span-4"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <GlassCard size="medium" elevation="glass" hoverEffect ripple>
+            <FavoritesSection user={user} />
+          </GlassCard>
+        </motion.div>
+
+        <motion.div
+          className="md:col-span-4"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
+          <GlassCard size="medium" elevation="md">
+            <Notifications userId={user.id} />
+          </GlassCard>
+        </motion.div>
+
+        <motion.div
+          className="md:col-span-4"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <GlassCard size="medium" elevation="md">
+            <CartPreview userId={user.id} />
+          </GlassCard>
+        </motion.div>
+      </div>
+    </motion.div>
   )
 }

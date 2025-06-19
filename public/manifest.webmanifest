@@ -1,5 +1,5 @@
 {
-  "name": "MakerWorks",
+  "name": "MakerW⚙️rks",
   "short_name": "MakerWorks",
   "description": "MakerWorks is a modern STL & 3MF model hub for upload, preview, estimation, and collaboration.",
   "id": "/",
@@ -27,5 +27,6 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "display_override": ["fullscreen", "standalone", "minimal-ui", "browser"]
 }

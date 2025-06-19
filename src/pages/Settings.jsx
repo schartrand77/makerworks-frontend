@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import axios from '../api/axios'
 import toast from 'react-hot-toast'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/useAuthStore'
 
 export default function Settings() {
-  const { user, setUser } = useAuthStore()
+  const { user, setUser, fetchUser, isLoading } = useAuthStore()
   const [form, setForm] = useState({
     username: '',
     avatar: '',
@@ -13,9 +13,13 @@ export default function Settings() {
   })
 
   useEffect(() => {
+    fetchUser()
+  }, [])
+
+  useEffect(() => {
     if (user) {
       setForm({
-        username: user.username,
+        username: user.username || '',
         avatar: user.avatar || '',
         language: user.language || 'en',
         theme: user.theme || 'system',
@@ -49,6 +53,22 @@ export default function Settings() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <p>Loading settings...</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <p>You must be signed in to access settings.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen px-4 py-10 text-white bg-gradient-to-b from-black to-gray-900">
       <div className="max-w-xl mx-auto bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/10 shadow-lg space-y-6">
@@ -75,7 +95,11 @@ export default function Settings() {
             className="w-full px-3 py-2 rounded bg-white/10 border border-white/20"
           />
           {form.avatar && (
-            <img src={form.avatar} alt="avatar" className="w-16 h-16 rounded-full border" />
+            <img
+              src={form.avatar}
+              alt="avatar"
+              className="w-16 h-16 rounded-full border"
+            />
           )}
 
           <label className="block text-sm font-medium">Theme</label>

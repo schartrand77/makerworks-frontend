@@ -1,112 +1,193 @@
-import { useState } from 'react'
-import axios from '../api/axios'
-import toast from 'react-hot-toast'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import ModelViewer from '../components/Preview/ModelViewer'
+import { useDropzone } from 'react-dropzone'
+import ThreePreview from '@/components/preview/ThreePreview'
+import api from '../api/axios'
+import { useAuthStore } from '../store/useAuthStore'
 
-export default function Upload() {
-  const [file, setFile] = useState(null)
-  const [meta, setMeta] = useState({ title: '', description: '' })
-  const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadedModel, setUploadedModel] = useState(null)
+const Upload = () => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target
-    if (files) setFile(files[0])
-    else setMeta((prev) => ({ ...prev, [name]: value }))
-  }
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [file, setFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [error, setError] = useState(null)
+  const [uploadId, setUploadId] = useState(null)
+  const [thumbnailUrl, setThumbnailUrl] = useState(null)
+  const [showPreview, setShowPreview] = useState(false)
+
+  const onDrop = useCallback((acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      const f = acceptedFiles[0]
+      setFile(f)
+      setName(f.name.replace(/\.[^/.]+$/, ''))
+    }
+  }, [])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: { 'model/stl': ['.stl'] },
+    multiple: false,
+    onDrop,
+  })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!file || !meta.title.trim()) {
-      toast.error('STL/3MF file and title are required')
+    if (!file || !name) {
+      setError('Model name and file are required')
       return
     }
 
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('title', meta.title)
-    formData.append('description', meta.description)
+    formData.append('name', name)
+    formData.append('description', description)
+    formData.append('user_id', user?.id)
 
     try {
       setUploading(true)
-      setUploadProgress(0)
+      setError(null)
+      setThumbnailUrl(null)
 
-      const res = await axios.post('/upload', formData, {
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          )
-          setUploadProgress(percent)
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (e.total) {
+            const percent = Math.round((e.loaded * 100) / e.total)
+            setProgress(percent)
+          }
         },
       })
 
-      setUploadedModel(res.data)
-      toast.success('Upload complete!')
+      setUploadId(res.data.upload_id || res.data.id)
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Upload failed')
-    } finally {
+      console.error(err)
+      setError(err.response?.data?.detail || 'Upload failed.')
       setUploading(false)
     }
   }
 
+  useEffect(() => {
+    if (!uploadId) return
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/upload/status/${uploadId}`)
+        if (res.data.thumbnail_url) {
+          setThumbnailUrl(res.data.thumbnail_url)
+          setUploading(false)
+          clearInterval(interval)
+        }
+      } catch (err) {
+        console.warn('Polling failed', err)
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [uploadId])
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white/80 to-slate-100 dark:from-black/80 dark:to-black/95 px-4 py-12">
-      <div className="max-w-3xl mx-auto bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 rounded-xl shadow-xl p-8">
-        <h2 className="text-3xl font-bold mb-6 text-center text-black dark:text-white">Upload Model</h2>
+    <div className="pt-[112px] pb-24 px-4 min-h-screen bg-gradient-to-b ...">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white/10 dark:bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl px-8 py-10 space-y-8">
+          <h1 className="text-3xl font-semibold text-center text-white">Upload 3D Model</h1>
 
-        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
-          <input
-            type="text"
-            name="title"
-            value={meta.title}
-            onChange={handleChange}
-            placeholder="Model Title"
-            className="w-full px-4 py-2 rounded bg-white/20 text-white placeholder-gray-300"
-            required
-          />
-          <textarea
-            name="description"
-            value={meta.description}
-            onChange={handleChange}
-            placeholder="Description (optional)"
-            rows={3}
-            className="w-full px-4 py-2 rounded bg-white/20 text-white placeholder-gray-300"
-          />
-          <input
-            type="file"
-            accept=".stl,.3mf"
-            onChange={handleChange}
-            className="w-full file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-600 file:text-white"
-            required
-          />
-          <button
-            type="submit"
-            disabled={uploading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition"
-          >
-            {uploading ? `Uploading... ${uploadProgress}%` : 'Upload Model'}
-          </button>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Drag and Drop */}
+            <div
+              {...getRootProps()}
+              className={`w-full p-6 rounded-xl border-2 border-dashed transition text-white cursor-pointer
+              ${isDragActive ? 'border-blue-400 bg-white/20' : 'border-white/20 bg-white/10'}
+              hover:border-blue-300 hover:bg-white/15`}
+            >
+              <input {...getInputProps()} />
+              <p className="text-center">
+                {isDragActive ? 'Drop the file here...' : 'Drag and drop your STL file, or click to select'}
+              </p>
+            </div>
 
-          {uploading && (
-            <div className="relative h-3 bg-white/20 rounded overflow-hidden mt-2">
-              <div
-                className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
-                style={{ width: `${uploadProgress}%` }}
+            {/* Selected File Info + 3D Preview */}
+            {file && (
+              <div className="space-y-4">
+                <div className="bg-white/10 border border-white/10 rounded-xl p-4 text-white text-sm shadow-inner">
+                  <div className="font-semibold mb-1">Selected File:</div>
+                  <div>{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</div>
+                </div>
+                <ThreePreview file={file} />
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <input
+              type="text"
+              placeholder="Model Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/30 dark:bg-white/10 text-white placeholder-gray-300"
+              required
+            />
+
+            <textarea
+              placeholder="Credit Model Creator:"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/30 dark:bg-white/10 text-white placeholder-gray-300"
+              rows={3}
+            />
+
+            {error && <div className="text-red-400 text-sm">{error}</div>}
+
+            {/* Upload Button */}
+            <button
+              type="submit"
+              disabled={uploading}
+              className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold transition shadow-md relative overflow-hidden"
+            >
+              {uploading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <span>Uploading...</span>
+                  <div className="w-1/2 h-2 bg-white/20 rounded overflow-hidden">
+                    <div
+                      className="h-full bg-white/80 transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                'Upload Model'
+              )}
+            </button>
+          </form>
+
+          {/* Thumbnail Preview */}
+          {thumbnailUrl && (
+            <div className="mt-6 text-center">
+              <p className="text-white text-sm mb-2">Render Preview:</p>
+              <img
+                src={thumbnailUrl}
+                alt="thumbnail"
+                className="w-full max-w-xs mx-auto rounded-xl border border-white/20 cursor-pointer hover:scale-105 transition"
+                onClick={() => setShowPreview(true)}
               />
+              {showPreview && (
+                <div
+                  className="fixed inset-0 bg-black/70 backdrop-blur-lg flex items-center justify-center z-50"
+                  onClick={() => setShowPreview(false)}
+                >
+                  <img
+                    src={thumbnailUrl}
+                    alt="Full thumbnail"
+                    className="max-h-[90vh] rounded-xl shadow-xl"
+                  />
+                </div>
+              )}
             </div>
           )}
-        </form>
-
-        {uploadedModel && (
-          <div className="mt-8">
-            <h3 className="text-xl text-white font-semibold mb-2">Preview:</h3>
-            <ModelViewer url={uploadedModel.stl_url} />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   )
 }
+
+export default Upload

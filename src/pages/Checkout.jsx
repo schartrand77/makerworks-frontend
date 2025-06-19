@@ -1,6 +1,6 @@
 // src/pages/Checkout.jsx
 import { useCartStore } from '../store/cartStore'
-import axios from '../api/axios'
+import api from '../api/axios'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 
@@ -19,7 +19,7 @@ export default function Checkout() {
         }))
       }
 
-      const res = await axios.post('/checkout/start', payload)
+      const res = await api.post('/checkout/start', payload)
       window.location.href = res.data.session_url
     } catch (err) {
       console.error(err)
@@ -30,18 +30,12 @@ export default function Checkout() {
   const total = cartItems.reduce((sum, i) => sum + i.estimated_cost, 0).toFixed(2)
 
   if (cartItems.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center text-white px-6 py-20">
-        <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
-        <button
-          onClick={() => navigate('/browse')}
-          className="mt-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
-        >
-          Browse Models
-        </button>
-      </div>
-    )
-  }
+  return (
+    <div className="min-h-screen flex flex-col justify-center items-center text-white px-6 py-20">
+      <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
+    </div>
+  )
+}
 
   return (
     <div className="min-h-screen p-10 text-white bg-gradient-to-b from-black to-gray-900">

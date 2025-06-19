@@ -1,18 +1,19 @@
 // src/components/Auth/SignOut.jsx
 import { useEffect } from 'react'
-import { clearToken } from '../../api/auth'
-import { useAuthStore } from '../../store/authStore'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export default function SignOut() {
   const navigate = useNavigate()
-  const clearAuth = useAuthStore((s) => s.clearAuth)
+  const signOut = useAuthStore((s) => s.signOut)
 
   useEffect(() => {
-    clearToken()
-    clearAuth()
-    navigate('/signin')
-  }, [])
+    async function logout() {
+      await signOut()
+      navigate('/signin', { replace: true })
+    }
+    logout()
+  }, [signOut, navigate])
 
   return null
 }

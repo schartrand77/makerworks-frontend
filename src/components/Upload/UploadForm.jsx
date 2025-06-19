@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from '../../api/axios'
+import api from '../../api/axios'
 import toast from 'react-hot-toast'
 import ModelViewer from '../Preview/ModelViewer' // adjust path as needed
 
@@ -24,7 +24,7 @@ export default function UploadForm() {
 
     try {
       setLoading(true)
-      const res = await axios.post('/upload', formData)
+      const res = await api.post('/upload', formData)
       setModelUrl(res.data.url)
       toast.success('Upload successful!')
     } catch (err) {
