@@ -49,9 +49,9 @@ const Landing: React.FC = () => {
   })
 
   return (
-    <PageLayout title="MakerWorks">
+    <PageLayout title="Liquid Glass">
       <GlassCard>
-        <h1 className="text-3xl font-bold mb-2">👋 Welcome to MakerWorks</h1>
+        <h1 className="text-3xl font-bold mb-2">👋 Welcome to Liquid Glass</h1>
         <p className="text-zinc-600 dark:text-zinc-400 mb-4">
           Upload, estimate, and manage your 3D print jobs.
         </p>

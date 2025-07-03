@@ -19,6 +19,17 @@ export default {
           light: 'rgba(255, 255, 255, 0.6)',
           dark: 'rgba(24, 24, 27, 0.6)', // dark zinc tone at 60%
         },
+        liquid: {
+          start: '#7f7fd5',
+          middle: '#86a8e7',
+          end: '#91eae4',
+        },
+      },
+
+      // Gradients for the Liquid Glass theme
+      backgroundImage: {
+        'liquid-glass':
+          'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 100%)',
       },
 
       // Smooth backdrop blur layers

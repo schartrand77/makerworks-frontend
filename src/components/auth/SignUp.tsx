@@ -56,7 +56,7 @@ const SignUp: React.FC = () => {
   return (
     <PageLayout title="Sign Up">
       <div className="glass-card max-w-md mx-auto p-10 shadow-vision">
-        <h1 className="text-2xl font-semibold mb-6 text-center">Create a MakerWorks Account</h1>
+        <h1 className="text-2xl font-semibold mb-6 text-center">Create a Liquid Glass Account</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
