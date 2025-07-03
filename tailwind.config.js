@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* global require */
 /** @type {import('tailwindcss').Config} */
 export default {
   // Enable class-based dark mode (e.g. <html class="dark">)
