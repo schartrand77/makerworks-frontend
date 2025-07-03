@@ -28,7 +28,7 @@ export default function PageLayout({
 }: PageLayoutProps) {
   useEffect(() => {
     if (title) {
-      document.title = `${title} | MakerWorks`
+      document.title = `${title} | Liquid Glass`
     }
 
     console.groupCollapsed(`[PageLayout] Mount: ${title}`)
@@ -74,7 +74,7 @@ export default function PageLayout({
 
   return (
     <div
-      className="w-full min-h-screen px-4 py-8 flex justify-center items-start bg-gradient-to-b from-white/80 to-zinc-100 dark:from-zinc-900/90 dark:to-zinc-950 text-zinc-900 dark:text-white"
+      className="w-full min-h-screen px-4 py-8 flex justify-center items-start liquid-bg text-zinc-900 dark:text-white"
       aria-describedby={description ? `${id}-description` : undefined}
     >
       <Component
