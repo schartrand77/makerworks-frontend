@@ -15,6 +15,15 @@ export default function Upload() {
   const [renderStatus, setRenderStatus] = useState<RenderStatus>(null)
   const dropzoneRef = useRef<HTMLDivElement | null>(null)
 
+  // Clean up preview URL when component unmounts or a new file is selected
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
+
   const handleFileChange = (f: File) => {
     setFile(f)
     setPreviewUrl(URL.createObjectURL(f))
