@@ -1,9 +1,12 @@
 // src/store/useModalStore.ts
 import { create } from 'zustand'
+import { type ReactNode } from 'react'
 
 export type ModalType = 'example' | 'upload' | 'settings' | 'cart' | 'signin'
 
 type Modal = {
+  id: string
+  component: ReactNode
   type: ModalType
   props?: Record<string, unknown>
 }
