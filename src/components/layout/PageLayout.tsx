@@ -1,4 +1,10 @@
-import { useEffect, useCallback, ElementType, KeyboardEvent } from 'react'
+import {
+  useEffect,
+  useCallback,
+  ElementType,
+  KeyboardEvent,
+} from 'react'
+import { motion } from 'framer-motion'
 import clsx from 'clsx'
 
 interface PageLayoutProps {
@@ -73,9 +79,13 @@ export default function PageLayout({
             : 'max-w-xl'
 
   return (
-    <div
+    <motion.div
       className="w-full min-h-screen px-4 py-8 flex justify-center items-start liquid-bg text-zinc-900 dark:text-white"
       aria-describedby={description ? `${id}-description` : undefined}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       <Component
         id={id}
@@ -105,6 +115,6 @@ export default function PageLayout({
         )}
         <div className="w-full">{children}</div>
       </Component>
-    </div>
+    </motion.div>
   )
 }
