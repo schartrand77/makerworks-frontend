@@ -1,10 +1,10 @@
 import { Routes, Route } from 'react-router-dom'
-import ProtectedLayout from '@/layouts/ProtectedLayout'
+import ProtectedLayout from '@/components/layout/ProtectedLayout'
 import PageLayout from '@/components/layout/PageLayout'
 
 import Landing from '@/pages/Landing'
-import SignIn from '@/pages/auth/SignIn'
-import SignUp from '@/pages/auth/SignUp'
+import SignIn from '@/components/auth/SignIn'
+import SignUp from '@/components/auth/SignUp'
 
 import Dashboard from '@/pages/Dashboard'
 import Estimate from '@/pages/Estimate'
