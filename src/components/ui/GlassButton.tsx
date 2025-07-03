@@ -6,7 +6,7 @@ import {
   ReactNode,
 } from 'react'
 
-type GlassButtonVariant = 'primary' | 'secondary' | 'ghost'
+type GlassButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type GlassButtonSize = 'sm' | 'md' | 'lg'
 
 interface BaseProps {
@@ -46,6 +46,8 @@ export default function GlassButton<T extends ElementType = 'button'>(
       'bg-zinc-200/80 text-black dark:bg-zinc-700/70 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-600',
     ghost:
       'bg-transparent text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100/40 dark:hover:bg-zinc-700/40',
+    danger:
+      'bg-red-600/80 text-white hover:bg-red-700 dark:bg-red-600/80 dark:hover:bg-red-700',
   }
 
   const sizes = {
