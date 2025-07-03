@@ -2,6 +2,13 @@
   "name": "makerworks-frontend",
   "private": true,
   "version": "0.0.0",
+  "description": "Frontend for MakerWorks – a modern STL & 3MF model hub.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/schartrand77/makerworks-frontend"
+  },
+  "author": "schartrand77 (60296853+schartrand77@users.noreply.github.com)",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
