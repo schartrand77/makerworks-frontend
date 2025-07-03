@@ -12,3 +12,10 @@ export async function uploadAvatar(file: File): Promise<string> {
 
   return res.data.url
 }
+
+export async function updateUserProfile(
+  payload: Record<string, any>
+): Promise<any> {
+  const res = await axios.post('/users/profile', payload)
+  return res
+}
