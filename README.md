@@ -1,12 +1,40 @@
-# React + Vite
+# MakerWorks Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MakerWorks is a modern STL & 3MF model hub for upload, preview, estimation, and collaboration.
 
-Currently, two official plugins are available:
+![MakerWorks UI](public/wallpaper.jpg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
+- Upload STL and 3MF files
+- Preview models directly in the browser
+- Estimate print time and cost
+- Manage favorites, cart and checkout flows
+- Collaborate with team members
 
-## Expanding the ESLint configuration
+## Installation
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Development
+Run the development server with hot module reloading:
+```bash
+npm run dev
+```
+Lint the project:
+```bash
+npm run lint
+```
+
+## Production Build
+Build the optimized production bundle:
+```bash
+npm run build
+```
+Preview the production build locally:
+```bash
+npm run preview
+```
+
+## License
+See the [LICENSE](LICENSE) file for license information.
