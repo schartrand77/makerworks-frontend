@@ -1,6 +1,12 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from 'react-router-dom'
 import { useEffect } from 'react'
+import { AnimatePresence } from 'framer-motion'
 
 // Pages
 import Landing from '@/pages/Landing'
@@ -34,6 +40,29 @@ function RouteChangeLogger(): null {
   return null
 }
 
+function AnimatedRoutes() {
+  const location = useLocation()
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/auth/signin" element={<SignIn />} />
+        <Route path="/auth/signup" element={<SignUp />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/upload" element={<Upload />} />
+        <Route path="/estimate" element={<Estimate />} />
+
+        {/* 404 fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
+  )
+}
+
 const App: React.FC = () => {
   useEffect(() => {
     const fetch = async () => {
@@ -49,21 +78,7 @@ const App: React.FC = () => {
         <RouteChangeLogger />
         <Navbar />
         <main className="min-h-screen flex flex-col pt-20 bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth/signin" element={<SignIn />} />
-            <Route path="/auth/signup" element={<SignUp />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/estimate" element={<Estimate />} />
-
-            {/* 404 fallback */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AnimatedRoutes />
         </main>
       </ModalProvider>
     </Router>
