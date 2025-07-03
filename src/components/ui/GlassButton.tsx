@@ -1,27 +1,39 @@
+// src/components/ui/GlassButton.tsx
 import clsx from 'clsx'
-import { ElementType, ReactNode, ComponentPropsWithoutRef } from 'react'
+import {
+  ComponentPropsWithoutRef,
+  ElementType,
+  ReactNode,
+} from 'react'
 
 type GlassButtonVariant = 'primary' | 'secondary' | 'ghost'
 type GlassButtonSize = 'sm' | 'md' | 'lg'
 
-interface GlassButtonProps<T extends ElementType = 'button'> {
-  as?: T
+interface BaseProps {
+  as?: ElementType
   children: ReactNode
   className?: string
   variant?: GlassButtonVariant
   size?: GlassButtonSize
   disabled?: boolean
-} & ComponentPropsWithoutRef<T>
+}
 
-export default function GlassButton<T extends ElementType = 'button'>({
-  as,
-  children,
-  className = '',
-  variant = 'primary',
-  size = 'md',
-  disabled = false,
-  ...props
-}: GlassButtonProps<T>) {
+type GlassButtonProps<T extends ElementType = 'button'> = BaseProps &
+  ComponentPropsWithoutRef<T>
+
+export default function GlassButton<T extends ElementType = 'button'>(
+  props: GlassButtonProps<T>
+) {
+  const {
+    as,
+    children,
+    className = '',
+    variant = 'primary',
+    size = 'md',
+    disabled = false,
+    ...rest
+  } = props
+
   const Component = as || 'button'
 
   const base =
@@ -52,7 +64,7 @@ export default function GlassButton<T extends ElementType = 'button'>({
         className
       )}
       disabled={disabled}
-      {...props}
+      {...rest}
     >
       {children}
     </Component>

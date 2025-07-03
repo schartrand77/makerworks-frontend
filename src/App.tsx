@@ -1,5 +1,4 @@
 // src/App.tsx
-
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 
@@ -10,7 +9,7 @@ import Upload from '@/pages/Upload'
 import Estimate from '@/pages/Estimate'
 import NotFound from '@/pages/NotFound'
 
-// Auth module (shared)
+// Auth module
 import {
   SignIn,
   SignUp,
@@ -18,7 +17,13 @@ import {
 } from '@/components/auth'
 
 // Context
-import ModalProvider from '@/context/ModalProvider'
+import { ModalProvider } from '@/context/ModalProvider'
+
+// Global layout
+import Navbar from '@/components/layout/Navbar'
+
+// Auth store (mock user dev support)
+import { useAuthStore } from '@/store/useAuthStore'
 
 // Debugging route changes
 function RouteChangeLogger(): null {
@@ -30,11 +35,20 @@ function RouteChangeLogger(): null {
 }
 
 const App: React.FC = () => {
+  useEffect(() => {
+    const fetch = async () => {
+      console.debug('[App] Fetching user...')
+      await useAuthStore.getState().fetchUser()
+    }
+    fetch()
+  }, [])
+
   return (
     <Router>
       <ModalProvider>
         <RouteChangeLogger />
-        <main className="min-h-screen flex flex-col bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white">
+        <Navbar />
+        <main className="min-h-screen flex flex-col pt-20 bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white">
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Landing />} />

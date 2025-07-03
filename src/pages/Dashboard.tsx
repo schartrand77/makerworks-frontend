@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import DashboardCard from '@/components/ui/DashboardCard'
+import UserDashboardCard from '@/components/ui/UserDashboardCard'
 import { useUser } from '@/hooks/useUser'
 import { Star, Upload, Shield } from 'lucide-react'
 
@@ -56,6 +57,8 @@ const Dashboard: React.FC = () => {
   return (
     <PageLayout title={`Welcome, ${user.username ?? 'User'} 👋`}>
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <UserDashboardCard />
+
         <DashboardCard
           title="Your Uploads"
           description="View and manage your 3D model uploads."

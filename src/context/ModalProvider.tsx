@@ -1,24 +1,29 @@
-// src/context/ModalProvider.jsx
+'use client'
 
-import { useEffect } from 'react'
-import { useModal } from '@/hooks/useModal'
+import { useModalStore } from '@/store/useModalStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import { type ReactNode } from 'react'
 
-export default function ModalProvider({ children }) {
-  const { open } = useModal()
+export function ModalProvider({ children }: { children: ReactNode }) {
+  const modals = useModalStore((state) => state.modals)
 
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-      document.body.classList.add('modal-open')
-    } else {
-      document.body.style.overflow = ''
-      document.body.classList.remove('modal-open')
-    }
-    return () => {
-      document.body.style.overflow = ''
-      document.body.classList.remove('modal-open')
-    }
-  }, [open])
-
-  return children
+  return (
+    <>
+      {children}
+      <AnimatePresence mode="wait">
+        {modals.map((modal) => (
+          <motion.div
+            key={modal.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center"
+          >
+            {modal.component}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </>
+  )
 }

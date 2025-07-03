@@ -1,6 +1,7 @@
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from '@/App'
+import ErrorBoundary from '@/components/system/ErrorBoundary'
 import '@/index.css'
 
 function mountApp(): void {
@@ -24,12 +25,13 @@ function mountApp(): void {
 
     createRoot(rootElement).render(
       <StrictMode>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </StrictMode>
     )
 
     console.debug('[MakerWorks] ✅ App render initialized.')
-
   } catch (error) {
     console.error('[MakerWorks] ❌ Failed to mount App:', error)
     const fallback = document.createElement('div')
