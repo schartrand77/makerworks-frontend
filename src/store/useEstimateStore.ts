@@ -13,6 +13,7 @@ export interface EstimateForm {
   y_mm: number | string
   z_mm: number | string
   filament_type: 'pla' | 'petg'
+  filament_color: string
   print_profile: 'standard' | 'quality' | 'elite'
 }
 
@@ -38,6 +39,7 @@ export const useEstimateStore = create<EstimateStoreState>((set) => ({
     y_mm: '',
     z_mm: '',
     filament_type: 'pla',
+    filament_color: '#ffffff',
     print_profile: 'standard',
   },
   result: null,

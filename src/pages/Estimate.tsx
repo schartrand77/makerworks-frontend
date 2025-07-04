@@ -10,6 +10,7 @@ interface EstimateForm {
   y_mm: number | string
   z_mm: number | string
   filament_type: 'pla' | 'petg'
+  filament_color: string
   print_profile: 'standard' | 'quality' | 'elite'
 }
 
@@ -33,10 +34,12 @@ export default function Estimate() {
     setLoading(true)
     try {
       const payload = {
-        ...form,
         x_mm: parseFloat(form.x_mm as string),
         y_mm: parseFloat(form.y_mm as string),
         z_mm: parseFloat(form.z_mm as string),
+        filamentType: form.filament_type,
+        filamentColor: form.filament_color,
+        printProfile: form.print_profile,
       }
 
       console.debug('[Estimate] Sending payload to API:', payload)
@@ -98,6 +101,19 @@ export default function Estimate() {
                 <option value="pla">PLA</option>
                 <option value="petg">PETG</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Filament Color</label>
+              <input
+                type="color"
+                value={form.filament_color}
+                onChange={(e) => {
+                  setForm('filament_color', e.target.value)
+                  console.debug('[Estimate] filament_color:', e.target.value)
+                }}
+                className="w-full rounded-md border p-2 h-10 dark:bg-zinc-800"
+              />
             </div>
 
             <div>
