@@ -3,11 +3,7 @@
 import axios from './axios'
 import { User } from '@/types/user'
 
-const AUTH_BASE = import.meta.env.VITE_AUTHENTIK_BASE_URL
-const CLIENT_ID = import.meta.env.VITE_AUTH_CLIENT_ID
-const CLIENT_SECRET = import.meta.env.VITE_AUTH_CLIENT_SECRET
-
-const TOKEN_URL = `${AUTH_BASE}/application/o/token/`
+const BACKEND_LOGIN_URL = '/auth/login'
 const CURRENT_USER_URL = `/users/users/me`
 const SIGNUP_URL = `/auth/signup`
 
@@ -39,32 +35,19 @@ export async function loginWithPassword(
   username: string,
   password: string
 ): Promise<TokenResponse> {
-  const body = new URLSearchParams({
-    grant_type: 'password',
-    username,
-    password,
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    scope: 'openid profile email',
-  })
-
-  const res = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  })
-
-  if (!res.ok) {
-    const errText = await res.text()
-    console.error('[Auth] Failed login:', errText)
-    throw new Error(`Login failed: ${errText}`)
+  try {
+    const res = await axios.post<TokenResponse>(BACKEND_LOGIN_URL, {
+      username,
+      password,
+    })
+    const tokenData = res.data
+    console.debug('[Auth] Received token via backend:', tokenData)
+    localStorage.setItem('token', tokenData.access_token)
+    return tokenData
+  } catch (err: any) {
+    console.error('[Auth] Failed login via backend:', err)
+    throw new Error(err?.response?.data?.detail || 'Login failed')
   }
-
-  const tokenData: TokenResponse = await res.json()
-  console.debug('[Auth] Received token:', tokenData)
-
-  localStorage.setItem('token', tokenData.access_token)
-  return tokenData
 }
 
 /**
