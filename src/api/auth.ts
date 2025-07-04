@@ -2,6 +2,7 @@
 
 import axios from './axios'
 import { User } from '@/types/user'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const BACKEND_LOGIN_URL = '/auth/login'
 const CURRENT_USER_URL = `/users/users/me`
@@ -42,7 +43,6 @@ export async function loginWithPassword(
     })
     const tokenData = res.data
     console.debug('[Auth] Received token via backend:', tokenData)
-    localStorage.setItem('token', tokenData.access_token)
     return tokenData
   } catch (err: any) {
     console.error('[Auth] Failed login via backend:', err)
@@ -75,5 +75,5 @@ export async function signup({
  * Clear auth token from storage.
  */
 export function logout() {
-  localStorage.removeItem('token')
+  useAuthStore.getState().logout()
 }

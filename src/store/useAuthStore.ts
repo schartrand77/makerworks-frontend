@@ -1,6 +1,5 @@
 // src/store/useAuthStore.ts
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import axios from '@/api/axios'
 import type { User } from '@/types/user'
 
@@ -19,9 +18,7 @@ interface AuthState {
   __mockUser?: boolean // DEV ONLY
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
       user: null,
       token: null,
       loading: false,
@@ -107,13 +104,5 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: false })
         }
       },
-    }),
-    {
-      name: 'auth-store',
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-      }),
-    }
-  )
+    })
 )
