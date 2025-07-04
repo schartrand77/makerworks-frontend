@@ -1,12 +1,15 @@
 // src/components/layout/MobileDrawer.tsx
 import { NAV_LINKS } from '@/config/navConfig'
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Shield } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const MobileDrawer = () => {
   const [open, setOpen] = useState(false)
+  const user = useAuthStore((s) => s.user)
+  const isAdmin = user?.role === 'admin' || user?.isAdmin
 
   return (
     <div className="w-full flex justify-between items-center">
@@ -56,14 +59,52 @@ const MobileDrawer = () => {
                   className={({ isActive }) =>
                     `text-base font-medium rounded-full px-4 py-2 transition-all ${
                       isActive
-                        ? 'bg-black/10 dark:bg-white/10 text-zinc-900 dark:text-zinc-100'
-                        : 'text-zinc-700 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/5'
+                        ? 'bg-black/10 dark:bg-white/10 text-zinc-900 dark:text-white'
+                        : 'text-zinc-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5'
                     }`
                   }
                 >
                   {label}
                 </NavLink>
               ))}
+
+              {/* Uploads explicitly if not in NAV_LINKS */}
+              <NavLink
+                to="/uploads"
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  `text-base font-medium rounded-full px-4 py-2 transition-all ${
+                    isActive
+                      ? 'bg-black/10 dark:bg-white/10 text-zinc-900 dark:text-white'
+                      : 'text-zinc-700 dark:text-white hover:bg-black/5 dark:hover:bg-white/5'
+                  }`
+                }
+              >
+                Uploads
+              </NavLink>
+
+              {/* Admin link if admin */}
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center justify-between text-base font-medium rounded-full px-4 py-2 transition-all ${
+                      isActive
+                        ? 'bg-black/10 dark:bg-white/10 text-blue-600 dark:text-blue-300'
+                        : 'text-blue-600 dark:text-blue-300 hover:bg-black/5 dark:hover:bg-white/5'
+                    }`
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </div>
+                  <span className="bg-blue-100 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-full">
+                    ADMIN
+                  </span>
+                </NavLink>
+              )}
             </nav>
           </motion.div>
         )}

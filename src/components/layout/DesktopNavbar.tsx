@@ -1,6 +1,6 @@
 // src/components/layout/DesktopNavbar.tsx
 import { useLocation, NavLink } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Shield } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Browse', href: '/browse' },
   { label: 'Estimate', href: '/estimate' },
+  { label: 'Uploads', href: '/uploads' }, // ✅ added Uploads here
 ]
 
 const DesktopNavbar = () => {
@@ -17,6 +18,7 @@ const DesktopNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const ref = useClickAway(() => setDropdownOpen(false))
   const user = useAuthStore((s) => s.user)
+  const isAdmin = user?.role === 'admin' || user?.isAdmin
 
   const toggleTheme = () => {
     const html = document.documentElement
@@ -85,12 +87,29 @@ const DesktopNavbar = () => {
                 >
                   Dashboard
                 </NavLink>
+
                 <NavLink
                   to="/settings"
                   className="block px-4 py-2 rounded hover:bg-black/5 dark:hover:bg-white/5"
                 >
                   Settings
                 </NavLink>
+
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    className="flex items-center justify-between px-4 py-2 rounded hover:bg-black/5 dark:hover:bg-white/5 text-blue-600 dark:text-blue-400"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4" />
+                      Admin
+                    </div>
+                    <span className="bg-blue-100 text-blue-600 text-[10px] px-1.5 py-0.5 rounded-full">
+                      ADMIN
+                    </span>
+                  </NavLink>
+                )}
+
                 <button
                   onClick={() => {
                     useAuthStore.getState().logout()

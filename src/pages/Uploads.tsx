@@ -3,32 +3,37 @@ import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from 'sonner'
 import axios from '@/api/axios'
+import ModelPreview from '@/components/ui/ModelPreview'
 
 type RenderStatus = 'pending' | 'processing' | 'complete' | 'failed' | null
 
-export default function Upload() {
+export default function Uploads() {
   const [file, setFile] = useState<File | null>(null)
-  const [name, setName] = useState<string>('')
-  const [description, setDescription] = useState<string>('')
-  const [uploading, setUploading] = useState<boolean>(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
   const [renderStatus, setRenderStatus] = useState<RenderStatus>(null)
-  const dropzoneRef = useRef<HTMLDivElement | null>(null)
 
-  // Clean up preview URL when component unmounts or a new file is selected
   useEffect(() => {
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
+      setFile(null)
     }
-  }, [previewUrl])
+  }, [])
 
   const handleFileChange = (f: File) => {
+    if (!['model/stl', 'application/octet-stream'].includes(f.type) && !f.name.endsWith('.stl') && !f.name.endsWith('.3mf')) {
+      toast.error('Invalid file type. Only STL or 3MF allowed.')
+      return
+    }
+    if (f.size > 50 * 1024 * 1024) {
+      toast.error('File is too large (max 50MB).')
+      return
+    }
+
     setFile(f)
-    setPreviewUrl(URL.createObjectURL(f))
     if (!name) setName(f.name.replace(/\.[^/.]+$/, ''))
-    console.debug('[Upload] File selected:', f)
+    console.debug('[Uploads] File selected:', f)
   }
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -43,24 +48,20 @@ export default function Upload() {
   }
 
   const pollRenderStatus = async (uploadId: string) => {
-    console.debug('[Upload] Polling render status for ID:', uploadId)
-    const poll = async () => {
+    const interval = setInterval(async () => {
       try {
         const res = await axios.get(`/upload/status/${uploadId}`)
         const status: RenderStatus = res.data.status
         setRenderStatus(status)
-        console.info('[Upload] Render status:', status)
-        if (status === 'complete') {
-          toast.success('Model render complete')
+        if (status === 'complete' || status === 'failed') {
           clearInterval(interval)
+          toast.success(`Render ${status}`)
         }
-      } catch (err) {
-        console.error('[Upload] Poll failed:', err)
-        toast.error('Render status polling failed')
+      } catch {
         clearInterval(interval)
+        toast.error('Failed to poll render status')
       }
-    }
-    const interval = setInterval(poll, 3000)
+    }, 3000)
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -76,40 +77,56 @@ export default function Upload() {
     formData.append('name', name)
     formData.append('description', description)
 
-    console.debug('[Upload] Submitting upload:', { name, description, file })
+    setUploading(true)
+    setProgress(0)
 
     try {
-      setUploading(true)
-      const res = await axios.post('/upload/', formData, {
+      const res = await axios.post('/api/v1/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (evt) => {
+          if (evt.total) {
+            const percent = Math.round((evt.loaded * 100) / evt.total)
+            setProgress(percent)
+          }
+        },
       })
-      const { id, url, uploaded_at } = res.data
-      console.info('[Upload] Upload complete:', res.data)
 
-      toast.success('Model uploaded successfully')
+      const { id } = res.data
+      toast.success('Upload complete, rendering started')
+      pollRenderStatus(id)
+
       setFile(null)
-      setPreviewUrl(null)
       setName('')
       setDescription('')
-      pollRenderStatus(id)
     } catch (err) {
-      console.error('[Upload] Upload failed:', err)
       toast.error('Upload failed')
+      console.error(err)
     } finally {
       setUploading(false)
+      setProgress(0)
     }
+  }
+
+  const handleReset = () => {
+    setFile(null)
+    setName('')
+    setDescription('')
+    setProgress(0)
+    setUploading(false)
+    setRenderStatus(null)
   }
 
   return (
     <PageLayout title="Upload 3D Model">
       <GlassCard>
         <div
-          ref={dropzoneRef}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           className="w-full border-2 border-dashed border-zinc-400 rounded-lg p-6 text-center dark:border-zinc-600 mb-4"
         >
-          <p className="text-zinc-600 dark:text-zinc-400 mb-2">Drag and drop an STL or 3MF file here</p>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-2">
+            Drag and drop an STL or 3MF file here
+          </p>
           <input
             type="file"
             accept=".stl,.3mf"
@@ -120,14 +137,16 @@ export default function Upload() {
           />
         </div>
 
-        {previewUrl && (
+        {file && (
           <div className="mb-4 text-center">
-            <p className="text-sm mb-2 text-zinc-500">Selected:</p>
-            <img
-              src={previewUrl}
-              alt="preview"
-              className="w-32 h-32 mx-auto object-contain border border-zinc-300 dark:border-zinc-700 rounded-lg"
+            <p className="text-sm mb-2 text-zinc-500">Selected Preview:</p>
+            <ModelPreview
+              file={file}
+              width={300}
+              height={300}
+              background="#f8fafc"
             />
+            <p className="text-xs mt-1 text-zinc-500">{file.name}</p>
           </div>
         )}
 
@@ -137,10 +156,7 @@ export default function Upload() {
             <input
               type="text"
               value={name}
-              onChange={(e) => {
-                setName(e.target.value)
-                console.debug('[Upload] Name updated:', e.target.value)
-              }}
+              onChange={(e) => setName(e.target.value)}
               className="w-full p-2 border rounded-md dark:bg-zinc-800"
               placeholder="Model name"
               required
@@ -151,24 +167,43 @@ export default function Upload() {
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
               value={description}
-              onChange={(e) => {
-                setDescription(e.target.value)
-                console.debug('[Upload] Description updated:', e.target.value)
-              }}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full p-2 border rounded-md dark:bg-zinc-800"
               rows={3}
               placeholder="Model description (optional)"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={uploading}
-            className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800"
-          >
-            {uploading ? 'Uploading…' : 'Upload Model'}
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={uploading}
+              className="flex-1 bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800 disabled:opacity-50"
+            >
+              {uploading ? 'Uploading…' : 'Upload Model'}
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={uploading}
+              className="flex-1 bg-zinc-200 text-zinc-700 py-2 rounded-md hover:bg-zinc-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+            >
+              Reset
+            </button>
+          </div>
         </form>
+
+        {uploading && (
+          <div className="mt-4">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">Progress: {progress}%</p>
+            <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded">
+              <div
+                className="h-2 bg-blue-600 rounded"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {renderStatus && (
           <div className="mt-6 text-sm text-center text-zinc-700 dark:text-zinc-300">

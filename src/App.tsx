@@ -12,7 +12,7 @@ import { AnimatePresence } from 'framer-motion'
 import Landing from '@/pages/Landing'
 import Dashboard from '@/pages/Dashboard'
 import Browse from '@/pages/Browse'
-import Upload from '@/pages/Upload'
+import Uploads from '@/pages/Uploads'
 import Estimate from '@/pages/Estimate'
 import Admin from '@/pages/Admin'
 import NotFound from '@/pages/NotFound'
@@ -30,7 +30,7 @@ import { ModalProvider } from '@/context/ModalProvider'
 // Global layout
 import Navbar from '@/components/layout/Navbar'
 
-// Auth store (mock user dev support)
+// Auth store
 import { useAuthStore } from '@/store/useAuthStore'
 
 // Debugging route changes
@@ -40,6 +40,28 @@ function RouteChangeLogger(): null {
     console.debug(`[Router] Navigated to ${location.pathname}`)
   }, [location])
   return null
+}
+
+// Protect admin route
+const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const user = useAuthStore((s) => s.user)
+
+  if (!user || (user.role !== 'admin' && !user.isAdmin)) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white">
+        <div className="bg-white/60 dark:bg-zinc-800/60 p-6 rounded-xl shadow-xl backdrop-blur">
+          <h1 className="text-2xl font-semibold text-red-600 dark:text-red-400 mb-2">
+            Access Denied
+          </h1>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300">
+            You must be an administrator to view this page.
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  return <>{children}</>
 }
 
 function AnimatedRoutes() {
@@ -56,9 +78,16 @@ function AnimatedRoutes() {
         {/* Protected Routes */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/browse" element={<Browse />} />
-        <Route path="/upload" element={<Upload />} />
+        <Route path="/uploads" element={<Uploads />} />
         <Route path="/estimate" element={<Estimate />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedAdminRoute>
+              <Admin />
+            </ProtectedAdminRoute>
+          }
+        />
 
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
