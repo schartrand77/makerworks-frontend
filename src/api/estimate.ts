@@ -4,7 +4,7 @@ export interface EstimatePayload {
   modelId: string
   volume: number
   filamentType: string
-  filamentColor: string
+  filamentColors: string[]
   dimensions: { x: number; y: number; z: number }
   customText?: string
   printProfile?: 'standard' | 'quality' | 'elite'
