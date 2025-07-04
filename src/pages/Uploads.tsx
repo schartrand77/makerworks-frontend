@@ -14,10 +14,14 @@ export default function Uploads() {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [renderStatus, setRenderStatus] = useState<RenderStatus>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     return () => {
       setFile(null)
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+      }
     }
   }, [])
 
@@ -48,17 +52,18 @@ export default function Uploads() {
   }
 
   const pollRenderStatus = async (uploadId: string) => {
-    const interval = setInterval(async () => {
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+    pollIntervalRef.current = setInterval(async () => {
       try {
         const res = await axios.get(`/upload/status/${uploadId}`)
         const status: RenderStatus = res.data.status
         setRenderStatus(status)
         if (status === 'complete' || status === 'failed') {
-          clearInterval(interval)
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
           toast.success(`Render ${status}`)
         }
       } catch {
-        clearInterval(interval)
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
         toast.error('Failed to poll render status')
       }
     }, 3000)
