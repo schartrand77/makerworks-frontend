@@ -10,7 +10,7 @@ interface EstimateForm {
   y_mm: number | string
   z_mm: number | string
   filament_type: 'pla' | 'petg'
-  filament_color: string
+  filament_colors: string[]
   print_profile: 'standard' | 'quality' | 'elite'
 }
 
@@ -38,7 +38,7 @@ export default function Estimate() {
         y_mm: parseFloat(form.y_mm as string),
         z_mm: parseFloat(form.z_mm as string),
         filamentType: form.filament_type,
-        filamentColor: form.filament_color,
+        filamentColors: form.filament_colors,
         printProfile: form.print_profile,
       }
 
@@ -104,16 +104,37 @@ export default function Estimate() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Filament Color</label>
-              <input
-                type="color"
-                value={form.filament_color}
-                onChange={(e) => {
-                  setForm('filament_color', e.target.value)
-                  console.debug('[Estimate] filament_color:', e.target.value)
-                }}
-                className="w-full rounded-md border p-2 h-10 dark:bg-zinc-800"
-              />
+              <label className="block text-sm font-medium mb-1">Filament Colors</label>
+              <div className="flex space-x-2">
+                {form.filament_colors.map((color, idx) => (
+                  <div key={idx} className="relative">
+                    <input
+                      type="color"
+                      value={color}
+                      onChange={(e) => {
+                        const newColors = [...form.filament_colors]
+                        newColors[idx] = e.target.value
+                        setForm('filament_colors', newColors)
+                        console.debug(`[Estimate] filament_colors[${idx}]:`, e.target.value)
+                      }}
+                      className="w-10 h-10 p-0 border rounded-md dark:bg-zinc-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newColors = [...form.filament_colors]
+                        newColors[idx] = '#ffffff'
+                        setForm('filament_colors', newColors)
+                        console.debug(`[Estimate] cleared color index ${idx}`)
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                      aria-label="Remove color"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div>
