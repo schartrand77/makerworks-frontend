@@ -30,19 +30,6 @@
     @apply relative overflow-hidden inline-flex items-center justify-center font-medium rounded-pill backdrop-blur-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
   }
 
-  .glass-card::before,
-  .glass-button::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.1) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 5s linear infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   .glass-card::after,
   .glass-button::after {
     content: '';
@@ -57,15 +44,6 @@
 
   .liquid-bg {
     @apply bg-gradient-to-br from-liquid-start via-liquid-middle to-liquid-end;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
   }
 }
 
