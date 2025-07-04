@@ -11,6 +11,7 @@ import { AnimatePresence } from 'framer-motion'
 // Pages
 import Landing from '@/pages/Landing'
 import Dashboard from '@/pages/Dashboard'
+import Browse from '@/pages/Browse'
 import Upload from '@/pages/Upload'
 import Estimate from '@/pages/Estimate'
 import NotFound from '@/pages/NotFound'
@@ -53,6 +54,7 @@ function AnimatedRoutes() {
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/browse" element={<Browse />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/estimate" element={<Estimate />} />
 
@@ -77,7 +79,7 @@ const App: React.FC = () => {
       <ModalProvider>
         <RouteChangeLogger />
         <Navbar />
-        <main className="min-h-screen flex flex-col pt-20 bg-white text-zinc-900 dark:bg-zinc-900 dark:text-white">
+        <main className="min-h-screen flex flex-col pt-20 liquid-bg text-zinc-900 dark:text-white">
           <AnimatedRoutes />
         </main>
       </ModalProvider>
