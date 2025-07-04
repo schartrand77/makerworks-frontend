@@ -12,21 +12,70 @@
 */
 @layer components {
   .glass-input {
-    @apply w-full px-4 py-3 rounded-xl border 
+    @apply w-full px-4 py-3 rounded-xl border
            bg-white/10 dark:bg-white/10
            text-white dark:text-white
            placeholder-white/70 dark:placeholder-white/50
            backdrop-blur-md shadow-vision
            border-white/30 dark:border-white/30
-           focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-300 
+           focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-300
            transition-all duration-200;
   }
 
   .glass-card {
-    @apply rounded-3xl border border-white/30 dark:border-zinc-700/40 backdrop-blur-lg bg-white/60 dark:bg-zinc-800/50 shadow-glass;
+    @apply rounded-3xl border border-white/30 dark:border-zinc-700/40 backdrop-blur-lg bg-white/60 dark:bg-zinc-800/50 shadow-glass relative overflow-hidden;
+  }
+
+  .glass-button {
+    @apply relative overflow-hidden inline-flex items-center justify-center font-medium rounded-pill backdrop-blur-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .glass-card::before,
+  .glass-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.1) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 5s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass-card::after,
+  .glass-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    animation: ripple 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
   }
 
   .liquid-bg {
     @apply bg-gradient-to-br from-liquid-start via-liquid-middle to-liquid-end;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
   }
 }
