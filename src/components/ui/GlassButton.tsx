@@ -37,7 +37,7 @@ export default function GlassButton<T extends ElementType = 'button'>(
   const Component = as || 'button'
 
   const base =
-    'inline-flex items-center justify-center font-medium transition-all rounded-pill backdrop-blur-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
+    'glass-button inline-flex items-center justify-center font-medium transition-all rounded-pill backdrop-blur-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
 
   const variants = {
     primary:
