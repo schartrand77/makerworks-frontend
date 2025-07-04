@@ -14,6 +14,7 @@ import Dashboard from '@/pages/Dashboard'
 import Browse from '@/pages/Browse'
 import Upload from '@/pages/Upload'
 import Estimate from '@/pages/Estimate'
+import Admin from '@/pages/Admin'
 import NotFound from '@/pages/NotFound'
 
 // Auth module
@@ -57,6 +58,7 @@ function AnimatedRoutes() {
         <Route path="/browse" element={<Browse />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/estimate" element={<Estimate />} />
+        <Route path="/admin" element={<Admin />} />
 
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
