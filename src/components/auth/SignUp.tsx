@@ -42,9 +42,6 @@ const SignUp: React.FC = () => {
         console.warn("[SignUp] ⚠️ setToken is not a function")
       }
 
-      // Optional: persist token
-      localStorage.setItem("token", token)
-
       // Navigate to dashboard
       navigate("/dashboard")
     } catch (err: any) {

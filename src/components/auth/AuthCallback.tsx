@@ -27,7 +27,6 @@ const AuthCallback = () => {
           const { token, user } = res.data
           useAuthStore.getState().setToken(token)
           useAuthStore.getState().setUser(user)
-          localStorage.setItem("auth_token", token)
 
           console.info("[AuthCallback] ✅ Auth success. Redirecting to dashboard...")
           return navigate("/dashboard")

@@ -16,8 +16,6 @@ export async function handleAuthCallback(
     if (res.status === 200 && res.data?.token && res.data?.user) {
       useAuthStore.getState().setToken(res.data.token)
       useAuthStore.getState().setUser(res.data.user)
-
-      localStorage.setItem("auth_token", res.data.token)
       console.debug("[AuthCallback] ✅ Token saved and user updated")
 
       navigate("/dashboard")

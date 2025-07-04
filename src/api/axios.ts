@@ -38,7 +38,6 @@ function parseAuthentikUser(): AuthentikUser | null {
 instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConfig => {
   try {
     const auth = parseAuthentikUser()
-    const token = sessionStorage.getItem('access_token')
 
     config.headers = {
       ...config.headers,
@@ -50,9 +49,6 @@ instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConf
       config.headers['X-Authentik-Groups'] = auth.groups?.join(',') || ''
     }
 
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
-    }
 
     const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`
     console.debug(label)
