@@ -26,7 +26,8 @@ export default function Uploads() {
   }, [])
 
   const handleFileChange = (f: File) => {
-    if (!['model/stl', 'application/octet-stream'].includes(f.type) && !f.name.endsWith('.stl') && !f.name.endsWith('.3mf')) {
+    const lowerName = f.name.toLowerCase()
+    if (!['model/stl', 'application/octet-stream'].includes(f.type) && !lowerName.endsWith('.stl') && !lowerName.endsWith('.3mf')) {
       toast.error('Invalid file type. Only STL or 3MF allowed.')
       return
     }
