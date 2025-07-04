@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import DashboardCard from '@/components/ui/DashboardCard'
 import { useUser } from '@/hooks/useUser'
-import { Users, Cube, DollarSign, Settings } from 'lucide-react'
+import { Users, Boxes, DollarSign, Settings } from 'lucide-react'
 
 const Admin: React.FC = () => {
   const { user, isAdmin, loading } = useUser()
@@ -43,7 +43,7 @@ const Admin: React.FC = () => {
         <DashboardCard
           title="Model Library"
           description="Audit, remove duplicates, or manage uploads."
-          icon={<Cube />}
+          icon={<Boxes />}
           to="/admin/models"
         />
         <DashboardCard
