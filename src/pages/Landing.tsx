@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
 import { useUser } from '@/hooks/useUser'
-import { useAuthStore } from '@/store/useAuthStore'
+import { useAuthStore } from '@/store/auth'
 
 const Landing: React.FC = () => {
   const { user, isAuthenticated, loading } = useUser()

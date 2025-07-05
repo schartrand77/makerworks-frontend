@@ -2,7 +2,7 @@
 
 import axios from './axios'
 import { User } from '@/types/user'
-import { useAuthStore } from '@/store/useAuthStore'
+import { useAuthStore } from '@/store/auth'
 
 const BACKEND_LOGIN_URL = '/auth/login'
 const CURRENT_USER_URL = `/users/users/me`

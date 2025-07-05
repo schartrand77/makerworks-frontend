@@ -33,7 +33,7 @@ import { ModalProvider } from '@/context/ModalProvider'
 import Navbar from '@/components/layout/Navbar'
 
 // Auth store
-import { useAuthStore } from '@/store/useAuthStore'
+import { useAuthStore } from '@/store/auth'
 
 // Debugging route changes
 function RouteChangeLogger(): null {

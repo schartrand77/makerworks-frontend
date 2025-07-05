@@ -1,7 +1,7 @@
 // src/components/layout/DesktopNavbar.tsx
 import { useLocation, NavLink } from 'react-router-dom'
 import { Sun, Moon, Shield, ShoppingCart, CreditCard } from 'lucide-react'
-import { useAuthStore } from '@/store/useAuthStore'
+import { useAuthStore } from '@/store/auth'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useClickAway from '@/hooks/useClickAway'

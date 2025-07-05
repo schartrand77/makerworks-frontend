@@ -1,6 +1,6 @@
 // src/api/authCallback.ts
 import axios from "@/api/axios"
-import { useAuthStore } from "@/store/useAuthStore"
+import { useAuthStore } from "@/store/auth"
 import { NavigateFunction } from "react-router-dom"
 
 export async function handleAuthCallback(
