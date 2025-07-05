@@ -15,6 +15,10 @@ import Browse from '@/pages/Browse'
 import Uploads from '@/pages/Uploads'
 import Estimate from '@/pages/Estimate'
 import Admin from '@/pages/Admin'
+import AdminUsers from '@/pages/AdminUsers'
+import AdminModels from '@/pages/AdminModels'
+import AdminFilaments from '@/pages/AdminFilaments'
+import AdminSystem from '@/pages/AdminSystem'
 import Cart from '@/pages/Cart'
 import Checkout from '@/pages/Checkout'     // ✅ added
 import NotFound from '@/pages/NotFound'
@@ -89,6 +93,38 @@ function AnimatedRoutes() {
           element={
             <ProtectedAdminRoute>
               <Admin />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedAdminRoute>
+              <AdminUsers />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/models"
+          element={
+            <ProtectedAdminRoute>
+              <AdminModels />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/filaments"
+          element={
+            <ProtectedAdminRoute>
+              <AdminFilaments />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/system"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSystem />
             </ProtectedAdminRoute>
           }
         />
