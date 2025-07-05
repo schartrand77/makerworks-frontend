@@ -1,6 +1,6 @@
 import { useEffect, useState, ChangeEvent } from 'react'
 import { useUser } from '@/hooks/useUser'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '@/store/useAuthStore'
 import { cn } from '@/lib/utils'
 import { updateUserProfile, uploadAvatar } from '@/api/users'
 import { toast } from 'sonner'
