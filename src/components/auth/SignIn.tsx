@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '@/components/layout/PageLayout'
-import { useAuthStore } from '@/store/useAuthStore'
+import { useAuthStore } from '@/store/auth'
 import { loginWithPassword, getCurrentUser } from '@/api/auth'
 
 const SignIn = () => {
