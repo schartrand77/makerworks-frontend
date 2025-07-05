@@ -36,6 +36,7 @@ export const useUser = () => {
     resolved,
     isAuthed: isAuthenticatedFn?.() ?? false,
     isAuthenticated: isAuthenticatedFn?.() ?? false,
+    hasRole: hasRoleFn,
     isAdmin,
     isUser,
   }
