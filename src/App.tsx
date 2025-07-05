@@ -13,6 +13,8 @@ import { toast } from 'sonner' // ✅ add sonner or your preferred toast lib
 
 import { useAuthStore } from '@/store/useAuthStore'
 
+const isDev = import.meta.env.MODE === 'development'
+
 // Debugging route changes
 function RouteChangeLogger(): null {
   const location = useLocation()
@@ -32,6 +34,7 @@ function useGodModeHotkey() {
   }))
 
   useEffect(() => {
+    if (!isDev) return
     const handler = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().includes('MAC')
       const isShortcut =
@@ -42,7 +45,9 @@ function useGodModeHotkey() {
         e.preventDefault()
         const newState = !godMode
         setGodMode(newState)
-        localStorage.setItem('godMode', JSON.stringify(newState))
+        if (isDev) {
+          localStorage.setItem('godMode', JSON.stringify(newState))
+        }
         toast.success(
           newState
             ? '🚀 God Mode activated'
@@ -66,16 +71,19 @@ const App: React.FC = () => {
       await useAuthStore.getState().fetchUser()
     }
 
-    // restore godMode from localStorage
-    const persistedGodMode = localStorage.getItem('godMode')
-    if (persistedGodMode) {
-      useAuthStore.getState().setGodMode(JSON.parse(persistedGodMode))
+    if (isDev) {
+      const persistedGodMode = localStorage.getItem('godMode')
+      if (persistedGodMode) {
+        useAuthStore.getState().setGodMode(JSON.parse(persistedGodMode))
+      }
     }
 
     fetch()
   }, [])
 
-  useGodModeHotkey()
+  if (isDev) {
+    useGodModeHotkey()
+  }
 
   return (
     <Router>
