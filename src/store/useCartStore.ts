@@ -8,7 +8,8 @@ export interface ModelItem {
   volume?: number
   uploadedAt?: string
   price?: number
-  [key: string]: unknown // allow flexible metadata
+  quantity: number
+  [key: string]: unknown
 }
 
 interface CartStoreState {
@@ -17,6 +18,13 @@ interface CartStoreState {
   addItem: (model: ModelItem) => void
   removeItem: (id: string) => void
   clearCart: () => void
+
+  increaseQuantity: (id: string) => void
+  decreaseQuantity: (id: string) => void
+  setQuantity: (id: string, qty: number) => void
+
+  cartCount: () => number
+  subtotal: () => number
 }
 
 export const useCartStore = create<CartStoreState>()(
@@ -28,9 +36,10 @@ export const useCartStore = create<CartStoreState>()(
         const exists = get().items.find((i) => i.id === model.id)
         if (!exists) {
           console.debug('[CartStore] Adding model:', model)
-          set({ items: [...get().items, model] })
+          set({ items: [...get().items, { ...model, quantity: 1 }] })
         } else {
-          console.debug('[CartStore] Model already in cart:', model.id)
+          console.debug('[CartStore] Model already in cart, increasing quantity:', model.id)
+          get().increaseQuantity(model.id)
         }
       },
 
@@ -42,6 +51,56 @@ export const useCartStore = create<CartStoreState>()(
       clearCart: () => {
         console.warn('[CartStore] Clearing cart')
         set({ items: [] })
+      },
+
+      increaseQuantity: (id: string) => {
+        set({
+          items: get().items.map((item) =>
+            item.id === id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        })
+      },
+
+      decreaseQuantity: (id: string) => {
+        set({
+          items: get().items
+            .map((item) =>
+              item.id === id
+                ? { ...item, quantity: item.quantity - 1 }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        })
+      },
+
+      setQuantity: (id: string, qty: number) => {
+        if (qty <= 0) {
+          get().removeItem(id)
+        } else {
+          set({
+            items: get().items.map((item) =>
+              item.id === id
+                ? { ...item, quantity: qty }
+                : item
+            ),
+          })
+        }
+      },
+
+      cartCount: () => {
+        const count = get().items.reduce((sum, item) => sum + item.quantity, 0)
+        console.debug(`[CartStore] Cart count: ${count}`)
+        return count
+      },
+
+      subtotal: () => {
+        const sum = get()
+          .items
+          .reduce((acc, item) => acc + ((item.price ?? 0) * item.quantity), 0)
+        console.debug(`[CartStore] Subtotal: $${sum.toFixed(2)}`)
+        return sum
       },
     }),
     {

@@ -1,108 +1,105 @@
-// src/store/useAuthStore.ts
 import { create } from 'zustand'
-import axios from '@/api/axios'
-import type { User } from '@/types/user'
+import { persist } from 'zustand/middleware'
 
-interface AuthState {
-  user: User | null
-  token: string | null
-  loading: boolean
-  resolved: boolean
-  setUser: (user: User | null) => void
-  setToken: (token: string | null) => void
-  clearUser: () => void
-  logout: () => void
-  fetchUser: () => Promise<void>
-  isAuthenticated: () => boolean
-  hasRole: (role: 'admin' | 'user') => boolean
-  __mockUser?: boolean // DEV ONLY
+export interface ModelItem {
+  id: string
+  name: string
+  thumbnailUrl?: string
+  volume?: number
+  uploadedAt?: string
+  price: number // in dollars
+  quantity: number
+  [key: string]: unknown
 }
 
-export const useAuthStore = create<AuthState>()((set, get) => ({
-      user: null,
-      token: null,
-      loading: false,
-      resolved: false,
-      __mockUser: import.meta.env.MODE === 'development', // Enable mock user only in dev
+interface CartStoreState {
+  items: ModelItem[]
 
-      setUser: (user) => {
-        console.debug('[AuthStore] setUser:', user)
-        set({ user, resolved: true })
-      },
+  addItem: (model: ModelItem) => void
+  removeItem: (id: string) => void
+  clearCart: () => void
 
-      setToken: (token) => {
-        console.debug('[AuthStore] setToken:', token)
-        set({ token })
+  increaseQuantity: (id: string) => void
+  decreaseQuantity: (id: string) => void
+  setQuantity: (id: string, qty: number) => void
 
-        if (token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  cartCount: () => number
+  subtotal: () => number               // in dollars
+  subtotalCents: () => number         // ✅ for Stripe
+}
+
+export const useCartStore = create<CartStoreState>()(
+  persist(
+    (set, get) => ({
+      items: [],
+
+      addItem: (model: ModelItem) => {
+        const exists = get().items.find((i) => i.id === model.id)
+        if (!exists) {
+          set({ items: [...get().items, { ...model, quantity: 1 }] })
         } else {
-          delete axios.defaults.headers.common['Authorization']
+          get().increaseQuantity(model.id)
         }
       },
 
-      clearUser: () => {
-        console.debug('[AuthStore] clearUser()')
-        set({ user: null, token: null, resolved: true })
-        delete axios.defaults.headers.common['Authorization']
+      removeItem: (id: string) => {
+        set({ items: get().items.filter((m) => m.id !== id) })
       },
 
-      logout: () => {
-        console.debug('[AuthStore] logout()')
-        set({ user: null, token: null, resolved: true })
-        delete axios.defaults.headers.common['Authorization']
+      clearCart: () => {
+        set({ items: [] })
       },
 
-      isAuthenticated: () => {
-        const state = get()
-        return !!state.user?.id || !!state.__mockUser
+      increaseQuantity: (id: string) => {
+        set({
+          items: get().items.map((item) =>
+            item.id === id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        })
       },
 
-      hasRole: (role) => {
-        const state = get()
-
-        if (state.__mockUser) return true
-
-        const groups = state.user?.groups ?? []
-        return groups.includes(`MakerWorks-${role.charAt(0).toUpperCase() + role.slice(1)}`)
+      decreaseQuantity: (id: string) => {
+        set({
+          items: get().items
+            .map((item) =>
+              item.id === id
+                ? { ...item, quantity: item.quantity - 1 }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        })
       },
 
-      fetchUser: async () => {
-        const token = get().token
-        const isMock = get().__mockUser
-
-        if (isMock) {
-          const mock: User = {
-            id: 'mock-user-id',
-            email: 'dev@maker.local',
-            username: 'mockdev',
-            groups: ['MakerWorks-Admin', 'MakerWorks-User'],
-            avatar: 'https://api.dicebear.com/6.x/shapes/svg?seed=dev',
-          }
-          console.debug('[AuthStore] ⚙️ Dev mode: injecting mock user:', mock)
-          set({ user: mock, resolved: true, loading: false })
-          return
-        }
-
-        if (!token) {
-          console.warn('[AuthStore] fetchUser aborted — no token set.')
-          set({ user: null, resolved: true, loading: false })
-          return
-        }
-
-        set({ loading: true })
-
-        try {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-          const res = await axios.get('/auth/me')
-          set({ user: res.data, resolved: true })
-          console.debug('[AuthStore] ✅ fetchUser success:', res.data)
-        } catch (err) {
-          console.warn('[AuthStore] ⚠️ fetchUser failed:', err)
-          set({ user: null, resolved: true })
-        } finally {
-          set({ loading: false })
+      setQuantity: (id: string, qty: number) => {
+        if (qty <= 0) {
+          get().removeItem(id)
+        } else {
+          set({
+            items: get().items.map((item) =>
+              item.id === id
+                ? { ...item, quantity: qty }
+                : item
+            ),
+          })
         }
       },
-    })
+
+      cartCount: () => {
+        return get().items.reduce((sum, item) => sum + item.quantity, 0)
+      },
+
+      subtotal: () => {
+        return get()
+          .items
+          .reduce((acc, item) => acc + item.price * item.quantity, 0)
+      },
+
+      subtotalCents: () => {
+        return Math.round(get().subtotal() * 100)
+      },
+    }),
+    { name: 'cart-storage' }
+  )
 )

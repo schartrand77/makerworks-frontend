@@ -15,6 +15,8 @@ import Browse from '@/pages/Browse'
 import Uploads from '@/pages/Uploads'
 import Estimate from '@/pages/Estimate'
 import Admin from '@/pages/Admin'
+import Cart from '@/pages/Cart'
+import Checkout from '@/pages/Checkout'     // ✅ added
 import NotFound from '@/pages/NotFound'
 
 // Auth module
@@ -80,6 +82,8 @@ function AnimatedRoutes() {
         <Route path="/browse" element={<Browse />} />
         <Route path="/uploads" element={<Uploads />} />
         <Route path="/estimate" element={<Estimate />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />       {/* ✅ added */}
         <Route
           path="/admin"
           element={

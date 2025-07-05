@@ -1,15 +1,31 @@
-// src/components/layout/MobileDrawer.tsx
 import { NAV_LINKS } from '@/config/navConfig'
 import { useState } from 'react'
-import { Menu, X, Shield } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { Menu, X, Shield, ShoppingCart, CreditCard, CheckCircle } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/useAuthStore'
+// import { useCartStore } from '@/store/useCartStore' // optional if cart count + subtotal
 
 const MobileDrawer = () => {
   const [open, setOpen] = useState(false)
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false) // ✅ banner
   const user = useAuthStore((s) => s.user)
   const isAdmin = user?.role === 'admin' || user?.isAdmin
+  const navigate = useNavigate()
+  // const cartItems = useCartStore((s) => s.items)
+  // const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+
+  const handleCartClick = () => {
+    setOpen(false)
+    navigate('/cart')
+  }
+
+  const handleCheckoutClick = () => {
+    setOpen(false)
+    navigate('/checkout')
+    setCheckoutSuccess(true) // ✅ simulate success
+    setTimeout(() => setCheckoutSuccess(false), 5000)
+  }
 
   return (
     <div className="w-full flex justify-between items-center">
@@ -36,8 +52,23 @@ const MobileDrawer = () => {
               text-zinc-900 dark:text-zinc-100
               px-6 py-8 shadow-2xl transition-colors duration-300"
           >
+            {/* ✅ Success Banner */}
+            <AnimatePresence>
+              {checkoutSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center gap-2 p-2 mb-4 rounded bg-green-100 dark:bg-green-700 text-green-800 dark:text-green-100"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Checkout completed successfully!
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Header */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                 Navigation
               </h2>
@@ -50,7 +81,7 @@ const MobileDrawer = () => {
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-4 flex-grow">
               {NAV_LINKS.map(({ label, href }) => (
                 <NavLink
                   key={href}
@@ -106,6 +137,44 @@ const MobileDrawer = () => {
                 </NavLink>
               )}
             </nav>
+
+            {/* Subtotal */}
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 text-center text-base text-zinc-700 dark:text-zinc-300"
+            >
+              {/* subtotal: ${subtotal?.toFixed(2) ?? '0.00'} */}
+              Subtotal: <strong>$123.45</strong> {/* replace with real subtotal */}
+            </motion.div>
+
+            {/* Cart Button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={handleCartClick}
+              className="mt-2 flex items-center justify-center gap-2 bg-blue-600 text-white text-base font-medium px-4 py-2 rounded-full shadow-md hover:bg-blue-700 transition"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              Cart
+              {/* Uncomment below for cart count */}
+              {/* {cartItems.length > 0 && (
+                <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1">
+                  {cartItems.length}
+                </span>
+              )} */}
+            </motion.button>
+
+            {/* Checkout Button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={handleCheckoutClick}
+              className="mt-3 flex items-center justify-center gap-2 bg-green-600 text-white text-base font-medium px-4 py-2 rounded-full shadow-md hover:bg-green-700 transition"
+            >
+              <CreditCard className="w-5 h-5" />
+              Checkout
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

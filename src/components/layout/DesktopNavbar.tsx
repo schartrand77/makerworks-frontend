@@ -1,16 +1,19 @@
 // src/components/layout/DesktopNavbar.tsx
 import { useLocation, NavLink } from 'react-router-dom'
-import { Sun, Moon, Shield } from 'lucide-react'
+import { Sun, Moon, Shield, ShoppingCart, CreditCard } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useClickAway from '@/hooks/useClickAway'
+// import { useCartStore } from '@/store/useCartStore' // optional if cart count
 
 const NAV_LINKS = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Browse', href: '/browse' },
   { label: 'Estimate', href: '/estimate' },
-  { label: 'Uploads', href: '/uploads' }, // ✅ added Uploads here
+  { label: 'Uploads', href: '/uploads' },
+  { label: 'Cart', href: '/cart' },       // ✅ already present
+  { label: 'Checkout', href: '/checkout' }, // ✅ added Checkout
 ]
 
 const DesktopNavbar = () => {
@@ -19,6 +22,7 @@ const DesktopNavbar = () => {
   const ref = useClickAway(() => setDropdownOpen(false))
   const user = useAuthStore((s) => s.user)
   const isAdmin = user?.role === 'admin' || user?.isAdmin
+  // const cartItems = useCartStore((s) => s.items) // optional if cart count
 
   const toggleTheme = () => {
     const html = document.documentElement
@@ -42,7 +46,25 @@ const DesktopNavbar = () => {
               }`
             }
           >
-            {label}
+            {label === 'Cart' ? (
+              <span className="flex items-center gap-1">
+                <ShoppingCart className="w-4 h-4" />
+                {label}
+                {/* Uncomment below for cart count */}
+                {/* {cartItems.length > 0 && (
+                  <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1">
+                    {cartItems.length}
+                  </span>
+                )} */}
+              </span>
+            ) : label === 'Checkout' ? (
+              <span className="flex items-center gap-1">
+                <CreditCard className="w-4 h-4" />
+                {label}
+              </span>
+            ) : (
+              label
+            )}
           </NavLink>
         ))}
       </div>
