@@ -11,6 +11,10 @@ import { toast } from 'sonner' // ✅ add sonner or your preferred toast lib
 
 // … [imports unchanged] …
 
+import Navbar from '@/components/layout/Navbar'
+import { ModalProvider } from '@/context/ModalProvider'
+import AnimatedRoutes from '@/components/AnimatedRoutes'
+
 import { useAuthStore } from '@/store/useAuthStore'
 
 const isDev = import.meta.env.MODE === 'development'
