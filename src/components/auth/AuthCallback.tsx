@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import PageLayout from "@/components/layout/PageLayout"
-import { useAuthStore } from "@/store/auth"
+import { useAuthStore } from '@/store/useAuthStore';
 import axios from "@/api/axios"
 
 const AuthCallback = () => {

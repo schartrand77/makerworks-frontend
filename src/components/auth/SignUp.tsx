@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import PageLayout from "@/components/layout/PageLayout"
-import { useAuthStore } from "@/store/auth"
+import { useAuthStore } from "@/store/useAuthStore";
 import axios from "@/api/axios"
 
 const SignUp: React.FC = () => {

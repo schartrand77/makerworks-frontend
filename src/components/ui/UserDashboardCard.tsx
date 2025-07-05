@@ -1,5 +1,5 @@
 // src/components/ui/UserDashboardCard.tsx
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '@/store/useAuthStore';
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 

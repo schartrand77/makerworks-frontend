@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Menu, X, Shield, ShoppingCart, CreditCard, CheckCircle } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '@/store/useAuthStore';
 // import { useCartStore } from '@/store/useCartStore' // optional if cart count + subtotal
 
 const MobileDrawer = () => {

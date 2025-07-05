@@ -1,6 +1,6 @@
 // src/hooks/useUser.ts
 import { useEffect } from 'react'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const useUser = () => {
   const user = useAuthStore((s) => s.user)
