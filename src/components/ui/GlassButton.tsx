@@ -16,24 +16,22 @@ interface BaseProps {
   variant?: GlassButtonVariant
   size?: GlassButtonSize
   disabled?: boolean
+  loading?: boolean
 }
 
 type GlassButtonProps<T extends ElementType = 'button'> = BaseProps &
   ComponentPropsWithoutRef<T>
 
-export default function GlassButton<T extends ElementType = 'button'>(
-  props: GlassButtonProps<T>
-) {
-  const {
-    as,
-    children,
-    className = '',
-    variant = 'primary',
-    size = 'md',
-    disabled = false,
-    ...rest
-  } = props
-
+export default function GlassButton<T extends ElementType = 'button'>({
+  as,
+  children,
+  className = '',
+  variant = 'primary',
+  size = 'md',
+  disabled = false,
+  loading = false,
+  ...rest
+}: GlassButtonProps<T>) {
   const Component = as || 'button'
 
   const base =
@@ -54,19 +52,27 @@ export default function GlassButton<T extends ElementType = 'button'>(
     lg: 'text-lg px-6 py-3',
   }
 
+  const isDisabled = disabled || loading
+
   return (
     <Component
       className={clsx(
         base,
         variants[variant],
         sizes[size],
-        disabled && 'opacity-50 pointer-events-none',
+        isDisabled && 'opacity-50 pointer-events-none',
         className
       )}
-      disabled={disabled}
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      type={!as || as === 'button' ? 'submit' : undefined}
       {...rest}
     >
-      {children}
+      {loading ? (
+        <span className="animate-pulse">Loading…</span>
+      ) : (
+        children
+      )}
     </Component>
   )
 }
