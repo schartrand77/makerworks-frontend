@@ -8,7 +8,7 @@ import axios, {
 } from 'axios'
 
 const baseURL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://192.168.1.170:49152'
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:3000'
 
 console.debug('[Axios] Using API base URL:', baseURL)
 
