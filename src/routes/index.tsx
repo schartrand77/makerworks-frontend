@@ -3,8 +3,7 @@ import ProtectedLayout from '@/layouts/ProtectedLayout'
 import PageLayout from '@/components/layout/PageLayout'
 
 import Landing from '@/pages/Landing'
-import SignIn from '@/pages/auth/SignIn'
-import SignUp from '@/pages/auth/SignUp'
+import { SignIn, SignUp } from '@/components/auth'
 
 import Dashboard from '@/pages/Dashboard'
 import Estimate from '@/pages/Estimate'
