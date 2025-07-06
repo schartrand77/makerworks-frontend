@@ -1,50 +1,50 @@
-import { useEffect, useState, ChangeEvent } from 'react'
-import { useUser } from '@/hooks/useUser'
-import { useAuthStore } from '@/store/useAuthStore'
-import { cn } from '@/lib/utils'
-import { updateUserProfile, uploadAvatar } from '@/api/users'
+import { useState, useEffect, ChangeEvent } from 'react'
 import { toast } from 'sonner'
+
+import { useUser } from '@/hooks/useUser'
+import { cn } from '@/lib/utils'
+
+import { updateUserProfile, uploadAvatar, deleteAccount } from '@/api/users'
+
+import type { AvatarUploadResponse } from '@/types/AvatarUploadResponse'
+import { Box } from 'lucide-react' // ✅ fixed icon
 
 const themes = ['system', 'light', 'dark'] as const
 type Theme = typeof themes[number]
 
 export default function Settings() {
-  const { user, loading, isAdmin } = useUser()
+  const { user, loading, isAdmin, setUser } = useUser()
   const [theme, setTheme] = useState<Theme>('system')
-  const [bio, setBio] = useState<string>('')
-  const [saving, setSaving] = useState<boolean>(false)
-  const [confirmDelete, setConfirmDelete] = useState<boolean>(false)
+  const [bio, setBio] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     const saved = (localStorage.getItem('theme') as Theme) || 'system'
     setTheme(saved)
     if (user?.bio) setBio(user.bio)
-    console.debug('[Settings] Loaded theme + bio from state')
-  }, [user])
+    if (user?.avatar_url) setUser({ ...user })
+  }, [user, setUser])
 
   const handleThemeChange = (val: Theme) => {
     setTheme(val)
     localStorage.setItem('theme', val)
-    console.debug('[Settings] Theme updated:', val)
     document.documentElement.classList.remove('light', 'dark')
     if (val === 'light') document.documentElement.classList.add('light')
     if (val === 'dark') document.documentElement.classList.add('dark')
   }
 
-  const handleDelete = () => {
-    console.warn('[Settings] User requested account deletion:', user)
-    alert('Account deletion not implemented. Stub.')
-  }
-
   const handleSave = async () => {
-    console.debug('[Settings] Submitting bio to backend…')
     setSaving(true)
+    const prevBio = user?.bio
+    setUser({ ...user!, bio })
     try {
-      const res = await updateUserProfile({ bio })
-      console.info('[Settings] Bio saved:', res.data)
+      await updateUserProfile({ bio })
       toast.success('Profile updated')
-    } catch (err) {
-      console.error('[Settings] Failed to update profile:', err)
+    } catch {
+      setUser({ ...user!, bio: prevBio })
       toast.error('Failed to save changes')
     } finally {
       setSaving(false)
@@ -54,139 +54,148 @@ export default function Settings() {
   const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    console.debug('[Settings] Uploading avatar:', file)
+    setUploadingAvatar(true)
     try {
-      const res = await uploadAvatar(file)
-      console.info('[Settings] Avatar uploaded:', res.data)
-      toast.success('Avatar updated')
-      window.location.reload()
-    } catch (err) {
-      console.error('[Settings] Avatar upload failed:', err)
-      toast.error('Avatar upload failed')
+      const res: AvatarUploadResponse | null = await uploadAvatar(file)
+      if (res) {
+        setUser({ ...user!, avatar_url: res.avatar_url, thumbnail_url: res.thumbnail_url })
+        toast.success('Avatar updated')
+      }
+    } catch {
+      toast.error('Failed to upload avatar')
+    } finally {
+      setUploadingAvatar(false)
     }
+  }
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    setDeleting(true)
+    try {
+      await deleteAccount()
+      toast.success('Account deleted')
+      window.location.href = '/'
+    } catch {
+      toast.error('Failed to delete account')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8 animate-pulse">
+        <div className="h-8 bg-zinc-300 rounded w-1/3"></div>
+        <div className="h-16 bg-zinc-200 rounded"></div>
+        <div className="h-48 bg-zinc-200 rounded"></div>
+      </div>
+    )
   }
 
   return (
     <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8">
-      <h1 className="text-3xl font-semibold mb-2">User Settings</h1>
+      <h1 className="text-3xl font-semibold mb-4 flex items-center gap-2">
+        <Box className="w-6 h-6 text-primary" /> {/* ✅ fixed */}
+        User Settings
+      </h1>
 
-      {loading && <p className="text-muted-foreground">Loading user settings…</p>}
+      {/* Avatar */}
+      <div className="glass-card">
+        <h2 className="text-xl font-medium mb-4">Profile Picture</h2>
+        <div className="flex items-center gap-4">
+          {uploadingAvatar ? (
+            <div className="w-16 h-16 rounded-full bg-zinc-200 animate-pulse" />
+          ) : user?.avatar_url ? (
+            <img src={user.avatar_url} alt="avatar" className="w-16 h-16 rounded-full object-cover border" />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-zinc-300 flex items-center justify-center text-white">
+              {user.username?.[0] ?? '?'}
+            </div>
+          )}
+          <label className="cursor-pointer text-sm underline text-primary">
+            Change…
+            <input type="file" accept="image/*" hidden onChange={handleAvatarUpload} />
+          </label>
+        </div>
+      </div>
 
-      {!loading && user && (
-        <>
-          {/* Avatar Upload */}
-          <div className="glass-card">
-            <h2 className="text-xl font-medium mb-4">Profile Picture</h2>
-            <div className="flex items-center gap-4">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt="avatar"
-                  className="w-16 h-16 rounded-full object-cover border border-zinc-300 dark:border-zinc-600"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-zinc-300 dark:bg-zinc-700 text-center flex items-center justify-center text-white text-sm font-semibold">
-                  {user.username?.[0] ?? '?'}
-                </div>
+      {/* Bio */}
+      <div className="glass-card">
+        <h2 className="text-xl font-medium mb-4">Public Bio</h2>
+        <textarea
+          value={bio}
+          onChange={e => setBio(e.target.value)}
+          className="w-full p-3 rounded-md border text-sm"
+          rows={3}
+          maxLength={140}
+          placeholder="Tell others about your maker vibe…"
+        />
+        <div className="flex justify-between mt-3">
+          <div className="text-xs">{bio.length}/140</div>
+          <button
+            disabled={saving}
+            onClick={handleSave}
+            className="px-4 py-2 text-sm rounded-md bg-zinc-900 text-white disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+
+      {/* Theme */}
+      <div className="glass-card">
+        <h2 className="text-xl font-medium mb-4">Theme</h2>
+        <div className="flex gap-3">
+          {themes.map(t => (
+            <button
+              key={t}
+              onClick={() => handleThemeChange(t)}
+              className={cn(
+                'px-4 py-2 rounded-full border text-sm',
+                theme === t
+                  ? 'bg-zinc-900 text-white'
+                  : 'bg-transparent border-zinc-300 text-zinc-700'
               )}
-              <label className="cursor-pointer text-sm font-medium underline text-primary">
-                Change…
-                <input type="file" accept="image/*" hidden onChange={handleAvatarUpload} />
-              </label>
-            </div>
-          </div>
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          {/* Account Info */}
-          <div className="glass-card">
-            <h2 className="text-xl font-medium mb-4">Account Info</h2>
-            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-              <div><label className="block text-zinc-500">Username</label><div>{user.username}</div></div>
-              <div><label className="block text-zinc-500">Email</label><div>{user.email}</div></div>
-              <div><label className="block text-zinc-500">Role</label><div>{isAdmin ? 'Admin' : 'User'}</div></div>
-              <div><label className="block text-zinc-500">Verified</label><div>{user.is_verified ? 'Yes' : 'No'}</div></div>
-              <div><label className="block text-zinc-500">Last Login</label><div>{user.last_login || 'Unknown'}</div></div>
-            </div>
-          </div>
-
-          {/* Theme */}
-          <div className="glass-card">
-            <h2 className="text-xl font-medium mb-4">Theme</h2>
+      {/* Danger Zone */}
+      <div className="rounded-xl bg-red-50 p-6">
+        <h2 className="text-xl font-semibold text-red-700 mb-4">Danger Zone</h2>
+        {!confirmDelete ? (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg"
+          >
+            Delete Account
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-red-600">This action is irreversible.</p>
             <div className="flex gap-3">
-              {themes.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => handleThemeChange(t)}
-                  className={cn(
-                    'px-4 py-2 rounded-full border text-sm',
-                    theme === t
-                      ? 'bg-zinc-900 text-white dark:bg-white/10 border-zinc-900 dark:border-zinc-300'
-                      : 'bg-transparent border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
-                  )}
-                >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Bio */}
-          <div className="glass-card">
-            <h2 className="text-xl font-medium mb-4">Public Bio</h2>
-            <textarea
-              value={bio}
-              onChange={(e) => {
-                setBio(e.target.value)
-                console.debug('[Settings] Bio updated:', e.target.value)
-              }}
-              className="w-full p-3 rounded-md border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-sm"
-              rows={3}
-              maxLength={140}
-              placeholder="Tell others about your maker vibe (max 140 chars)…"
-            />
-            <div className="flex justify-between mt-3">
-              <div className="text-xs text-zinc-400">{bio.length}/140</div>
               <button
-                disabled={saving}
-                onClick={handleSave}
-                className="px-4 py-2 text-sm rounded-md bg-zinc-900 text-white dark:bg-white/10 hover:bg-zinc-700 disabled:opacity-50"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-700 text-white rounded-lg flex items-center gap-2"
               >
-                {saving ? 'Saving…' : 'Save Changes'}
+                {deleting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                Confirm Deletion
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="px-4 py-2 bg-gray-300 text-black rounded-lg"
+              >
+                Cancel
               </button>
             </div>
           </div>
-
-          {/* Danger Zone */}
-          <div className="rounded-xl bg-red-50 dark:bg-zinc-900/70 backdrop-blur shadow border border-red-200 dark:border-red-500 p-6">
-            <h2 className="text-xl font-semibold text-red-700 dark:text-red-400 mb-4">Danger Zone</h2>
-            {!confirmDelete ? (
-              <button
-                onClick={() => setConfirmDelete(true)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-              >
-                Delete Account
-              </button>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-red-600">This action is irreversible.</p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleDelete}
-                    className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg"
-                  >
-                    Confirm Deletion
-                  </button>
-                  <button
-                    onClick={() => setConfirmDelete(false)}
-                    className="px-4 py-2 bg-zinc-300 hover:bg-zinc-400 text-black dark:bg-zinc-600 dark:text-white rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   )
 }
