@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 import { updateUserProfile, uploadAvatar, deleteAccount } from '@/api/users'
 
-import type { AvatarUploadResponse } from '@/types/AvatarUploadResponse'
+import type { AvatarUploadResponse } from '@/api/users'
 import { Box } from 'lucide-react' // ✅ fixed icon
 
 const themes = ['system', 'light', 'dark'] as const
