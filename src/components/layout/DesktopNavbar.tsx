@@ -12,7 +12,7 @@ const NAV_LINKS = [
 ]
 
 const DesktopNavbar = () => {
-  const { pathname } = useLocation()
+  useLocation()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const ref = useClickAway(() => setDropdownOpen(false))
   const user = useAuthStore((s) => s.user)
