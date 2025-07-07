@@ -29,17 +29,7 @@ export default function PageLayout({
   onClose,
 }: PageLayoutProps) {
   useEffect(() => {
-    if (title) {
-      document.title = `${title} | MakerWorks`
-    }
-
-    console.groupCollapsed(`[PageLayout] Mount: ${title}`)
-    console.debug('[PageLayout] Title:', title)
-    console.groupEnd()
-
-    return () => {
-      console.debug(`[PageLayout] Unmount: ${title}`)
-    }
+    if (title) document.title = `${title} | MakerWorks`
   }, [title])
 
   useEffect(() => {
@@ -48,38 +38,26 @@ export default function PageLayout({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === 'Escape' && onClose) {
-        console.debug('[PageLayout] ESC pressed — triggering onClose')
-        onClose()
-      }
+      if (e.key === 'Escape' && onClose) onClose()
     },
     [onClose]
   )
 
   const shadow =
-    elevation === 'none'
-      ? ''
-      : elevation === 'lg'
-        ? 'shadow-2xl'
-        : 'shadow-xl'
+    elevation === 'none' ? '' :
+    elevation === 'lg' ? 'shadow-2xl' : 'shadow-xl'
 
   const width =
-    maxWidth === 'full'
-      ? 'max-w-full'
-      : maxWidth === 'xl'
-        ? 'max-w-6xl'
-        : maxWidth === 'lg'
-          ? 'max-w-4xl'
-          : maxWidth === 'md'
-            ? 'max-w-2xl'
-            : 'max-w-xl'
+    maxWidth === 'full' ? 'max-w-full' :
+    maxWidth === 'xl'   ? 'max-w-6xl'  :
+    maxWidth === 'lg'   ? 'max-w-4xl'  :
+    maxWidth === 'md'   ? 'max-w-2xl'  : 'max-w-xl'
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-white/80 to-zinc-100 dark:from-zinc-900/90 dark:to-zinc-950 text-zinc-900 dark:text-white">
-      {/* 🔷 Navbar at the top */}
+      {/* ✅ Only this instance of DesktopNavbar remains */}
       <DesktopNavbar />
 
-      {/* 🔷 Page content */}
       <div
         className="w-full flex-1 px-4 py-8 flex justify-center items-start"
         aria-describedby={description ? `${id}-description` : undefined}
@@ -111,7 +89,6 @@ export default function PageLayout({
             </p>
           )}
           <div className="w-full">
-            {/* If children passed explicitly, render them; otherwise render <Outlet /> */}
             {children ?? <Outlet />}
           </div>
         </Component>

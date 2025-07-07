@@ -19,7 +19,7 @@ import Admin from '@/pages/Admin'
 
 /**
  * RoutesRenderer — defines the React Router v6 route tree.
- * 
+ *
  * Public pages are available without login.
  * Protected pages are wrapped with PageLayout and require auth.
  */
@@ -33,7 +33,6 @@ export default function RoutesRenderer() {
 
       {/* 🔒 Protected routes — nested inside PageLayout */}
       <Route path="/" element={<PageLayout />}>
-        <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="upload" element={<Upload />} />
         <Route path="estimate" element={<Estimate />} />
