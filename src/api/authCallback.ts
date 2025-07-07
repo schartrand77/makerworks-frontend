@@ -17,7 +17,8 @@ export async function handleAuthCallback(
       useAuthStore.getState().setToken(res.data.token)
       useAuthStore.getState().setUser(res.data.user, res.data.token)
 
-      localStorage.setItem("auth_token", res.data.token)
+      // Store token consistently with other auth flows
+      localStorage.setItem('token', res.data.token)
       console.debug("[AuthCallback] ✅ Token saved and user updated")
 
       navigate("/dashboard")

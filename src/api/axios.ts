@@ -37,7 +37,8 @@ function parseAuthentikUser(): AuthentikUser | null {
 instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConfig => {
   try {
     const auth = parseAuthentikUser()
-    const token = sessionStorage.getItem('access_token')
+    // Align with useSignIn/useSignUp which store tokens in localStorage
+    const token = localStorage.getItem('token')
 
     config.headers = {
       ...config.headers,
