@@ -1,48 +1,60 @@
 import { useState, useEffect, FormEvent } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
-import { useEstimateStore } from '@/store/useEstimateStore'
+import ModelViewer from '@/components/ui/ModelViewer'
+import { fetchAvailableFilaments } from '@/api/filaments'
 import { getEstimate } from '@/api/estimate'
 import { toast } from 'sonner'
-
-interface EstimateForm {
-  x_mm: number | string
-  y_mm: number | string
-  z_mm: number | string
-  filament_type: 'pla' | 'petg'
-  print_profile: 'standard' | 'quality' | 'elite'
-}
 
 interface EstimateResult {
   estimated_time_minutes: number
   estimated_cost_usd: number
 }
 
+interface Filament {
+  id: string
+  type: string
+  color: string
+  hex: string
+}
+
 export default function Estimate() {
-  const { form, setForm, result, setResult } = useEstimateStore()
-  const [loading, setLoading] = useState<boolean>(false)
+  const [form, setForm] = useState({
+    x_mm: 50,
+    y_mm: 50,
+    z_mm: 50,
+    filament_type: '',
+    colors: [] as string[],
+    custom_text: '',
+    print_profile: 'standard',
+  })
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<EstimateResult | null>(null)
+  const [filaments, setFilaments] = useState<Filament[]>([])
+  const [modelUrl] = useState('/example.stl') // replace with selected model URL
 
   useEffect(() => {
-    console.debug('[Estimate] Mounted with form state:', form)
-  }, [form])
+    fetchAvailableFilaments()
+      .then(setFilaments)
+      .catch(err => {
+        console.error('[Estimate] Failed to load filaments', err)
+        toast.error('Failed to load filaments')
+      })
+  }, [])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    console.debug('[Estimate] Submit triggered with form:', form)
-
     setLoading(true)
+
+    const payload = {
+      ...form,
+      x_mm: Math.max(50, Math.min(256, form.x_mm)),
+      y_mm: Math.max(50, Math.min(256, form.y_mm)),
+      z_mm: Math.max(50, Math.min(256, form.z_mm)),
+    }
+
     try {
-      const payload = {
-        ...form,
-        x_mm: parseFloat(form.x_mm as string),
-        y_mm: parseFloat(form.y_mm as string),
-        z_mm: parseFloat(form.z_mm as string),
-      }
-
-      console.debug('[Estimate] Sending payload to API:', payload)
-      const data: EstimateResult = await getEstimate(payload)
-      console.info('[Estimate] API response received:', data)
-
+      const data = await getEstimate(payload)
       setResult(data)
       toast.success('Estimate calculated')
     } catch (err) {
@@ -53,33 +65,42 @@ export default function Estimate() {
     }
   }
 
+  const toggleColor = (hex: string) => {
+    setForm(prev => {
+      const colors = prev.colors.includes(hex)
+        ? prev.colors.filter(c => c !== hex)
+        : prev.colors.length < 4
+          ? [...prev.colors, hex]
+          : prev.colors
+      return { ...prev, colors }
+    })
+  }
+
   return (
     <PageLayout title="Estimate Print Cost & Time">
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Model Viewer */}
         <GlassCard>
           <h2 className="text-lg font-semibold mb-2">Selected Model</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            No model selected. (TODO: add selection from Browse page.)
-          </p>
+          <ModelViewer src={modelUrl} />
         </GlassCard>
 
+        {/* Form */}
         <GlassCard>
           <h2 className="text-lg font-semibold mb-2">Print Configuration</h2>
           <form className="space-y-4" onSubmit={handleSubmit}>
-            {(['x_mm', 'y_mm', 'z_mm'] as Array<keyof EstimateForm>).map((dim) => (
+            {(['x_mm', 'y_mm', 'z_mm'] as const).map(dim => (
               <div key={dim}>
                 <label className="block text-sm font-medium mb-1">
-                  {dim.toUpperCase()} (mm)
+                  {dim.toUpperCase()} (mm) <span className="text-xs">(50–256)</span>
                 </label>
                 <input
                   type="number"
-                  min={1}
+                  min={50}
+                  max={256}
                   required
                   value={form[dim]}
-                  onChange={(e) => {
-                    setForm(dim, e.target.value)
-                    console.debug(`[Estimate] Updated ${dim}:`, e.target.value)
-                  }}
+                  onChange={(e) => setForm(f => ({ ...f, [dim]: +e.target.value }))}
                   className="w-full rounded-md border p-2 dark:bg-zinc-800"
                 />
               </div>
@@ -89,25 +110,50 @@ export default function Estimate() {
               <label className="block text-sm font-medium mb-1">Filament Type</label>
               <select
                 value={form.filament_type}
-                onChange={(e) => {
-                  setForm('filament_type', e.target.value)
-                  console.debug('[Estimate] filament_type:', e.target.value)
-                }}
+                onChange={(e) => setForm(f => ({ ...f, filament_type: e.target.value }))}
                 className="w-full rounded-md border p-2 dark:bg-zinc-800"
               >
-                <option value="pla">PLA</option>
-                <option value="petg">PETG</option>
+                <option value="">Select filament</option>
+                {filaments.map(f => (
+                  <option key={f.id} value={f.type}>{f.type}</option>
+                ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Select up to 4 Colors</label>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {filaments.map(f => (
+                  <button
+                    key={f.hex}
+                    type="button"
+                    onClick={() => toggleColor(f.hex)}
+                    style={{ backgroundColor: f.hex }}
+                    className={`w-6 h-6 rounded-full border-2 ${
+                      form.colors.includes(f.hex)
+                        ? 'border-black dark:border-white'
+                        : 'border-transparent'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Custom Text</label>
+              <input
+                type="text"
+                value={form.custom_text}
+                onChange={(e) => setForm(f => ({ ...f, custom_text: e.target.value }))}
+                className="w-full rounded-md border p-2 dark:bg-zinc-800"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">Print Profile</label>
               <select
                 value={form.print_profile}
-                onChange={(e) => {
-                  setForm('print_profile', e.target.value)
-                  console.debug('[Estimate] print_profile:', e.target.value)
-                }}
+                onChange={(e) => setForm(f => ({ ...f, print_profile: e.target.value }))}
                 className="w-full rounded-md border p-2 dark:bg-zinc-800"
               >
                 <option value="standard">Standard</option>
@@ -127,6 +173,7 @@ export default function Estimate() {
         </GlassCard>
       </div>
 
+      {/* Result */}
       {result && (
         <GlassCard className="mt-6">
           <h2 className="text-lg font-semibold mb-2">Estimate Result</h2>

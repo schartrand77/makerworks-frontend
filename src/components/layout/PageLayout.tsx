@@ -1,9 +1,11 @@
 import { useEffect, useCallback, ElementType, KeyboardEvent } from 'react'
+import { Outlet } from 'react-router-dom'
 import clsx from 'clsx'
+import DesktopNavbar from '@/components/layout/DesktopNavbar'
 
 interface PageLayoutProps {
-  title: string
-  children: React.ReactNode
+  title?: string
+  children?: React.ReactNode
   center?: boolean
   as?: ElementType
   elevation?: 'none' | 'md' | 'lg'
@@ -73,38 +75,47 @@ export default function PageLayout({
             : 'max-w-xl'
 
   return (
-    <div
-      className="w-full min-h-screen px-4 py-8 flex justify-center items-start bg-gradient-to-b from-white/80 to-zinc-100 dark:from-zinc-900/90 dark:to-zinc-950 text-zinc-900 dark:text-white"
-      aria-describedby={description ? `${id}-description` : undefined}
-    >
-      <Component
-        id={id}
-        role="region"
-        aria-label={title}
-        onKeyDown={handleKeyDown}
-        tabIndex={-1}
-        className={clsx(
-          'w-full',
-          width,
-          padding,
-          'rounded-3xl glass-card',
-          shadow,
-          'transition-all outline-none',
-          center && 'flex flex-col items-center justify-center text-center space-y-6'
-        )}
+    <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-white/80 to-zinc-100 dark:from-zinc-900/90 dark:to-zinc-950 text-zinc-900 dark:text-white">
+      {/* 🔷 Navbar at the top */}
+      <DesktopNavbar />
+
+      {/* 🔷 Page content */}
+      <div
+        className="w-full flex-1 px-4 py-8 flex justify-center items-start"
+        aria-describedby={description ? `${id}-description` : undefined}
       >
-        {title && (
-          <h1 className="text-3xl font-bold tracking-tight" id={`${id}-title`}>
-            {title}
-          </h1>
-        )}
-        {description && (
-          <p className="text-zinc-500 text-sm max-w-prose" id={`${id}-description`}>
-            {description}
-          </p>
-        )}
-        <div className="w-full">{children}</div>
-      </Component>
+        <Component
+          id={id}
+          role="region"
+          aria-label={title}
+          onKeyDown={handleKeyDown}
+          tabIndex={-1}
+          className={clsx(
+            'w-full',
+            width,
+            padding,
+            'rounded-3xl glass-card',
+            shadow,
+            'transition-all outline-none',
+            center && 'flex flex-col items-center justify-center text-center space-y-6'
+          )}
+        >
+          {title && (
+            <h1 className="text-3xl font-bold tracking-tight" id={`${id}-title`}>
+              {title}
+            </h1>
+          )}
+          {description && (
+            <p className="text-zinc-500 text-sm max-w-prose" id={`${id}-description`}>
+              {description}
+            </p>
+          )}
+          <div className="w-full">
+            {/* If children passed explicitly, render them; otherwise render <Outlet /> */}
+            {children ?? <Outlet />}
+          </div>
+        </Component>
+      </div>
     </div>
   )
 }

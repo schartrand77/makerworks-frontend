@@ -23,7 +23,6 @@ interface AuthState {
   fetchUser: () => Promise<void>
   isAuthenticated: () => boolean
   hasRole: (role: 'admin' | 'user') => boolean
-  __mockUser?: boolean // DEV ONLY
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -33,7 +32,6 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       loading: false,
       resolved: false,
-      __mockUser: import.meta.env.MODE === 'development', // Enable mock user only in dev
 
       setUser: (user) => {
         console.debug('[AuthStore] setUser:', user)
@@ -65,34 +63,17 @@ export const useAuthStore = create<AuthState>()(
 
       isAuthenticated: () => {
         const state = get()
-        return !!state.user?.id || !!state.__mockUser
+        return !!state.user?.id
       },
 
       hasRole: (role) => {
         const state = get()
-
-        if (state.__mockUser) return true
-
         const groups = state.user?.groups ?? []
         return groups.includes(`MakerWorks-${role.charAt(0).toUpperCase() + role.slice(1)}`)
       },
 
       fetchUser: async () => {
         const token = get().token
-        const isMock = get().__mockUser
-
-        if (isMock) {
-          const mock: User = {
-            id: 'mock-user-id',
-            email: 'dev@maker.local',
-            username: 'mockdev',
-            groups: ['MakerWorks-Admin', 'MakerWorks-User'],
-            avatar: 'https://api.dicebear.com/6.x/shapes/svg?seed=dev',
-          }
-          console.debug('[AuthStore] ⚙️ Dev mode: injecting mock user:', mock)
-          set({ user: mock, resolved: true, loading: false })
-          return
-        }
 
         if (!token) {
           console.warn('[AuthStore] fetchUser aborted — no token set.')
