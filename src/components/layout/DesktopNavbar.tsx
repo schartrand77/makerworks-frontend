@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Browse', href: '/browse' },
   { label: 'Estimate', href: '/estimate' },
+  { label: 'Cart', href: '/cart' },
 ]
 
 const DesktopNavbar = () => {

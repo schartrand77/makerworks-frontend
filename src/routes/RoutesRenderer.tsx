@@ -16,6 +16,8 @@ import Estimate from '@/pages/Estimate'
 import Settings from '@/pages/Settings'
 import Browse from '@/pages/Browse'
 import Admin from '@/pages/Admin'
+import Cart from '@/pages/Cart'
+import Checkout from '@/pages/Checkout'
 
 /**
  * RoutesRenderer — defines the React Router v6 route tree.
@@ -38,6 +40,8 @@ export default function RoutesRenderer() {
         <Route path="estimate" element={<Estimate />} />
         <Route path="settings" element={<Settings />} />
         <Route path="browse" element={<Browse />} />
+        <Route path="cart" element={<Cart />} />
+        <Route path="checkout" element={<Checkout />} />
         <Route path="admin" element={<Admin />} />
       </Route>
 

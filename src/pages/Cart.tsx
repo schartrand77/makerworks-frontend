@@ -50,7 +50,7 @@ export default function Cart() {
               Clear Cart
             </button>
             <button
-              onClick={() => console.info('[Cart] Proceed to checkout')}
+              onClick={() => (window.location.href = '/checkout')}
               className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm"
             >
               Checkout

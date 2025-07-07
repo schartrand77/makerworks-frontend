@@ -1,4 +1,4 @@
-import { Home, Upload, Settings as Cog, Users, FileText, Eye } from 'lucide-react'
+import { Home, Upload, Settings as Cog, Users, FileText, Eye, ShoppingCart, CreditCard } from 'lucide-react'
 
 /**
  * Define all app route paths in a central place.
@@ -10,6 +10,8 @@ export const RoutePaths = {
   Dashboard: '/dashboard',
   Upload: '/upload',
   Estimate: '/estimate',
+  Cart: '/cart',
+  Checkout: '/checkout',
   Settings: '/settings',
   Browse: '/browse',
   Admin: '/admin',
@@ -56,6 +58,21 @@ export const routesMeta: AppRouteMeta[] = [
     icon: <FileText />,
     description: 'Estimate print jobs',
     access: 'protected',
+  },
+  {
+    path: RoutePaths.Cart,
+    title: 'Cart',
+    icon: <ShoppingCart />,
+    description: 'View items ready for purchase',
+    access: 'protected',
+  },
+  {
+    path: RoutePaths.Checkout,
+    title: 'Checkout',
+    icon: <CreditCard />,
+    description: 'Secure payment via Stripe',
+    access: 'protected',
+    hidden: true,
   },
   {
     path: RoutePaths.Settings,
