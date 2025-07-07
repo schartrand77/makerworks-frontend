@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/useCartStore'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
-import axios from '@/api/axios'
+import { createCheckoutSession } from '@/api/checkout'
 import { toast } from 'sonner'
 
 interface CartItem {
@@ -27,16 +27,17 @@ export default function Checkout() {
 
     try {
       setLoading(true)
-      const response = await axios.post('/checkout', { items })
 
-      console.info('[Checkout] Checkout response:', response.data)
+      const response = await createCheckoutSession(items)
+
+      console.info('[Checkout] Checkout response:', response)
 
       toast.success('Checkout session started')
       clearCart()
       console.debug('[Checkout] Cart cleared after success')
 
-      if (response.data?.checkout_url) {
-        window.location.href = response.data.checkout_url
+      if (response.checkout_url) {
+        window.location.href = response.checkout_url
       }
     } catch (err) {
       console.error('[Checkout] Failed to checkout:', err)
