@@ -4,13 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useClickAway from '@/hooks/useClickAway'
-
-const NAV_LINKS = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Browse', href: '/browse' },
-  { label: 'Estimate', href: '/estimate' },
-  { label: 'Cart', href: '/cart' },
-]
+import { NAV_LINKS } from '@/config/navConfig'
 
 const DesktopNavbar = () => {
   useLocation()

@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
           title="Your Uploads"
           description="View and manage your 3D model uploads."
           icon={<Upload />}
-          to="/uploads"
+          to="/upload"
           onNavigate={handleCardClick}
         />
 
