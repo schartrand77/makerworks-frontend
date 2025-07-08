@@ -12,7 +12,6 @@ export const useSignOut = () => {
     setDisabled(true)
 
     logout()
-    localStorage.removeItem("token")
 
     const AUTHENTIK_LOGOUT_URL =
       import.meta.env.VITE_AUTHENTIK_LOGOUT_URL?.trim() ||

@@ -19,8 +19,11 @@ const instance: AxiosInstance = axios.create({
 
 instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConfig => {
   try {
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null
     config.headers = {
       ...config.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
 
     // optional: log who you think the session is for, if backend sends info
