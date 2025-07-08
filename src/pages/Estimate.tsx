@@ -1,22 +1,22 @@
-import { useState, useEffect, FormEvent } from 'react'
-import PageLayout from '@/components/layout/PageLayout'
-import GlassCard from '@/components/ui/GlassCard'
-import ModelViewer from '@/components/ui/ModelViewer'
-import GlassNavbar from '@/components/ui/GlassNavbar'
-import { fetchAvailableFilaments } from '@/api/filaments'
-import { getEstimate } from '@/api/estimate'
-import { toast } from 'sonner'
+import { useState, useEffect, FormEvent } from 'react';
+import PageLayout from '@/components/layout/PageLayout';
+import GlassCard from '@/components/ui/GlassCard';
+import ModelViewer from '@/components/ui/ModelViewer';
+import GlassNavbar from '@/components/ui/GlassNavbar';
+import { fetchAvailableFilaments } from '@/api/filaments';
+import { getEstimate } from '@/api/estimate';
+import { toast } from 'sonner';
 
 interface EstimateResult {
-  estimated_time_minutes: number
-  estimated_cost_usd: number
+  estimated_time_minutes: number;
+  estimated_cost_usd: number;
 }
 
 interface Filament {
-  id: string
-  type: string
-  color: string
-  hex: string
+  id: string;
+  type: string;
+  color: string;
+  hex: string;
 }
 
 export default function Estimate() {
@@ -28,54 +28,72 @@ export default function Estimate() {
     colors: [] as string[],
     custom_text: '',
     print_profile: 'standard',
-  })
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<EstimateResult | null>(null)
-  const [filaments, setFilaments] = useState<Filament[]>([])
-  const [modelUrl] = useState('/example.stl') // replace with selected model URL
+  });
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<EstimateResult | null>(null);
+  const [filaments, setFilaments] = useState<Filament[]>([]);
+  const [modelUrl] = useState('/example.stl'); // replace with selected model URL
 
   useEffect(() => {
     fetchAvailableFilaments()
-      .then(setFilaments)
-      .catch(err => {
-        console.error('[Estimate] Failed to load filaments', err)
-        toast.error('Failed to load filaments')
+      .then((data) => {
+        setFilaments(data);
+        toast.success('🎨 Filaments loaded successfully');
       })
-  }, [])
+      .catch((err) => {
+        console.error('[Estimate] Failed to load filaments', err);
+        toast.error('⚠️ Failed to load filaments');
+      });
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+
+    if (!form.filament_type) {
+      toast.error('Please select a filament type');
+      return;
+    }
+    if (form.colors.length === 0) {
+      toast.error('Please select at least one color');
+      return;
+    }
+
+    setLoading(true);
 
     const payload = {
       ...form,
       x_mm: Math.max(50, Math.min(256, form.x_mm)),
       y_mm: Math.max(50, Math.min(256, form.y_mm)),
       z_mm: Math.max(50, Math.min(256, form.z_mm)),
-    }
+    };
 
     try {
-      const data = await getEstimate(payload)
-      setResult(data)
-      toast.success('Estimate calculated')
+      const data = await getEstimate(payload);
+      setResult(data);
+      toast.success('✅ Estimate calculated');
     } catch (err) {
-      console.error('[Estimate] Estimate API failed:', err)
-      toast.error('Failed to calculate estimate')
+      console.error('[Estimate] Estimate API failed:', err);
+      toast.error('❌ Failed to calculate estimate');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const toggleColor = (hex: string) => {
-    setForm(prev => {
+    setForm((prev) => {
       const colors = prev.colors.includes(hex)
-        ? prev.colors.filter(c => c !== hex)
+        ? prev.colors.filter((c) => c !== hex)
         : prev.colors.length < 4
-          ? [...prev.colors, hex]
-          : prev.colors
-      return { ...prev, colors }
-    })
-  }
+        ? [...prev.colors, hex]
+        : prev.colors;
+
+      if (colors.length === 4 && !prev.colors.includes(hex)) {
+        toast.info('Maximum of 4 colors selected');
+      }
+
+      return { ...prev, colors };
+    });
+  };
 
   return (
     <>
@@ -92,7 +110,7 @@ export default function Estimate() {
           <GlassCard>
             <h2 className="text-lg font-semibold mb-2">Print Configuration</h2>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              {(['x_mm', 'y_mm', 'z_mm'] as const).map(dim => (
+              {(['x_mm', 'y_mm', 'z_mm'] as const).map((dim) => (
                 <div key={dim}>
                   <label htmlFor={dim} className="block text-sm font-medium mb-1">
                     {dim.toUpperCase()} (mm) <span className="text-xs">(50–256)</span>
@@ -104,7 +122,7 @@ export default function Estimate() {
                     max={256}
                     required
                     value={form[dim]}
-                    onChange={(e) => setForm(f => ({ ...f, [dim]: +e.target.value }))}
+                    onChange={(e) => setForm((f) => ({ ...f, [dim]: +e.target.value }))}
                     className="w-full rounded-md border p-2 dark:bg-zinc-800"
                   />
                 </div>
@@ -117,12 +135,14 @@ export default function Estimate() {
                 <select
                   id="filament"
                   value={form.filament_type}
-                  onChange={(e) => setForm(f => ({ ...f, filament_type: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, filament_type: e.target.value }))}
                   className="w-full rounded-md border p-2 dark:bg-zinc-800"
                 >
                   <option value="">Select filament</option>
-                  {filaments.map(f => (
-                    <option key={f.id} value={f.type}>{f.type}</option>
+                  {filaments.map((f) => (
+                    <option key={f.id} value={f.type}>
+                      {f.type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -130,7 +150,7 @@ export default function Estimate() {
               <div>
                 <label className="block text-sm font-medium mb-1">Select up to 4 Colors</label>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {filaments.map(f => (
+                  {filaments.map((f) => (
                     <button
                       key={f.hex}
                       type="button"
@@ -155,7 +175,7 @@ export default function Estimate() {
                   id="customText"
                   type="text"
                   value={form.custom_text}
-                  onChange={(e) => setForm(f => ({ ...f, custom_text: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, custom_text: e.target.value }))}
                   className="w-full rounded-md border p-2 dark:bg-zinc-800"
                 />
               </div>
@@ -167,7 +187,7 @@ export default function Estimate() {
                 <select
                   id="profile"
                   value={form.print_profile}
-                  onChange={(e) => setForm(f => ({ ...f, print_profile: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, print_profile: e.target.value }))}
                   className="w-full rounded-md border p-2 dark:bg-zinc-800"
                 >
                   <option value="standard">Standard</option>
@@ -204,5 +224,5 @@ export default function Estimate() {
         )}
       </PageLayout>
     </>
-  )
+  );
 }

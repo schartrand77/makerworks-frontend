@@ -1,9 +1,19 @@
-import RoutesRenderer from '@/routes'
+import GlassNavbar from '@/components/ui/GlassNavbar';
+import RoutesRenderer from '@/routes';
 
 function AppContent() {
-  return <RoutesRenderer />
+  return (
+    <div className="pt-16">
+      <RoutesRenderer />
+    </div>
+  );
 }
 
 export default function App() {
-  return <AppContent />
+  return (
+    <>
+      <GlassNavbar />
+      <AppContent />
+    </>
+  );
 }

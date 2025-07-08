@@ -1,101 +1,92 @@
-import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react'
-import PageLayout from '@/components/layout/PageLayout'
-import GlassCard from '@/components/ui/GlassCard'
-import GlassNavbar from '@/components/ui/GlassNavbar'
-import { toast } from 'sonner'
-import axios from '@/api/axios'
+import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react';
+import GlassCard from '@/components/ui/GlassCard';
+import GlassNavbar from '@/components/ui/GlassNavbar';
+import { toast } from 'sonner';
+import axios from '@/api/axios';
 
-type RenderStatus = 'pending' | 'processing' | 'complete' | 'failed' | null
+type RenderStatus = 'pending' | 'processing' | 'complete' | 'failed' | null;
 
 export default function Upload() {
-  const [file, setFile] = useState<File | null>(null)
-  const [name, setName] = useState<string>('')
-  const [description, setDescription] = useState<string>('')
-  const [uploading, setUploading] = useState<boolean>(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [renderStatus, setRenderStatus] = useState<RenderStatus>(null)
-  const dropzoneRef = useRef<HTMLDivElement | null>(null)
+  const [file, setFile] = useState<File | null>(null);
+  const [name, setName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [renderStatus, setRenderStatus] = useState<RenderStatus>(null);
+  const dropzoneRef = useRef<HTMLDivElement | null>(null);
 
   const handleFileChange = (f: File) => {
-    setFile(f)
-    setPreviewUrl(URL.createObjectURL(f))
-    if (!name) setName(f.name.replace(/\.[^/.]+$/, ''))
-    console.debug('[Upload] File selected:', f)
-  }
+    setFile(f);
+    setPreviewUrl(URL.createObjectURL(f));
+    if (!name) setName(f.name.replace(/\.[^/.]+$/, ''));
+  };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    const dropped = e.dataTransfer.files?.[0]
-    if (dropped) handleFileChange(dropped)
-  }
+    e.preventDefault();
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) handleFileChange(dropped);
+  };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault()
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
 
   const pollRenderStatus = (uploadId: string) => {
-    console.debug('[Upload] Polling render status for ID:', uploadId)
     const interval = setInterval(async () => {
       try {
-        const res = await axios.get(`/upload/status/${uploadId}`)
-        const status: RenderStatus = res.data.status
-        setRenderStatus(status)
+        const res = await axios.get(`/upload/status/${uploadId}`);
+        const status: RenderStatus = res.data.status;
+        setRenderStatus(status);
         if (status === 'complete') {
-          toast.success('✅ Model render complete')
-          clearInterval(interval)
+          toast.success('✅ Model render complete');
+          clearInterval(interval);
         } else if (status === 'failed') {
-          toast.error('❌ Render failed')
-          clearInterval(interval)
+          toast.error('❌ Render failed');
+          clearInterval(interval);
         }
       } catch (err) {
-        console.error('[Upload] Poll failed:', err)
-        toast.error('⚠️ Render status polling failed')
-        clearInterval(interval)
+        toast.error('⚠️ Render status polling failed');
+        clearInterval(interval);
       }
-    }, 3000)
-  }
+    }, 3000);
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!file) {
-      toast.error('Please select a file to upload')
-      return
+      toast.error('Please select a file to upload');
+      return;
     }
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'model')
-    formData.append('name', name)
-    formData.append('description', description)
-
-    console.debug('[Upload] Submitting upload:', { name, description, file })
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'model');
+    formData.append('name', name);
+    formData.append('description', description);
 
     try {
-      setUploading(true)
+      setUploading(true);
       const res = await axios.post('/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      const { id } = res.data
-      console.info('[Upload] Upload complete:', res.data)
+      });
+      const { id } = res.data;
 
-      toast.success('✅ Model uploaded successfully')
-      pollRenderStatus(id)
+      toast.success('✅ Model uploaded successfully');
+      pollRenderStatus(id);
 
-      // Reset form
-      setFile(null)
-      setPreviewUrl(null)
-      setName('')
-      setDescription('')
-    } catch (err) {
-      console.error('[Upload] Upload failed:', err)
-      toast.error('❌ Upload failed')
+      setFile(null);
+      setPreviewUrl(null);
+      setName('');
+      setDescription('');
+    } catch {
+      toast.error('❌ Upload failed');
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   return (
     <>
-      <GlassNavbar floating={false} />
-      <PageLayout>
+      <GlassNavbar floating />
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <GlassCard>
           <div
             ref={dropzoneRef}
@@ -111,7 +102,7 @@ export default function Upload() {
               type="file"
               accept=".stl,.3mf"
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                if (e.target.files?.[0]) handleFileChange(e.target.files[0])
+                if (e.target.files?.[0]) handleFileChange(e.target.files[0]);
               }}
               className="w-full"
               aria-label="File upload input"
@@ -178,7 +169,7 @@ export default function Upload() {
             </div>
           )}
         </GlassCard>
-      </PageLayout>
+      </div>
     </>
-  )
+  );
 }

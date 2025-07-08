@@ -14,13 +14,13 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }
 
   useEffect(() => {
     console.debug('[RequireAuth] user:', user)
-    console.debug('[RequireAuth] isAuthenticated:', isAuthenticated)
+    console.debug('[RequireAuth] isAuthenticated:', isAuthenticated())
     console.debug('[RequireAuth] adminOnly:', adminOnly)
     console.debug('[RequireAuth] location:', location.pathname)
-  }, [user, isAuthenticated, adminOnly, location.pathname])
+  }, [user, adminOnly, location.pathname])
 
   // Not authenticated → redirect to signin
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated() || !user) {
     console.warn('[RequireAuth] User not authenticated. Redirecting to signin.')
     return (
       <Navigate
@@ -34,7 +34,6 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }
   // Authenticated but not admin → deny if adminOnly
   if (adminOnly && user.role !== 'admin') {
     console.warn('[RequireAuth] User lacks admin privileges. Redirecting to landing.')
-
     return (
       <Navigate
         to={RoutePaths.landing}

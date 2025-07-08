@@ -10,11 +10,8 @@ export const useUser = () => {
   const hasRoleFn = useAuthStore((s) => s.hasRole)
   const fetchUser = useAuthStore((s) => s.fetchUser)
 
-  const isAdmin =
-    hasRoleFn?.('admin') || user?.groups?.includes('MakerWorks-Admin') || false
-
-  const isUser =
-    hasRoleFn?.('user') || user?.groups?.includes('MakerWorks-User') || false
+  const isAdmin = hasRoleFn?.('admin') ?? false
+  const isUser = hasRoleFn?.('user') ?? false
 
   useEffect(() => {
     if (!resolved && !loading) {
@@ -25,16 +22,11 @@ export const useUser = () => {
     }
   }, [resolved, loading, fetchUser])
 
-  if (user && (!Array.isArray(user.groups) || user.groups.length === 0)) {
-    console.warn('[useUser] User has no groups assigned:', user)
-  }
-
   return {
     user,
     userId: user?.id,
     loading,
     resolved,
-    isAuthed: isAuthenticatedFn?.() ?? false,
     isAuthenticated: isAuthenticatedFn?.() ?? false,
     isAdmin,
     isUser,

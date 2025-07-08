@@ -1,40 +1,43 @@
-import { useNavigate } from 'react-router-dom'
-import { Card, CardContent } from '@/components/ui/Card'
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 
-interface DashboardCardProps {
-  title: string
-  description: string
-  icon: React.ReactNode
-  to: string
-  className?: string
-}
+type DashboardCardProps = {
+  title: string;
+  description: string;
+  icon?: React.ReactNode;
+  to?: string;
+  className?: string;
+};
 
-const DashboardCard: React.FC<DashboardCardProps> = ({
+const DashboardCard = ({
   title,
   description,
   icon,
-  to,
+  to = '/dashboard',
   className = '',
-}) => {
-  const navigate = useNavigate()
+}: DashboardCardProps) => {
+  const navigate = useNavigate();
 
   const handleClick = () => {
-    console.debug(`[DashboardCard] Navigating to ${to}`)
-    navigate(to)
-  }
+    if (to) {
+      navigate(to);
+    }
+  };
 
   return (
     <Card
       onClick={handleClick}
-      className={`cursor-pointer hover:shadow-lg transition-shadow ${className}`}
+      className={`cursor-pointer hover:shadow-lg transition-all ${className}`}
     >
-      <CardContent className="flex flex-col items-center p-6">
-        <div className="text-4xl mb-4">{icon}</div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="text-muted-foreground mt-2">{description}</p>
+      <CardContent className="flex items-center gap-4">
+        {icon}
+        <div>
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <p className="text-sm text-gray-500">{description}</p>
+        </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default DashboardCard
+export default DashboardCard;

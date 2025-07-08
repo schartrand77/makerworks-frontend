@@ -4,6 +4,11 @@ import { Routes, Route } from 'react-router-dom'
 import Landing from '@/pages/Landing'
 import Admin from '@/pages/Admin'
 import Dashboard from '@/pages/Dashboard'
+import Browse from '@/pages/Browse'
+import Estimate from '@/pages/Estimate'
+import Upload from '@/pages/Upload'
+import Cart from '@/pages/Cart'
+import Checkout from '@/pages/Checkout'
 import PageNotFound from '@/pages/PageNotFound'
 
 // Auth
@@ -15,6 +20,11 @@ export const RoutePaths = Object.freeze({
   landing: '/',
   admin: '/admin',
   dashboard: '/dashboard',
+  browse: '/browse',
+  estimate: '/estimate',
+  upload: '/upload',
+  cart: '/cart',
+  checkout: '/checkout',
   signin: '/auth/signin',
   signup: '/auth/signup',
 })
@@ -25,6 +35,7 @@ export default function RoutesRenderer() {
       <Route path={RoutePaths.landing} element={<Landing />} />
       <Route path={RoutePaths.signin} element={<SignIn />} />
       <Route path={RoutePaths.signup} element={<SignUp />} />
+
       <Route
         path={RoutePaths.admin}
         element={
@@ -38,6 +49,46 @@ export default function RoutesRenderer() {
         element={
           <RequireAuth>
             <Dashboard />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={RoutePaths.browse}
+        element={
+          <RequireAuth>
+            <Browse />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={RoutePaths.estimate}
+        element={
+          <RequireAuth>
+            <Estimate />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={RoutePaths.upload}
+        element={
+          <RequireAuth>
+            <Upload />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={RoutePaths.cart}
+        element={
+          <RequireAuth>
+            <Cart />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={RoutePaths.checkout}
+        element={
+          <RequireAuth>
+            <Checkout />
           </RequireAuth>
         }
       />
