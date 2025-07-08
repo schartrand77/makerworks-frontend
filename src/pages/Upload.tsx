@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
+import GlassNavbar from '@/components/ui/GlassNavbar'
 import { toast } from 'sonner'
 import axios from '@/api/axios'
 
@@ -92,83 +93,86 @@ export default function Upload() {
   }
 
   return (
-    <PageLayout title="Upload 3D Model">
-      <GlassCard>
-        <div
-          ref={dropzoneRef}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className="w-full border-2 border-dashed border-zinc-400 rounded-lg p-6 text-center dark:border-zinc-600 mb-4"
-        >
-          <p className="text-zinc-600 dark:text-zinc-400 mb-2">Drag and drop an STL or 3MF file here</p>
-          <input
-            type="file"
-            accept=".stl,.3mf"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              if (e.target.files?.[0]) handleFileChange(e.target.files[0])
-            }}
-            className="w-full"
-          />
-        </div>
-
-        {previewUrl && (
-          <div className="mb-4 text-center">
-            <p className="text-sm mb-2 text-zinc-500">Selected:</p>
-            <img
-              src={previewUrl}
-              alt="preview"
-              className="w-32 h-32 mx-auto object-contain border border-zinc-300 dark:border-zinc-700 rounded-lg"
-            />
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value)
-                console.debug('[Upload] Name updated:', e.target.value)
-              }}
-              className="w-full p-2 border rounded-md dark:bg-zinc-800"
-              placeholder="Model name"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value)
-                console.debug('[Upload] Description updated:', e.target.value)
-              }}
-              className="w-full p-2 border rounded-md dark:bg-zinc-800"
-              rows={3}
-              placeholder="Model description (optional)"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={uploading}
-            className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800"
+    <>
+      <GlassNavbar />
+      <PageLayout title="Upload 3D Model">
+        <GlassCard>
+          <div
+            ref={dropzoneRef}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            className="w-full border-2 border-dashed border-zinc-400 rounded-lg p-6 text-center dark:border-zinc-600 mb-4"
           >
-            {uploading ? 'Uploading…' : 'Upload Model'}
-          </button>
-        </form>
-
-        {renderStatus && (
-          <div className="mt-6 text-sm text-center text-zinc-700 dark:text-zinc-300">
-            <p>
-              Render Status: <strong>{renderStatus}</strong>
-            </p>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-2">Drag and drop an STL or 3MF file here</p>
+            <input
+              type="file"
+              accept=".stl,.3mf"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                if (e.target.files?.[0]) handleFileChange(e.target.files[0])
+              }}
+              className="w-full"
+            />
           </div>
-        )}
-      </GlassCard>
-    </PageLayout>
+
+          {previewUrl && (
+            <div className="mb-4 text-center">
+              <p className="text-sm mb-2 text-zinc-500">Selected:</p>
+              <img
+                src={previewUrl}
+                alt="preview"
+                className="w-32 h-32 mx-auto object-contain border border-zinc-300 dark:border-zinc-700 rounded-lg"
+              />
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  console.debug('[Upload] Name updated:', e.target.value)
+                }}
+                className="w-full p-2 border rounded-md dark:bg-zinc-800"
+                placeholder="Model name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value)
+                  console.debug('[Upload] Description updated:', e.target.value)
+                }}
+                className="w-full p-2 border rounded-md dark:bg-zinc-800"
+                rows={3}
+                placeholder="Model description (optional)"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={uploading}
+              className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800"
+            >
+              {uploading ? 'Uploading…' : 'Upload Model'}
+            </button>
+          </form>
+
+          {renderStatus && (
+            <div className="mt-6 text-sm text-center text-zinc-700 dark:text-zinc-300">
+              <p>
+                Render Status: <strong>{renderStatus}</strong>
+              </p>
+            </div>
+          )}
+        </GlassCard>
+      </PageLayout>
+    </>
   )
 }

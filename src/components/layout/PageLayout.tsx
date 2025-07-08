@@ -1,7 +1,6 @@
 import { useEffect, useCallback, ElementType, KeyboardEvent } from 'react'
 import { Outlet } from 'react-router-dom'
 import clsx from 'clsx'
-import DesktopNavbar from '@/components/layout/DesktopNavbar'
 
 interface PageLayoutProps {
   title?: string
@@ -55,8 +54,7 @@ export default function PageLayout({
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-white/80 to-zinc-100 dark:from-zinc-900/90 dark:to-zinc-950 text-zinc-900 dark:text-white">
-      {/* ✅ Only this instance of DesktopNavbar remains */}
-      <DesktopNavbar />
+      {/* 🚫 DesktopNavbar removed */}
 
       <div
         className="w-full flex-1 px-4 py-8 flex justify-center items-start"

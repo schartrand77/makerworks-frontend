@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils'
 import { updateUserProfile, uploadAvatar, deleteAccount } from '@/api/users'
 
 import type { AvatarUploadResponse } from '@/api/users'
-import { Box } from 'lucide-react' // ✅ fixed icon
+import { Box } from 'lucide-react'
+import GlassNavbar from '@/components/ui/GlassNavbar' // ✅ added
 
 const themes = ['system', 'light', 'dark'] as const
 type Theme = typeof themes[number]
@@ -84,118 +85,124 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8 animate-pulse">
-        <div className="h-8 bg-zinc-300 rounded w-1/3"></div>
-        <div className="h-16 bg-zinc-200 rounded"></div>
-        <div className="h-48 bg-zinc-200 rounded"></div>
-      </div>
+      <>
+        <GlassNavbar />
+        <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8 animate-pulse">
+          <div className="h-8 bg-zinc-300 rounded w-1/3"></div>
+          <div className="h-16 bg-zinc-200 rounded"></div>
+          <div className="h-48 bg-zinc-200 rounded"></div>
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8">
-      <h1 className="text-3xl font-semibold mb-4 flex items-center gap-2">
-        <Box className="w-6 h-6 text-primary" /> {/* ✅ fixed */}
-        User Settings
-      </h1>
+    <>
+      <GlassNavbar />
+      <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8">
+        <h1 className="text-3xl font-semibold mb-4 flex items-center gap-2">
+          <Box className="w-6 h-6 text-primary" />
+          User Settings
+        </h1>
 
-      {/* Avatar */}
-      <div className="glass-card">
-        <h2 className="text-xl font-medium mb-4">Profile Picture</h2>
-        <div className="flex items-center gap-4">
-          {uploadingAvatar ? (
-            <div className="w-16 h-16 rounded-full bg-zinc-200 animate-pulse" />
-          ) : user?.avatar_url ? (
-            <img src={user.avatar_url} alt="avatar" className="w-16 h-16 rounded-full object-cover border" />
+        {/* Avatar */}
+        <div className="glass-card">
+          <h2 className="text-xl font-medium mb-4">Profile Picture</h2>
+          <div className="flex items-center gap-4">
+            {uploadingAvatar ? (
+              <div className="w-16 h-16 rounded-full bg-zinc-200 animate-pulse" />
+            ) : user?.avatar_url ? (
+              <img src={user.avatar_url} alt="avatar" className="w-16 h-16 rounded-full object-cover border" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-zinc-300 flex items-center justify-center text-white">
+                {user.username?.[0] ?? '?'}
+              </div>
+            )}
+            <label className="cursor-pointer text-sm underline text-primary">
+              Change…
+              <input type="file" accept="image/*" hidden onChange={handleAvatarUpload} />
+            </label>
+          </div>
+        </div>
+
+        {/* Bio */}
+        <div className="glass-card">
+          <h2 className="text-xl font-medium mb-4">Public Bio</h2>
+          <textarea
+            value={bio}
+            onChange={e => setBio(e.target.value)}
+            className="w-full p-3 rounded-md border text-sm"
+            rows={3}
+            maxLength={140}
+            placeholder="Tell others about your maker vibe…"
+          />
+          <div className="flex justify-between mt-3">
+            <div className="text-xs">{bio.length}/140</div>
+            <button
+              disabled={saving}
+              onClick={handleSave}
+              className="px-4 py-2 text-sm rounded-md bg-zinc-900 text-white disabled:opacity-50 flex items-center gap-2"
+            >
+              {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+
+        {/* Theme */}
+        <div className="glass-card">
+          <h2 className="text-xl font-medium mb-4">Theme</h2>
+          <div className="flex gap-3">
+            {themes.map(t => (
+              <button
+                key={t}
+                onClick={() => handleThemeChange(t)}
+                className={cn(
+                  'px-4 py-2 rounded-full border text-sm',
+                  theme === t
+                    ? 'bg-zinc-900 text-white'
+                    : 'bg-transparent border-zinc-300 text-zinc-700'
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="rounded-xl bg-red-50 p-6">
+          <h2 className="text-xl font-semibold text-red-700 mb-4">Danger Zone</h2>
+          {!confirmDelete ? (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg"
+            >
+              Delete Account
+            </button>
           ) : (
-            <div className="w-16 h-16 rounded-full bg-zinc-300 flex items-center justify-center text-white">
-              {user.username?.[0] ?? '?'}
+            <div className="space-y-2">
+              <p className="text-red-600">This action is irreversible.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 bg-red-700 text-white rounded-lg flex items-center gap-2"
+                >
+                  {deleting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  Confirm Deletion
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-4 py-2 bg-gray-300 text-black rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
-          <label className="cursor-pointer text-sm underline text-primary">
-            Change…
-            <input type="file" accept="image/*" hidden onChange={handleAvatarUpload} />
-          </label>
         </div>
       </div>
-
-      {/* Bio */}
-      <div className="glass-card">
-        <h2 className="text-xl font-medium mb-4">Public Bio</h2>
-        <textarea
-          value={bio}
-          onChange={e => setBio(e.target.value)}
-          className="w-full p-3 rounded-md border text-sm"
-          rows={3}
-          maxLength={140}
-          placeholder="Tell others about your maker vibe…"
-        />
-        <div className="flex justify-between mt-3">
-          <div className="text-xs">{bio.length}/140</div>
-          <button
-            disabled={saving}
-            onClick={handleSave}
-            className="px-4 py-2 text-sm rounded-md bg-zinc-900 text-white disabled:opacity-50 flex items-center gap-2"
-          >
-            {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
-
-      {/* Theme */}
-      <div className="glass-card">
-        <h2 className="text-xl font-medium mb-4">Theme</h2>
-        <div className="flex gap-3">
-          {themes.map(t => (
-            <button
-              key={t}
-              onClick={() => handleThemeChange(t)}
-              className={cn(
-                'px-4 py-2 rounded-full border text-sm',
-                theme === t
-                  ? 'bg-zinc-900 text-white'
-                  : 'bg-transparent border-zinc-300 text-zinc-700'
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Danger Zone */}
-      <div className="rounded-xl bg-red-50 p-6">
-        <h2 className="text-xl font-semibold text-red-700 mb-4">Danger Zone</h2>
-        {!confirmDelete ? (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg"
-          >
-            Delete Account
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-red-600">This action is irreversible.</p>
-            <div className="flex gap-3">
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-2 bg-red-700 text-white rounded-lg flex items-center gap-2"
-              >
-                {deleting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                Confirm Deletion
-              </button>
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="px-4 py-2 bg-gray-300 text-black rounded-lg"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   )
 }

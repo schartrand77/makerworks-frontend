@@ -13,11 +13,9 @@ interface User {
 
 interface AuthState {
   user: User | null
-  token: string | null
   loading: boolean
   resolved: boolean
   setUser: (user: User | null) => void
-  setToken: (token: string | null) => void
   clearUser: () => void
   logout: () => void
   fetchUser: () => Promise<void>
@@ -29,7 +27,6 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
       loading: false,
       resolved: false,
 
@@ -38,27 +35,16 @@ export const useAuthStore = create<AuthState>()(
         set({ user, resolved: true })
       },
 
-      setToken: (token) => {
-        console.debug('[AuthStore] setToken:', token)
-        set({ token })
-
-        if (token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        } else {
-          delete axios.defaults.headers.common['Authorization']
-        }
-      },
-
       clearUser: () => {
         console.debug('[AuthStore] clearUser()')
-        set({ user: null, token: null, resolved: true })
-        delete axios.defaults.headers.common['Authorization']
+        set({ user: null, resolved: true })
       },
 
       logout: () => {
         console.debug('[AuthStore] logout()')
-        set({ user: null, token: null, resolved: true })
-        delete axios.defaults.headers.common['Authorization']
+        set({ user: null, resolved: true })
+        // optionally you can also trigger backend logout endpoint here
+        // await axios.post('/auth/logout', {}, { withCredentials: true })
       },
 
       isAuthenticated: () => {
@@ -73,19 +59,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       fetchUser: async () => {
-        const token = get().token
-
-        if (!token) {
-          console.warn('[AuthStore] fetchUser aborted — no token set.')
-          set({ user: null, resolved: true, loading: false })
-          return
-        }
-
         set({ loading: true })
 
         try {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-          const res = await axios.get('/auth/me')
+          const res = await axios.get('/auth/me', { withCredentials: true })
           set({ user: res.data, resolved: true })
           console.debug('[AuthStore] ✅ fetchUser success:', res.data)
         } catch (err) {
@@ -100,7 +77,6 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-store',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
       }),
     }
   )

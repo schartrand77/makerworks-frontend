@@ -14,51 +14,21 @@ console.debug('[Axios] Using API base URL:', baseURL)
 
 const instance: AxiosInstance = axios.create({
   baseURL: `${baseURL}/api/v1`,
-  withCredentials: true,
+  withCredentials: true, // let browser send cookies
 })
-
-interface AuthentikUser {
-  email?: string
-  username?: string
-  groups?: string[]
-}
-
-// ✅ Safer localStorage parser
-function parseAuthentikUser(): AuthentikUser | null {
-  try {
-    const raw = localStorage.getItem('authentik_user')
-    if (!raw || raw === 'undefined' || raw === 'null') return null
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
-}
 
 instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConfig => {
   try {
-    const auth = parseAuthentikUser()
-    // Align with useSignIn/useSignUp which store tokens in localStorage
-    const token = localStorage.getItem('token')
-
     config.headers = {
       ...config.headers,
     }
 
-    if (auth?.email && auth?.username) {
-      config.headers['X-Authentik-Email'] = auth.email
-      config.headers['X-Authentik-Username'] = auth.username
-      config.headers['X-Authentik-Groups'] = auth.groups?.join(',') || ''
-    }
-
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
-    }
-
+    // optional: log who you think the session is for, if backend sends info
     const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`
     console.debug(label)
     window.__DEBUG_LOG__?.(label)
   } catch (e) {
-    console.warn('[Axios] Failed to inject headers:', e)
+    console.warn('[Axios] Failed to process request config:', e)
   }
 
   return config
