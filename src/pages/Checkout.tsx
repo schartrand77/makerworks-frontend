@@ -19,7 +19,7 @@ interface CartItem {
 }
 
 export default function Checkout() {
-  const { items, clearCart } = useCartStore();
+  const { items, clearCart, hydrated } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(true);
   const [formData, setFormData] = useState<{ name: string; email: string; notes: string }>({
@@ -87,7 +87,7 @@ export default function Checkout() {
         ) : (
           <>
             <AnimatePresence>
-              {formLoading ? (
+              {formLoading || !hydrated ? (
                 <>
                   {[...Array(2)].map((_, idx) => (
                     <motion.div
