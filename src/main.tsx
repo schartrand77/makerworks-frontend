@@ -1,5 +1,6 @@
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from '@/App'
 import ErrorBoundary from '@/components/system/ErrorBoundary'
 import '@/index.css'
@@ -25,9 +26,11 @@ function mountApp(): void {
 
     createRoot(rootElement).render(
       <StrictMode>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
+        <BrowserRouter>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </BrowserRouter>
       </StrictMode>
     )
 
@@ -38,7 +41,8 @@ function mountApp(): void {
     fallback.style.color = 'red'
     fallback.style.fontFamily = 'monospace'
     fallback.style.margin = '2rem'
-    fallback.innerText = '⚠️ MakerWorks frontend failed to load. Check the browser console for details.'
+    fallback.innerText =
+      '⚠️ MakerWorks frontend failed to load. Check the browser console for details.'
     document.body.appendChild(fallback)
   }
 }
