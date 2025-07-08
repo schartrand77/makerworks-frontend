@@ -1,19 +1,44 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
-import DashboardCard from '@/components/ui/DashboardCard'
 import GlassNavbar from '@/components/ui/GlassNavbar'
+import GlassInput from '@/components/ui/GlassInput'
+import GlassButton from '@/components/ui/GlassButton'
 import { useUser } from '@/hooks/useUser'
-import { Users, Box, DollarSign, Settings } from 'lucide-react'
+import {
+  fetchAllUsers,
+  banUser,
+  fetchAllModels,
+  updateModel,
+  updateFilament,
+  addFilament,
+} from '@/api/admin'
+import { fetchAvailableFilaments, Filament } from '@/api/filaments'
+import type { AdminUser, Model } from '@/api/admin'
 
-const Admin: React.FC = () => {
+export default function Admin() {
   const { user, isAdmin, loading } = useUser()
+  const [tab, setTab] = useState<'users' | 'filaments' | 'models'>('users')
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [filaments, setFilaments] = useState<Filament[]>([])
+  const [models, setModels] = useState<Model[]>([])
+  const [newFilament, setNewFilament] = useState<Omit<Filament, 'id'>>({
+    type: '',
+    color: '',
+    hex: '',
+  })
 
   useEffect(() => {
-    console.debug('[Admin] useUser state:', { user, isAdmin, loading })
-  }, [user, isAdmin, loading])
+    if (!isAdmin) return
+    if (tab === 'users') {
+      fetchAllUsers().then(setUsers).catch(console.error)
+    } else if (tab === 'filaments') {
+      fetchAvailableFilaments().then(setFilaments).catch(console.error)
+    } else if (tab === 'models') {
+      fetchAllModels().then(setModels).catch(console.error)
+    }
+  }, [tab, isAdmin])
 
   if (loading) {
-    console.debug('[Admin] Loading state active')
     return (
       <>
         <GlassNavbar />
@@ -25,7 +50,6 @@ const Admin: React.FC = () => {
   }
 
   if (!user || !isAdmin) {
-    console.warn('[Admin] Unauthorized access attempt by:', user?.username || 'unknown')
     return (
       <>
         <GlassNavbar />
@@ -36,41 +60,96 @@ const Admin: React.FC = () => {
     )
   }
 
-  console.info('[Admin] Admin dashboard rendering for:', user.username)
+  const handleFilamentChange = (idx: number, key: keyof Filament, value: string) => {
+    setFilaments(f => f.map((fil, i) => (i === idx ? { ...fil, [key]: value } : fil)))
+  }
+
+  const saveFilament = async (fil: Filament) => {
+    await updateFilament(fil.id, fil)
+  }
+
+  const addNewFilament = async () => {
+    if (!newFilament.type) return
+    const created = await addFilament(newFilament)
+    setFilaments(f => [...f, created])
+    setNewFilament({ type: '', color: '', hex: '' })
+  }
+
+  const handleModelChange = (idx: number, key: keyof Model, value: string) => {
+    setModels(m => m.map((model, i) => (i === idx ? { ...model, [key]: value } : model)))
+  }
+
+  const saveModel = async (model: Model) => {
+    await updateModel(model.id, model)
+  }
 
   return (
     <>
       <GlassNavbar />
-      <PageLayout title="Admin Dashboard">
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <DashboardCard
-            title="User Management"
-            description="View, promote, demote, or delete registered users."
-            icon={<Users />}
-            to="/admin/users"
-          />
-          <DashboardCard
-            title="Model Library"
-            description="Audit, remove duplicates, or manage uploads."
-            icon={<Box />}
-            to="/admin/models"
-          />
-          <DashboardCard
-            title="Pricing & Filaments"
-            description="Adjust pricing formulas and filament costs."
-            icon={<DollarSign />}
-            to="/admin/filaments"
-          />
-          <DashboardCard
-            title="System Settings"
-            description="Inspect system status, Redis, PostgreSQL, GPU."
-            icon={<Settings />}
-            to="/admin/system"
-          />
+      <PageLayout title="Admin Panel" maxWidth="xl" padding="p-4" center={false}>
+        <div className="flex gap-3 mb-4">
+          <GlassButton variant={tab === 'users' ? 'primary' : 'secondary'} onClick={() => setTab('users')}>
+            Users
+          </GlassButton>
+          <GlassButton variant={tab === 'filaments' ? 'primary' : 'secondary'} onClick={() => setTab('filaments')}>
+            Filaments
+          </GlassButton>
+          <GlassButton variant={tab === 'models' ? 'primary' : 'secondary'} onClick={() => setTab('models')}>
+            Models
+          </GlassButton>
         </div>
+
+        {tab === 'users' && (
+          <div className="space-y-3">
+            {users.map(u => (
+              <div key={u.id} className="flex justify-between items-center border-b pb-2">
+                <div>
+                  <div className="font-medium">{u.username}</div>
+                  <div className="text-sm text-zinc-500">{u.email}</div>
+                </div>
+                <GlassButton size="sm" variant="secondary" onClick={() => banUser(u.id)}>
+                  Ban
+                </GlassButton>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'filaments' && (
+          <div className="space-y-4">
+            {filaments.map((f, i) => (
+              <div key={f.id} className="flex flex-wrap gap-2 items-end">
+                <GlassInput id={`ft-${i}`} label="Type" value={f.type} onChange={e => handleFilamentChange(i, 'type', e.target.value)} />
+                <GlassInput id={`fc-${i}`} label="Color" value={f.color} onChange={e => handleFilamentChange(i, 'color', e.target.value)} />
+                <GlassInput id={`fh-${i}`} label="Hex" value={f.hex} onChange={e => handleFilamentChange(i, 'hex', e.target.value)} />
+                <GlassButton size="sm" onClick={() => saveFilament(f)}>Save</GlassButton>
+              </div>
+            ))}
+
+            <div className="pt-4 border-t mt-4">
+              <h3 className="font-medium mb-2">Add Filament</h3>
+              <div className="flex flex-wrap gap-2 items-end">
+                <GlassInput id="new-type" label="Type" value={newFilament.type} onChange={e => setNewFilament({ ...newFilament, type: e.target.value })} />
+                <GlassInput id="new-color" label="Color" value={newFilament.color} onChange={e => setNewFilament({ ...newFilament, color: e.target.value })} />
+                <GlassInput id="new-hex" label="Hex" value={newFilament.hex} onChange={e => setNewFilament({ ...newFilament, hex: e.target.value })} />
+                <GlassButton size="sm" onClick={addNewFilament}>Add</GlassButton>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'models' && (
+          <div className="space-y-4">
+            {models.map((m, i) => (
+              <div key={m.id} className="flex flex-wrap gap-2 items-end">
+                <GlassInput id={`mn-${i}`} label="Name" value={m.name} onChange={e => handleModelChange(i, 'name', e.target.value)} />
+                <GlassInput id={`md-${i}`} label="Description" value={m.description || ''} onChange={e => handleModelChange(i, 'description', e.target.value)} />
+                <GlassButton size="sm" onClick={() => saveModel(m)}>Save</GlassButton>
+              </div>
+            ))}
+          </div>
+        )}
       </PageLayout>
     </>
   )
 }
-
-export default Admin
