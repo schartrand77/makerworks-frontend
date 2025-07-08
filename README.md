@@ -37,6 +37,12 @@ npm run lint
 
 This template currently does not include automated tests.
 
+### Theme Toggle
+
+The navigation bar includes a small sun/moon button that toggles between light
+and dark mode. Your selected theme is saved to `localStorage` and applied on
+future visits.
+
 ## Folder structure
 
 - **src/api** – helper methods for network requests

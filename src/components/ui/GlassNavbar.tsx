@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useUser } from '@/hooks/useUser'
 import MobileDrawer from '@/components/ui/MobileDrawer'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 import { useLocation } from 'react-router-dom'
 
 interface GlassNavbarProps {
@@ -55,6 +56,7 @@ export default function GlassNavbar({ floating = true }: GlassNavbarProps) {
             })}
           </div>
 
+          <ThemeToggle />
           <button
             onClick={toggleDrawer}
             className="ml-4 focus:outline-none"
