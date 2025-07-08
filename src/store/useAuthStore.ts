@@ -13,9 +13,13 @@ interface User {
 
 interface AuthState {
   user: User | null
+  /** Authentication token for API requests */
+  token: string | null
   loading: boolean
   resolved: boolean
   setUser: (user: User | null) => void
+  /** Set authentication token and persist to localStorage */
+  setToken: (token: string | null) => void
   clearUser: () => void
   logout: () => void
   fetchUser: () => Promise<void>
@@ -27,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      token: (typeof window !== 'undefined' && localStorage.getItem('token')) || null,
       loading: false,
       resolved: false,
 
@@ -35,14 +40,29 @@ export const useAuthStore = create<AuthState>()(
         set({ user, resolved: true })
       },
 
+      setToken: (token) => {
+        console.debug('[AuthStore] setToken:', token)
+        if (typeof window !== 'undefined') {
+          if (token) {
+            localStorage.setItem('token', token)
+          } else {
+            localStorage.removeItem('token')
+          }
+        }
+        set({ token })
+      },
+
       clearUser: () => {
         console.debug('[AuthStore] clearUser()')
-        set({ user: null, resolved: true })
+        set({ user: null, token: null, resolved: true })
       },
 
       logout: () => {
         console.debug('[AuthStore] logout()')
-        set({ user: null, resolved: true })
+        set({ user: null, token: null, resolved: true })
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token')
+        }
         // optionally you can also trigger backend logout endpoint here
         // await axios.post('/auth/logout', {}, { withCredentials: true })
       },
@@ -77,7 +97,26 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-store',
       partialize: (state) => ({
         user: state.user,
+        token: state.token,
       }),
     }
   )
 )
+
+// Sync token and user across browser tabs
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'token') {
+      useAuthStore.setState({ token: event.newValue })
+    }
+
+    if (event.key === 'auth-store') {
+      try {
+        const data = event.newValue ? JSON.parse(event.newValue) : null
+        useAuthStore.setState({ user: data?.state?.user ?? null })
+      } catch (err) {
+        console.error('[AuthStore] Failed to sync state from storage:', err)
+      }
+    }
+  })
+}
