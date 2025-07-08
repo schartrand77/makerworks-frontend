@@ -1,4 +1,3 @@
-import { BrowserRouter } from 'react-router-dom'
 import RoutesRenderer from '@/routes'
 
 function AppContent() {
@@ -6,9 +5,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
-  )
+  return <AppContent />
 }
