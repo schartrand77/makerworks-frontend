@@ -1,5 +1,6 @@
 import React from 'react'
 import { useUser } from '@/hooks/useUser'
+import { useSignOut } from '@/hooks/useSignOut'
 
 interface MobileDrawerProps {
   open: boolean
@@ -7,7 +8,8 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ open, onClose }: MobileDrawerProps) {
-  const { user, signOut } = useUser()
+  const { user, isAdmin } = useUser()
+  const { signOut } = useSignOut()
 
   if (!open) return null
 
@@ -37,7 +39,7 @@ export default function MobileDrawer({ open, onClose }: MobileDrawerProps) {
             Account Settings
           </a>
 
-          {user?.role === 'admin' && (
+          {isAdmin && (
             <a
               href="/admin"
               className="block w-full text-center py-2 text-sm rounded-full backdrop-blur bg-red-500/20 dark:bg-red-700/30 border border-red-300/20 dark:border-red-700/50 hover:bg-red-500/30 dark:hover:bg-red-700/50 text-red-800 dark:text-red-200 transition"
@@ -55,5 +57,4 @@ export default function MobileDrawer({ open, onClose }: MobileDrawerProps) {
         </button>
       </div>
     </div>
-  )
-}
+  )}
