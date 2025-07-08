@@ -13,6 +13,7 @@ export interface ModelItem {
 
 interface CartStoreState {
   items: ModelItem[]
+  hydrated: boolean
 
   addItem: (model: ModelItem) => void
   removeItem: (id: string) => void
@@ -23,6 +24,7 @@ export const useCartStore = create<CartStoreState>()(
   persist(
     (set, get) => ({
       items: [],
+      hydrated: false,
 
       addItem: (model: ModelItem) => {
         const exists = get().items.find((i) => i.id === model.id)
@@ -46,6 +48,7 @@ export const useCartStore = create<CartStoreState>()(
     }),
     {
       name: 'cart-storage',
+      onRehydrateStorage: () => () => set({ hydrated: true }),
     }
   )
 )
