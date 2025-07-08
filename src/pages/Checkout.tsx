@@ -21,13 +21,12 @@ export default function Checkout() {
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
-    // Focus the page title for accessibility
     document.getElementById('checkout-title')?.focus()
   }, [])
 
   const handleCheckout = async (): Promise<void> => {
     if (items.length === 0) {
-      toast.warning('Cart is empty')
+      toast.warning('🛒 Your cart is empty.')
       return
     }
 
@@ -38,7 +37,7 @@ export default function Checkout() {
 
       const stripe = await stripePromise
       if (!stripe) {
-        toast.error('Stripe.js failed to load')
+        toast.error('Stripe.js failed to load.')
         return
       }
 
@@ -46,7 +45,7 @@ export default function Checkout() {
       clearCart()
     } catch (err) {
       console.error('[Checkout] Failed to checkout:', err)
-      toast.error('Checkout failed')
+      toast.error('Checkout failed.')
     } finally {
       setLoading(false)
     }
@@ -54,11 +53,13 @@ export default function Checkout() {
 
   return (
     <>
-      <GlassNavbar />
-      <PageLayout title="Checkout" id="checkout">
+      <GlassNavbar floating={false} />
+      <PageLayout>
         {items.length === 0 ? (
           <GlassCard>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">Your cart is empty.</p>
+            <p className="text-center text-sm text-zinc-600 dark:text-zinc-400 py-6">
+              🛒 Your cart is currently empty.
+            </p>
           </GlassCard>
         ) : (
           <>
@@ -73,11 +74,12 @@ export default function Checkout() {
               </GlassCard>
             ))}
 
-            <GlassCard className="text-right">
+            <GlassCard className="text-right mt-4">
               <button
                 onClick={handleCheckout}
                 disabled={loading}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-md"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-busy={loading}
               >
                 {loading ? 'Processing…' : 'Confirm & Pay'}
               </button>

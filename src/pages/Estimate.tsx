@@ -79,8 +79,8 @@ export default function Estimate() {
 
   return (
     <>
-      <GlassNavbar />
-      <PageLayout title="Estimate Print Cost & Time">
+      <GlassNavbar floating={false} />
+      <PageLayout>
         <div className="grid md:grid-cols-2 gap-6">
           {/* Model Viewer */}
           <GlassCard>
@@ -94,10 +94,11 @@ export default function Estimate() {
             <form className="space-y-4" onSubmit={handleSubmit}>
               {(['x_mm', 'y_mm', 'z_mm'] as const).map(dim => (
                 <div key={dim}>
-                  <label className="block text-sm font-medium mb-1">
+                  <label htmlFor={dim} className="block text-sm font-medium mb-1">
                     {dim.toUpperCase()} (mm) <span className="text-xs">(50–256)</span>
                   </label>
                   <input
+                    id={dim}
                     type="number"
                     min={50}
                     max={256}
@@ -110,8 +111,11 @@ export default function Estimate() {
               ))}
 
               <div>
-                <label className="block text-sm font-medium mb-1">Filament Type</label>
+                <label htmlFor="filament" className="block text-sm font-medium mb-1">
+                  Filament Type
+                </label>
                 <select
+                  id="filament"
                   value={form.filament_type}
                   onChange={(e) => setForm(f => ({ ...f, filament_type: e.target.value }))}
                   className="w-full rounded-md border p-2 dark:bg-zinc-800"
@@ -132,9 +136,10 @@ export default function Estimate() {
                       type="button"
                       onClick={() => toggleColor(f.hex)}
                       style={{ backgroundColor: f.hex }}
-                      className={`w-6 h-6 rounded-full border-2 ${
+                      aria-label={`Select color ${f.color}`}
+                      className={`w-6 h-6 rounded-full border-2 transition ${
                         form.colors.includes(f.hex)
-                          ? 'border-black dark:border-white'
+                          ? 'border-black dark:border-white ring-2 ring-offset-1 ring-zinc-500'
                           : 'border-transparent'
                       }`}
                     />
@@ -143,8 +148,11 @@ export default function Estimate() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Custom Text</label>
+                <label htmlFor="customText" className="block text-sm font-medium mb-1">
+                  Custom Text
+                </label>
                 <input
+                  id="customText"
                   type="text"
                   value={form.custom_text}
                   onChange={(e) => setForm(f => ({ ...f, custom_text: e.target.value }))}
@@ -153,8 +161,11 @@ export default function Estimate() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Print Profile</label>
+                <label htmlFor="profile" className="block text-sm font-medium mb-1">
+                  Print Profile
+                </label>
                 <select
+                  id="profile"
                   value={form.print_profile}
                   onChange={(e) => setForm(f => ({ ...f, print_profile: e.target.value }))}
                   className="w-full rounded-md border p-2 dark:bg-zinc-800"
@@ -168,7 +179,8 @@ export default function Estimate() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800"
+                className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-busy={loading}
               >
                 {loading ? 'Calculating…' : 'Calculate Estimate'}
               </button>

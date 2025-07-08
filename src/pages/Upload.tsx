@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react'
+import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassNavbar from '@/components/ui/GlassNavbar'
@@ -25,34 +25,32 @@ export default function Upload() {
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    e.stopPropagation()
-    const dropped = e.dataTransfer.files[0]
+    const dropped = e.dataTransfer.files?.[0]
     if (dropped) handleFileChange(dropped)
   }
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-  }
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault()
 
-  const pollRenderStatus = async (uploadId: string) => {
+  const pollRenderStatus = (uploadId: string) => {
     console.debug('[Upload] Polling render status for ID:', uploadId)
-    const poll = async () => {
+    const interval = setInterval(async () => {
       try {
         const res = await axios.get(`/upload/status/${uploadId}`)
         const status: RenderStatus = res.data.status
         setRenderStatus(status)
-        console.info('[Upload] Render status:', status)
         if (status === 'complete') {
-          toast.success('Model render complete')
+          toast.success('✅ Model render complete')
+          clearInterval(interval)
+        } else if (status === 'failed') {
+          toast.error('❌ Render failed')
           clearInterval(interval)
         }
       } catch (err) {
         console.error('[Upload] Poll failed:', err)
-        toast.error('Render status polling failed')
+        toast.error('⚠️ Render status polling failed')
         clearInterval(interval)
       }
-    }
-    const interval = setInterval(poll, 3000)
+    }, 3000)
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -75,18 +73,20 @@ export default function Upload() {
       const res = await axios.post('/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      const { id, url, uploaded_at } = res.data
+      const { id } = res.data
       console.info('[Upload] Upload complete:', res.data)
 
-      toast.success('Model uploaded successfully')
+      toast.success('✅ Model uploaded successfully')
+      pollRenderStatus(id)
+
+      // Reset form
       setFile(null)
       setPreviewUrl(null)
       setName('')
       setDescription('')
-      pollRenderStatus(id)
     } catch (err) {
       console.error('[Upload] Upload failed:', err)
-      toast.error('Upload failed')
+      toast.error('❌ Upload failed')
     } finally {
       setUploading(false)
     }
@@ -94,16 +94,19 @@ export default function Upload() {
 
   return (
     <>
-      <GlassNavbar />
-      <PageLayout title="Upload 3D Model">
+      <GlassNavbar floating={false} />
+      <PageLayout>
         <GlassCard>
           <div
             ref={dropzoneRef}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="w-full border-2 border-dashed border-zinc-400 rounded-lg p-6 text-center dark:border-zinc-600 mb-4"
+            className="w-full border-2 border-dashed border-zinc-400 rounded-lg p-6 text-center dark:border-zinc-600 mb-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+            aria-label="File upload drop zone"
           >
-            <p className="text-zinc-600 dark:text-zinc-400 mb-2">Drag and drop an STL or 3MF file here</p>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-2">
+              Drag and drop an STL or 3MF file here
+            </p>
             <input
               type="file"
               accept=".stl,.3mf"
@@ -111,6 +114,7 @@ export default function Upload() {
                 if (e.target.files?.[0]) handleFileChange(e.target.files[0])
               }}
               className="w-full"
+              aria-label="File upload input"
             />
           </div>
 
@@ -119,22 +123,22 @@ export default function Upload() {
               <p className="text-sm mb-2 text-zinc-500">Selected:</p>
               <img
                 src={previewUrl}
-                alt="preview"
-                className="w-32 h-32 mx-auto object-contain border border-zinc-300 dark:border-zinc-700 rounded-lg"
+                alt="Model preview"
+                className="w-32 h-32 mx-auto object-contain border border-zinc-300 dark:border-zinc-700 rounded-lg shadow"
               />
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
+              <label htmlFor="name" className="block text-sm font-medium mb-1">
+                Name
+              </label>
               <input
+                id="name"
                 type="text"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value)
-                  console.debug('[Upload] Name updated:', e.target.value)
-                }}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full p-2 border rounded-md dark:bg-zinc-800"
                 placeholder="Model name"
                 required
@@ -142,13 +146,13 @@ export default function Upload() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label htmlFor="description" className="block text-sm font-medium mb-1">
+                Description
+              </label>
               <textarea
+                id="description"
                 value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value)
-                  console.debug('[Upload] Description updated:', e.target.value)
-                }}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full p-2 border rounded-md dark:bg-zinc-800"
                 rows={3}
                 placeholder="Model description (optional)"
@@ -158,7 +162,8 @@ export default function Upload() {
             <button
               type="submit"
               disabled={uploading}
-              className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800"
+              className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-busy={uploading}
             >
               {uploading ? 'Uploading…' : 'Upload Model'}
             </button>
@@ -167,7 +172,8 @@ export default function Upload() {
           {renderStatus && (
             <div className="mt-6 text-sm text-center text-zinc-700 dark:text-zinc-300">
               <p>
-                Render Status: <strong>{renderStatus}</strong>
+                Render Status:{' '}
+                <strong className="capitalize">{renderStatus}</strong>
               </p>
             </div>
           )}

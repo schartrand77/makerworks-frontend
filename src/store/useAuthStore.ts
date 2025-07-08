@@ -13,12 +13,10 @@ interface User {
 
 interface AuthState {
   user: User | null
-  /** Authentication token for API requests */
   token: string | null
   loading: boolean
   resolved: boolean
   setUser: (user: User | null) => void
-  /** Set authentication token and persist to localStorage */
   setToken: (token: string | null) => void
   clearUser: () => void
   logout: () => void
@@ -63,8 +61,7 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token')
         }
-        // optionally you can also trigger backend logout endpoint here
-        // await axios.post('/auth/logout', {}, { withCredentials: true })
+        // optionally: axios.post('/auth/logout', {}, { withCredentials: true })
       },
 
       isAuthenticated: () => {
@@ -75,12 +72,14 @@ export const useAuthStore = create<AuthState>()(
       hasRole: (role) => {
         const state = get()
         const groups = state.user?.groups ?? []
-        return groups.includes(`MakerWorks-${role.charAt(0).toUpperCase() + role.slice(1)}`)
+        const normalized = `MakerWorks-${role.charAt(0).toUpperCase() + role.slice(1)}`
+        const has = groups.includes(normalized)
+        console.debug(`[AuthStore] Checking role '${role}':`, has)
+        return has
       },
 
       fetchUser: async () => {
         set({ loading: true })
-
         try {
           const res = await axios.get('/auth/me', { withCredentials: true })
           set({ user: res.data, resolved: true })
@@ -107,12 +106,14 @@ export const useAuthStore = create<AuthState>()(
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
     if (event.key === 'token') {
+      console.debug('[AuthStore] Synced token from storage:', event.newValue)
       useAuthStore.setState({ token: event.newValue })
     }
 
     if (event.key === 'auth-store') {
       try {
         const data = event.newValue ? JSON.parse(event.newValue) : null
+        console.debug('[AuthStore] Synced user from storage:', data?.state?.user)
         useAuthStore.setState({ user: data?.state?.user ?? null })
       } catch (err) {
         console.error('[AuthStore] Failed to sync state from storage:', err)

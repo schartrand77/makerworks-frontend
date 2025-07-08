@@ -1,4 +1,4 @@
-import PageLayout from "@/components/layout/PageLayout"
+import GlassCard from "@/components/ui/GlassCard"
 import { useSignUp } from "@/hooks/useSignUp"
 import GlassInput from "@/components/ui/GlassInput"
 import GlassButton from "@/components/ui/GlassButton"
@@ -17,8 +17,8 @@ const SignUp: React.FC = () => {
   } = useSignUp()
 
   return (
-    <PageLayout title="Sign Up">
-      <div className="glass-card max-w-md mx-auto p-10 shadow-vision">
+    <div className="flex items-center justify-center min-h-screen">
+      <GlassCard>
         <h1 className="text-2xl font-semibold mb-6 text-center">
           Create a MakerWorks Account
         </h1>
@@ -45,13 +45,17 @@ const SignUp: React.FC = () => {
           />
 
           {error && (
-            <p className="text-red-500 text-sm whitespace-pre-wrap">{error}</p>
+            <p className="text-red-500 text-sm whitespace-pre-wrap text-center">
+              {error}
+            </p>
           )}
 
-          <GlassButton loading={loading}>Sign Up</GlassButton>
+          <div className="text-center">
+            <GlassButton loading={loading}>Sign Up</GlassButton>
+          </div>
         </form>
-      </div>
-    </PageLayout>
+      </GlassCard>
+    </div>
   )
 }
 

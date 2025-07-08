@@ -1,23 +1,51 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
+import { ReactNode, useEffect } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
+import { RoutePaths } from '@/routes/RoutesRenderer'
 
-/**
- * RequireAuth — protects routes and allows either:
- * - Normal authenticated session
- * - Or God Mode (via Konami code)
- *
- * Redirects to /auth/signin if neither is present.
- */
-export default function RequireAuth() {
-  const auth = useAuthStore()
+interface RequireAuthProps {
+  children: ReactNode
+  adminOnly?: boolean
+}
+
+const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }) => {
   const location = useLocation()
+  const { user, isAuthenticated } = useAuthStore()
 
-  const allowed =
-    auth.isAuthenticated() || auth.isGodMode()
+  useEffect(() => {
+    console.debug('[RequireAuth] user:', user)
+    console.debug('[RequireAuth] isAuthenticated:', isAuthenticated)
+    console.debug('[RequireAuth] adminOnly:', adminOnly)
+    console.debug('[RequireAuth] location:', location.pathname)
+  }, [user, isAuthenticated, adminOnly, location.pathname])
 
-  if (!allowed) {
-    return <Navigate to="/auth/signin" state={{ from: location }} replace />
+  // Not authenticated → redirect to signin
+  if (!isAuthenticated || !user) {
+    console.warn('[RequireAuth] User not authenticated. Redirecting to signin.')
+    return (
+      <Navigate
+        to={RoutePaths.signin}
+        replace
+        state={{ from: location.pathname }}
+      />
+    )
   }
 
-  return <Outlet />
+  // Authenticated but not admin → deny if adminOnly
+  if (adminOnly && user.role !== 'admin') {
+    console.warn('[RequireAuth] User lacks admin privileges. Redirecting to landing.')
+
+    return (
+      <Navigate
+        to={RoutePaths.landing}
+        replace
+        state={{ denied: true, from: location.pathname }}
+      />
+    )
+  }
+
+  // Authenticated & authorized
+  return <>{children}</>
 }
+
+export default RequireAuth

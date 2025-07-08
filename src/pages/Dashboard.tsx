@@ -6,66 +6,44 @@ import GlassNavbar from '@/components/ui/GlassNavbar'
 import { useUser } from '@/hooks/useUser'
 import { Star, Upload, Shield } from 'lucide-react'
 
-interface DashboardCardProps {
-  to: string
-}
-
 const Dashboard: React.FC = () => {
   const { user, isAdmin, loading } = useUser()
 
   useEffect(() => {
-    const mountTime = performance.now()
     console.debug('[Dashboard] useUser() state:', { user, isAdmin, loading })
-
-    return () => {
-      const unmountTime = performance.now()
-      console.debug(`[Dashboard] Unmounted after ${Math.round(unmountTime - mountTime)}ms`)
-    }
   }, [user, isAdmin, loading])
 
   if (loading) {
-    console.debug('[Dashboard] Status: loading')
     return (
       <>
-        <GlassNavbar />
-        <PageLayout title="Dashboard">
-          <p className="text-muted-foreground">Loading your dashboard…</p>
+        <GlassNavbar floating={false} />
+        <PageLayout>
+          <div className="text-center text-zinc-500 dark:text-zinc-400 py-8">
+            Loading your dashboard…
+          </div>
         </PageLayout>
       </>
     )
   }
 
   if (!user) {
-    console.warn('[Dashboard] No user found. Redirect or gate access.')
     return (
       <>
-        <GlassNavbar />
-        <PageLayout title="Unauthorized">
-          <p className="text-red-600 dark:text-red-400">Please sign in to access your dashboard.</p>
+        <GlassNavbar floating={false} />
+        <PageLayout>
+          <div className="text-center text-red-600 dark:text-red-400 py-8">
+            🚫 Please sign in to access your dashboard.
+          </div>
         </PageLayout>
       </>
     )
   }
 
-  if (!user.username) {
-    console.warn('[Dashboard] User object is missing `username` field:', user)
-  } else {
-    console.info('[Dashboard] User authenticated:', user.username)
-  }
-
-  if (isAdmin) {
-    console.info('[Dashboard] User has admin role')
-  }
-
-  const handleCardClick = (to: string): void => {
-    console.debug(`[DashboardCard] Navigating to ${to}`)
-  }
-
   return (
     <>
-      <GlassNavbar />
-      <PageLayout title={`Welcome, ${user.username ?? 'User'} 👋`}>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <GlassNavbar floating={false} />
+      <PageLayout>
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <UserDashboardCard />
 
           <DashboardCard
@@ -73,7 +51,6 @@ const Dashboard: React.FC = () => {
             description="View and manage your 3D model uploads."
             icon={<Upload />}
             to="/uploads"
-            onNavigate={handleCardClick}
           />
 
           <DashboardCard
@@ -81,7 +58,6 @@ const Dashboard: React.FC = () => {
             description="See models you've bookmarked."
             icon={<Star />}
             to="/favorites"
-            onNavigate={handleCardClick}
           />
 
           {isAdmin && (
@@ -91,7 +67,6 @@ const Dashboard: React.FC = () => {
               icon={<Shield />}
               to="/admin"
               className="text-red-500"
-              onNavigate={handleCardClick}
             />
           )}
         </div>

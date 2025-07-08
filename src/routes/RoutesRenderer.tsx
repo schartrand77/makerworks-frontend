@@ -1,32 +1,47 @@
 import { Routes, Route } from 'react-router-dom'
+
+// Pages
 import Landing from '@/pages/Landing'
 import Admin from '@/pages/Admin'
-import Checkout from '@/pages/Checkout'
+import Dashboard from '@/pages/Dashboard'
+import PageNotFound from '@/pages/PageNotFound'
+
+// Auth
+import SignIn from '@/components/auth/SignIn'
+import SignUp from '@/components/auth/SignUp'
 import RequireAuth from '@/components/auth/RequireAuth'
 
-/**
- * RoutesRenderer — defines the React Router v6 route tree.
- */
+export const RoutePaths = Object.freeze({
+  landing: '/',
+  admin: '/admin',
+  dashboard: '/dashboard',
+  signin: '/auth/signin',
+  signup: '/auth/signup',
+})
+
 export default function RoutesRenderer() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path={RoutePaths.landing} element={<Landing />} />
+      <Route path={RoutePaths.signin} element={<SignIn />} />
+      <Route path={RoutePaths.signup} element={<SignUp />} />
       <Route
-        path="/checkout"
-        element={
-          <RequireAuth>
-            <Checkout />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin"
+        path={RoutePaths.admin}
         element={
           <RequireAuth adminOnly>
             <Admin />
           </RequireAuth>
         }
       />
-      {/* Other routes */}
+      <Route
+        path={RoutePaths.dashboard}
+        element={
+          <RequireAuth>
+            <Dashboard />
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
-  )}
+  )
+}

@@ -3,7 +3,11 @@ import { useUser } from '@/hooks/useUser'
 import MobileDrawer from '@/components/ui/MobileDrawer'
 import { useLocation } from 'react-router-dom'
 
-export default function GlassNavbar() {
+interface GlassNavbarProps {
+  floating?: boolean
+}
+
+export default function GlassNavbar({ floating = true }: GlassNavbarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { user, isAdmin } = useUser()
   const location = useLocation()
@@ -19,9 +23,19 @@ export default function GlassNavbar() {
 
   return (
     <>
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+      <div
+        className={
+          floating
+            ? 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4'
+            : 'w-full px-4 bg-white dark:bg-zinc-800 shadow'
+        }
+      >
         <nav
-          className="backdrop-blur-md bg-white/30 dark:bg-zinc-800/30 border border-white/20 dark:border-zinc-700/50 shadow-xl rounded-full flex items-center justify-between px-4 py-2"
+          className={`${
+            floating
+              ? 'backdrop-blur-md bg-white/30 dark:bg-zinc-800/30 border border-white/20 dark:border-zinc-700/50 shadow-xl rounded-full'
+              : 'bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'
+          } flex items-center justify-between px-4 py-2`}
         >
           <div className="flex items-center space-x-3">
             {tabs.map((tab) => {

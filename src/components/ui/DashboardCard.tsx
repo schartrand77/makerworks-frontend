@@ -1,60 +1,40 @@
-import { cn } from '@/lib/utils'
-import { Link } from 'react-router-dom'
-import { MouseEvent, ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Card, CardContent } from '@/components/ui/card'
 
-type DashboardCardProps = {
+interface DashboardCardProps {
   title: string
   description: string
-  icon?: ReactNode
-  to?: string
-  onClick?: (e: MouseEvent) => void
-  onNavigate?: (path: string) => void
+  icon: React.ReactNode
+  to: string
   className?: string
-  children?: ReactNode
 }
 
-export default function DashboardCard({
+const DashboardCard: React.FC<DashboardCardProps> = ({
   title,
   description,
   icon,
   to,
-  onClick,
-  onNavigate,
   className = '',
-  children,
-}: DashboardCardProps) {
-  const Wrapper = to
-    ? (props: any) => (
-        <Link
-          to={to}
-          onClick={(e) => {
-            onClick?.(e)
-            if (onNavigate) {
-              console.debug(`[DashboardCard] Triggered navigation to ${to}`)
-              onNavigate(to)
-            }
-          }}
-          {...props}
-        />
-      )
-    : (props: any) => (
-        <div
-          onClick={onClick}
-          {...props}
-        />
-      )
+}) => {
+  const navigate = useNavigate()
+
+  const handleClick = () => {
+    console.debug(`[DashboardCard] Navigating to ${to}`)
+    navigate(to)
+  }
 
   return (
-    <Wrapper
-      className={cn(
-        'rounded-xl shadow-md border border-zinc-300/30 dark:border-zinc-700/50 p-6 bg-white/70 dark:bg-zinc-800/60 backdrop-blur transition hover:shadow-lg cursor-pointer space-y-2',
-        className
-      )}
+    <Card
+      onClick={handleClick}
+      className={`cursor-pointer hover:shadow-lg transition-shadow ${className}`}
     >
-      {icon && <div className="text-2xl mb-1">{icon}</div>}
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
-      {children}
-    </Wrapper>
+      <CardContent className="flex flex-col items-center p-6">
+        <div className="text-4xl mb-4">{icon}</div>
+        <h2 className="text-xl font-semibold">{title}</h2>
+        <p className="text-muted-foreground mt-2">{description}</p>
+      </CardContent>
+    </Card>
   )
 }
+
+export default DashboardCard

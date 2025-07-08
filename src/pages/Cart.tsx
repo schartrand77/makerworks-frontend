@@ -16,18 +16,23 @@ export default function Cart() {
     console.debug('[Cart] Mounted with items:', items)
   }, [items])
 
+  const handleCheckout = () => {
+    console.info('[Cart] Proceed to checkout')
+    // TODO: implement actual checkout flow
+  }
+
   return (
     <>
-      <GlassNavbar />
-      <PageLayout title="Shopping Cart">
+      <GlassNavbar floating={false} />
+      <PageLayout>
         {items.length === 0 ? (
           <GlassCard>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Your cart is currently empty.
+            <p className="text-center text-sm text-zinc-600 dark:text-zinc-400 py-6">
+              🛒 Your cart is currently empty.
             </p>
           </GlassCard>
         ) : (
-          <>
+          <div className="space-y-4">
             {items.map((item: CartItem) => (
               <GlassCard key={item.id}>
                 <div className="flex items-center justify-between">
@@ -38,6 +43,7 @@ export default function Cart() {
                   <button
                     onClick={() => removeItem(item.id)}
                     className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md"
+                    aria-label={`Remove ${item.name}`}
                   >
                     Remove
                   </button>
@@ -45,21 +51,21 @@ export default function Cart() {
               </GlassCard>
             ))}
 
-            <div className="flex justify-between mt-6">
+            <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
               <button
                 onClick={clearCart}
-                className="px-4 py-2 rounded-md bg-zinc-700 hover:bg-zinc-800 text-white text-sm"
+                className="px-4 py-2 rounded-md bg-zinc-700 hover:bg-zinc-800 text-white text-sm w-full sm:w-auto"
               >
                 Clear Cart
               </button>
               <button
-                onClick={() => console.info('[Cart] Proceed to checkout')}
-                className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm"
+                onClick={handleCheckout}
+                className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm w-full sm:w-auto"
               >
-                Checkout
+                Proceed to Checkout
               </button>
             </div>
-          </>
+          </div>
         )}
       </PageLayout>
     </>

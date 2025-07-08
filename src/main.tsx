@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from '@/App'
 import ErrorBoundary from '@/components/system/ErrorBoundary'
+import { ToastProvider } from '@/context/ToastContext'
 import '@/index.css'
 
 function mountApp(): void {
@@ -27,9 +28,11 @@ function mountApp(): void {
     createRoot(rootElement).render(
       <StrictMode>
         <BrowserRouter>
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
+          <ToastProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </ToastProvider>
         </BrowserRouter>
       </StrictMode>
     )
