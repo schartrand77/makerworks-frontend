@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/Card'
 
 interface DashboardCardProps {
   title: string
