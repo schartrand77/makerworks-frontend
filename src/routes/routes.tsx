@@ -12,6 +12,7 @@ export const RoutePaths = {
   Estimate: '/estimate',
   Settings: '/settings',
   Browse: '/browse',
+  Checkout: '/checkout',
   Admin: '/admin',
 } as const
 
@@ -72,11 +73,18 @@ export const routesMeta: AppRouteMeta[] = [
     access: 'protected',
   },
   {
+    path: RoutePaths.Checkout,
+    title: 'Checkout',
+    icon: <FileText />,
+    description: 'Complete your purchase',
+    access: 'protected',
+    hidden: true,
+  },
+  {
     path: RoutePaths.Admin,
     title: 'Admin',
     icon: <Users />,
     description: 'Admin panel for managing the platform',
     role: 'MakerWorks-Admin',
     access: 'admin',
-  },
-]
+  },]
