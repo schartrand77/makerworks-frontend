@@ -82,7 +82,7 @@ export default function Admin() {
 
   return (
     <>
-      <PageLayout title="Admin Panel" maxWidth="xl" padding="p-4" center={false}>
+      <PageLayout title="Admin Panel" maxWidth="xl" padding="p-4">
         <div className="flex gap-3 mb-4">
           <GlassButton variant={tab === 'users' ? 'primary' : 'secondary'} onClick={() => setTab('users')}>
             Users

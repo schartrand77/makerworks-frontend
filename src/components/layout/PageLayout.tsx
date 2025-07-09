@@ -57,7 +57,7 @@ export default function PageLayout({
       {/* 🚫 DesktopNavbar removed */}
 
       <div
-        className="w-full flex-1 px-4 py-8 flex justify-center items-start"
+        className="w-full flex-1 px-4 py-8 flex justify-center items-center"
         aria-describedby={description ? `${id}-description` : undefined}
       >
         <Component
