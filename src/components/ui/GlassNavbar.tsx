@@ -40,25 +40,29 @@ const GlassNavbar = () => {
           MakerW⚙️rks
         </Link>
 
-        {navRoutes.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`
-              text-sm
-              px-3 py-1
-              rounded-full
-              backdrop-blur
-              bg-blue-200/40 dark:bg-blue-300/20
-              text-blue-700 dark:text-blue-200
-              border border-blue-300
-              shadow
-              transition
-            `}
-          >
-            {item.label}
-          </Link>
-        ))}
+        {navRoutes.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`
+                text-sm
+                px-3 py-1
+                rounded-full
+                backdrop-blur
+                bg-blue-200/40 dark:bg-blue-300/20
+                text-blue-700 dark:text-blue-200
+                border border-blue-300
+                shadow
+                transition
+                ${isActive ? 'bg-blue-500 text-white' : ''}
+              `}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </div>
 
       <div>
@@ -76,5 +80,4 @@ const GlassNavbar = () => {
     </nav>
   );
 };
-
 export default GlassNavbar;
