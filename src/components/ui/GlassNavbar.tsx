@@ -2,7 +2,11 @@ import { Link, useLocation } from 'react-router-dom';
 import UserDropdown from '@/components/ui/UserDropdown';
 import { useAuthStore } from '@/store/useAuthStore';
 
-const GlassNavbar = () => {
+interface GlassNavbarProps {
+  floating?: boolean
+}
+
+const GlassNavbar = ({ floating = false }: GlassNavbarProps) => {
   const { user, isAuthenticated } = useAuthStore();
   const location = useLocation();
 
@@ -16,8 +20,13 @@ const GlassNavbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full flex justify-between items-center px-6 py-3 
-      bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-md z-50 glass-navbar">
+    <nav
+      className={`fixed flex justify-between items-center px-6 py-3 bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-md z-50 glass-navbar ${
+        floating
+          ? 'top-4 left-1/2 translate-x-[-50%] rounded-pill'
+          : 'top-0 left-0 w-full'
+      }`}
+    >
       
       <div className="flex items-center gap-6">
         <Link
