@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
-import GlassNavbar from '@/components/ui/GlassNavbar'
 import GlassInput from '@/components/ui/GlassInput'
 import GlassButton from '@/components/ui/GlassButton'
 import { useUser } from '@/hooks/useUser'
@@ -41,7 +40,6 @@ export default function Admin() {
   if (loading) {
     return (
       <>
-        <GlassNavbar />
         <PageLayout title="Admin Panel">
           <p className="text-muted-foreground">Loading admin tools…</p>
         </PageLayout>
@@ -52,7 +50,6 @@ export default function Admin() {
   if (!user || !isAdmin) {
     return (
       <>
-        <GlassNavbar />
         <PageLayout title="Access Denied">
           <p className="text-red-600 dark:text-red-400">Admin access required.</p>
         </PageLayout>
@@ -85,7 +82,6 @@ export default function Admin() {
 
   return (
     <>
-      <GlassNavbar />
       <PageLayout title="Admin Panel" maxWidth="xl" padding="p-4" center={false}>
         <div className="flex gap-3 mb-4">
           <GlassButton variant={tab === 'users' ? 'primary' : 'secondary'} onClick={() => setTab('users')}>

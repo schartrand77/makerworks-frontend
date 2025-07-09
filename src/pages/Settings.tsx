@@ -8,7 +8,6 @@ import { updateUserProfile, uploadAvatar, deleteAccount } from '@/api/users'
 import type { AvatarUploadResponse } from '@/api/users'
 
 import { Box } from 'lucide-react'
-import GlassNavbar from '@/components/ui/GlassNavbar'
 
 const themes = ['system', 'light', 'dark'] as const
 type Theme = typeof themes[number]
@@ -91,20 +90,18 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <>
-        <GlassNavbar floating={false} />
-        <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8 animate-pulse">
-          <div className="h-8 bg-zinc-300 rounded w-1/3"></div>
-          <div className="h-16 bg-zinc-200 rounded"></div>
-          <div className="h-48 bg-zinc-200 rounded"></div>
-        </div>
-      </>
+    <>
+      <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8 animate-pulse">
+        <div className="h-8 bg-zinc-300 rounded w-1/3"></div>
+        <div className="h-16 bg-zinc-200 rounded"></div>
+        <div className="h-48 bg-zinc-200 rounded"></div>
+      </div>
+    </>
     )
   }
 
   return (
     <>
-      <GlassNavbar floating={false} />
       <div className="max-w-4xl mx-auto pt-20 px-4 space-y-8">
         <h1 className="text-3xl font-semibold mb-4 flex items-center gap-2">
           <Box className="w-6 h-6 text-primary" />

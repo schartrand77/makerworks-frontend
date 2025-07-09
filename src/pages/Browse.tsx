@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import GlassCard from '@/components/ui/GlassCard';
-import GlassNavbar from '@/components/ui/GlassNavbar';
 import axios from '@/api/axios';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -81,7 +80,6 @@ const Browse: React.FC = () => {
 
   return (
     <>
-      <GlassNavbar floating={false} />
       <PageLayout title="Browse Models" center={false} maxWidth="xl">
         {loading && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
