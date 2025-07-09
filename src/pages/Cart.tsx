@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
-import GlassNavbar from '@/components/ui/GlassNavbar'
 import { useCartStore } from '@/store/useCartStore'
 
 interface CartItem {
@@ -23,7 +22,6 @@ export default function Cart() {
 
   return (
     <>
-      <GlassNavbar floating={false} />
       <PageLayout>
         {items.length === 0 ? (
           <GlassCard>

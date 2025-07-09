@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import PageLayout from '@/components/layout/PageLayout';
 import GlassCard from '@/components/ui/GlassCard';
-import GlassNavbar from '@/components/ui/GlassNavbar';
 import axios from '@/api/axios';
 import { loadStripe } from '@stripe/stripe-js';
 import { toast } from 'sonner';
@@ -76,7 +75,6 @@ export default function Checkout() {
 
   return (
     <>
-      <GlassNavbar floating={false} />
       <PageLayout>
         {items.length === 0 ? (
           <GlassCard>

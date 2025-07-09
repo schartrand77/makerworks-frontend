@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import DashboardCard from '@/components/ui/DashboardCard'
 import UserDashboardCard from '@/components/ui/UserDashboardCard'
-import GlassNavbar from '@/components/ui/GlassNavbar'
 import { useUser } from '@/hooks/useUser'
 import { Star, Upload, Shield } from 'lucide-react'
 
@@ -16,7 +15,6 @@ const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <>
-        <GlassNavbar floating={false} />
         <PageLayout>
           <div className="text-center text-zinc-500 dark:text-zinc-400 py-8">
             Loading your dashboard…
@@ -29,7 +27,6 @@ const Dashboard: React.FC = () => {
   if (!user) {
     return (
       <>
-        <GlassNavbar floating={false} />
         <PageLayout>
           <div className="text-center text-red-600 dark:text-red-400 py-8">
             🚫 Please sign in to access your dashboard.
@@ -41,7 +38,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <GlassNavbar floating={false} />
       <PageLayout>
         <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <UserDashboardCard />

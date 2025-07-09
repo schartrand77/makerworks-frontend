@@ -2,7 +2,6 @@ import { useState, useEffect, FormEvent } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import GlassCard from '@/components/ui/GlassCard';
 import ModelViewer from '@/components/ui/ModelViewer';
-import GlassNavbar from '@/components/ui/GlassNavbar';
 import { fetchAvailableFilaments } from '@/api/filaments';
 import { getEstimate } from '@/api/estimate';
 import { toast } from 'sonner';
@@ -97,7 +96,6 @@ export default function Estimate() {
 
   return (
     <>
-      <GlassNavbar floating={false} />
       <PageLayout>
         <div className="grid md:grid-cols-2 gap-6">
           {/* Model Viewer */}

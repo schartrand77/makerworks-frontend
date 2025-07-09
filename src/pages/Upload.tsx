@@ -1,6 +1,5 @@
 import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
-import GlassNavbar from '@/components/ui/GlassNavbar';
 import { toast } from 'sonner';
 import axios from '@/api/axios';
 
@@ -85,7 +84,6 @@ export default function Upload() {
 
   return (
     <>
-      <GlassNavbar floating />
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <GlassCard>
           <div
