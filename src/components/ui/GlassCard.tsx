@@ -41,7 +41,7 @@ export default function GlassCard<T extends ElementType = 'div'>({
   return (
     <Component
       className={clsx(
-        'rounded-xl border border-white/30 dark:border-zinc-700/40 backdrop-blur bg-white/70 dark:bg-zinc-800/60 transition-all',
+        'glass-card',
         elevationClasses[elevation],
         maxWidthClasses[maxWidth],
         padding,

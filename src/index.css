@@ -21,4 +21,9 @@
            focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-300 
            transition-all duration-200;
   }
+
+  .glass-card {
+    @apply rounded-xl border border-white/30 dark:border-zinc-700/40
+           backdrop-blur bg-white/70 dark:bg-zinc-800/60 transition-all;
+  }
 }
