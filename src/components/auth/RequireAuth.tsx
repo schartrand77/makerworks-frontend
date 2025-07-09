@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { ReactNode, useEffect } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useDevModeStore } from '@/store/useDevModeStore'
 import { RoutePaths } from '@/routes/RoutesRenderer'
 
 interface RequireAuthProps {
@@ -11,6 +12,7 @@ interface RequireAuthProps {
 const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }) => {
   const location = useLocation()
   const { user, isAuthenticated } = useAuthStore()
+  const devMode = useDevModeStore((s) => s.enabled)
 
   useEffect(() => {
     console.debug('[RequireAuth] user:', user)
@@ -19,8 +21,8 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }
     console.debug('[RequireAuth] location:', location.pathname)
   }, [user, adminOnly, location.pathname])
 
-  // Not authenticated → redirect to signin
-  if (!isAuthenticated() || !user) {
+  // Not authenticated → redirect to signin (unless dev mode)
+  if (!devMode && (!isAuthenticated() || !user)) {
     console.warn('[RequireAuth] User not authenticated. Redirecting to signin.')
     return (
       <Navigate
@@ -32,7 +34,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }
   }
 
   // Authenticated but not admin → deny if adminOnly
-  if (adminOnly && user.role !== 'admin') {
+  if (!devMode && adminOnly && user.role !== 'admin') {
     console.warn('[RequireAuth] User lacks admin privileges. Redirecting to landing.')
     return (
       <Navigate
@@ -46,5 +48,4 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }
   // Authenticated & authorized
   return <>{children}</>
 }
-
 export default RequireAuth

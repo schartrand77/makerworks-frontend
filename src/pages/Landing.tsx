@@ -4,11 +4,13 @@ import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
 import { useUser } from '@/hooks/useUser'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useDevModeStore } from '@/store/useDevModeStore'
 
 const Landing: React.FC = () => {
   const { user, isAuthenticated, loading } = useUser()
   const resolved = useAuthStore((s) => s.resolved)
   const fetchUser = useAuthStore.getState().fetchUser
+  const enableDevMode = useDevModeStore((s) => s.enable)
 
   const isAuthed = typeof isAuthenticated === 'function' && isAuthenticated()
 
@@ -19,6 +21,18 @@ const Landing: React.FC = () => {
       fetchUser?.()
     }
   }, [resolved, loading])
+
+  // ⌨️ Enable dev mode via Ctrl+Shift+D
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') {
+        console.info('[Landing] Dev mode enabled via keyboard shortcut')
+        enableDevMode()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [enableDevMode])
 
   useEffect(() => {
     console.debug('[Landing] Mounted. Auth state:', {
