@@ -2,11 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import UserDropdown from '@/components/ui/UserDropdown';
 import { useAuthStore } from '@/store/useAuthStore';
 
-interface GlassNavbarProps {
-  floating?: boolean
-}
-
-const GlassNavbar = ({ floating = false }: GlassNavbarProps) => {
+const GlassNavbar = () => {
   const { user, isAuthenticated } = useAuthStore();
   const location = useLocation();
 
@@ -21,17 +17,25 @@ const GlassNavbar = ({ floating = false }: GlassNavbarProps) => {
 
   return (
     <nav
-      className={`fixed flex justify-between items-center px-6 py-3 bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-md z-50 glass-navbar ${
-        floating
-          ? 'top-4 left-1/2 translate-x-[-50%] rounded-pill'
-          : 'top-0 left-0 w-full'
-      }`}
+      className={`
+        fixed
+        top-4
+        left-1/2
+        transform -translate-x-1/2
+        flex justify-between items-center
+        gap-6
+        px-6 py-2
+        rounded-full
+        bg-white/30 dark:bg-black/30
+        backdrop-blur-md
+        shadow-md
+        z-50
+      `}
     >
-      
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2">
         <Link
           to="/"
-          className="text-xl font-bold text-gray-800 dark:text-white"
+          className="text-lg font-bold text-gray-800 dark:text-white"
         >
           MakerWorks
         </Link>
@@ -40,8 +44,18 @@ const GlassNavbar = ({ floating = false }: GlassNavbarProps) => {
           <Link
             key={item.path}
             to={item.path}
-            className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition 
-              ${location.pathname === item.path ? 'font-semibold underline' : ''}`}
+            className={`
+              text-sm
+              px-3 py-1
+              rounded-full
+              shadow
+              transition
+              ${
+                location.pathname === item.path
+                  ? 'bg-blue-500 text-white shadow-lg'
+                  : 'bg-white/70 dark:bg-black/50 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-700'
+              }
+            `}
           >
             {item.label}
           </Link>

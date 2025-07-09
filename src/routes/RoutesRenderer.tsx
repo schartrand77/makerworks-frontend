@@ -9,6 +9,7 @@ import Estimate from '@/pages/Estimate'
 import Upload from '@/pages/Upload'
 import Cart from '@/pages/Cart'
 import Checkout from '@/pages/Checkout'
+import Settings from '@/pages/Settings'  // 👈 added
 import PageNotFound from '@/pages/PageNotFound'
 
 // Auth
@@ -25,6 +26,7 @@ export const RoutePaths = Object.freeze({
   upload: '/upload',
   cart: '/cart',
   checkout: '/checkout',
+  settings: '/settings',      // 👈 added
   signin: '/auth/signin',
   signup: '/auth/signup',
 })
@@ -89,6 +91,14 @@ export default function RoutesRenderer() {
         element={
           <RequireAuth>
             <Checkout />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={RoutePaths.settings} // 👈 added
+        element={
+          <RequireAuth>
+            <Settings />
           </RequireAuth>
         }
       />

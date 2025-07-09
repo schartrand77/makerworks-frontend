@@ -1,10 +1,11 @@
 // src/components/ui/UserDashboardCard.tsx
 import { useAuthStore } from '@/store/useAuthStore'
 import GlassCard from '@/components/ui/GlassCard'
-import GlassButton from '@/components/ui/GlassButton'
+import { useNavigate } from 'react-router-dom'
 
 const UserDashboardCard = () => {
   const user = useAuthStore((s) => s.user)
+  const navigate = useNavigate()
 
   if (!user) return null
 
@@ -32,23 +33,33 @@ const UserDashboardCard = () => {
       </div>
 
       <div className="mt-4 flex gap-3 justify-center">
-        <GlassButton
+        <button
           onClick={() => {
-            // TODO: open modal or settings page
-            console.debug('[UserDashboardCard] Edit Profile clicked')
+            navigate('/settings')
           }}
+          className="
+            px-5 py-2 rounded-full
+            bg-blue-500 text-white 
+            shadow hover:bg-blue-600
+            transition text-sm
+          "
         >
           Edit Profile
-        </GlassButton>
-        <GlassButton
+        </button>
+        <button
           onClick={() => {
             useAuthStore.getState().logout()
             window.location.href = '/'
           }}
-          variant="danger"
+          className="
+            px-5 py-2 rounded-full
+            bg-red-500 text-white 
+            shadow hover:bg-red-600
+            transition text-sm
+          "
         >
           Log Out
-        </GlassButton>
+        </button>
       </div>
     </GlassCard>
   )
