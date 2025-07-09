@@ -15,18 +15,20 @@ interface Model {
 
 const Browse: React.FC = () => {
   const [models, setModels] = useState<Model[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     console.debug('[Browse] Component mounted');
+
     fetchModels();
     fetchFavorites();
   }, []);
+
+  const loading = models.length === 0 && !error;
 
   const fetchModels = async () => {
     try {
@@ -37,14 +39,14 @@ const Browse: React.FC = () => {
     } catch (err) {
       console.error('[Browse] Failed to fetch models:', err);
       setError('⚠️ Failed to load models. Please try again later.');
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchFavorites = async () => {
+    if (!user?.id) return;
     try {
-      const res = await axios.get<string[]>(`/api/users/${user?.id}/favorites`);
+      console.debug('[Browse] Fetching favorites…');
+      const res = await axios.get<string[]>(`/api/users/${user.id}/favorites`);
       setFavorites(new Set(res.data));
       console.debug('[Browse] Favorites loaded:', res.data);
     } catch (err) {
@@ -54,7 +56,7 @@ const Browse: React.FC = () => {
 
   const toggleFavorite = async (id: string) => {
     const isFav = favorites.has(id);
-    setFavorites((prev) => {
+    setFavorites(prev => {
       const next = new Set(prev);
       isFav ? next.delete(id) : next.add(id);
       return next;
@@ -80,7 +82,7 @@ const Browse: React.FC = () => {
   return (
     <>
       <GlassNavbar floating={false} />
-      <PageLayout title="Browse Models">
+      <PageLayout title="Browse Models" center={false} maxWidth="xl">
         {loading && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {[...Array(6)].map((_, idx) => (
@@ -101,13 +103,7 @@ const Browse: React.FC = () => {
 
         {!loading && !error && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {models.length === 0 && (
-              <div className="text-center col-span-full text-zinc-500 dark:text-zinc-400 py-8">
-                No models found.
-              </div>
-            )}
-
-            {models.map((model) => (
+            {models.map(model => (
               <GlassCard key={model.id} className="relative">
                 <button
                   onClick={() => toggleFavorite(model.id)}
