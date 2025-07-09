@@ -37,7 +37,7 @@ const GlassNavbar = () => {
           to="/"
           className="text-lg font-bold text-gray-800 dark:text-white"
         >
-          MakerWorks
+          MakerW⚙️rks
         </Link>
 
         {navRoutes.map((item) => (
@@ -48,13 +48,12 @@ const GlassNavbar = () => {
               text-sm
               px-3 py-1
               rounded-full
+              backdrop-blur
+              bg-blue-200/40 dark:bg-blue-300/20
+              text-blue-700 dark:text-blue-200
+              border border-blue-300
               shadow
               transition
-              ${
-                location.pathname === item.path
-                  ? 'bg-blue-500 text-white shadow-lg'
-                  : 'bg-white/70 dark:bg-black/50 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-gray-700'
-              }
             `}
           >
             {item.label}
