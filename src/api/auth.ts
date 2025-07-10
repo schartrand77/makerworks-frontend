@@ -1,7 +1,7 @@
 // src/api/auth.ts
 
 import axios from './axios'
-import { User } from '@/types/user'
+import { UserProfile } from '@/types/UserProfile'
 
 const AUTH_BASE = import.meta.env.VITE_AUTHENTIK_BASE_URL
 const CLIENT_ID = import.meta.env.VITE_AUTH_CLIENT_ID
@@ -22,9 +22,9 @@ interface TokenResponse {
 /**
  * Get current authenticated user from backend.
  */
-export async function getCurrentUser(): Promise<User> {
+export async function getCurrentUser(): Promise<UserProfile> {
   try {
-    const res = await axios.get<User>(CURRENT_USER_URL)
+    const res = await axios.get<UserProfile>(CURRENT_USER_URL)
     return res.data
   } catch (err) {
     console.error('[Auth] getCurrentUser error:', err)
