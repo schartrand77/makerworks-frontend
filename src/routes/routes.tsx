@@ -1,20 +1,5 @@
 import { Home, Upload, Settings as Cog, Users, FileText, Eye } from 'lucide-react'
-
-/**
- * Define all app route paths in a central place.
- */
-export const RoutePaths = {
-  Home: '/',
-  SignIn: '/auth/signin',
-  SignUp: '/auth/signup',
-  Dashboard: '/dashboard',
-  Upload: '/upload',
-  Estimate: '/estimate',
-  Settings: '/settings',
-  Browse: '/browse',
-  Checkout: '/checkout',
-  Admin: '/admin',
-} as const
+import { RoutePaths } from './RoutesRenderer'
 
 /**
  * Route metadata used for navigation, breadcrumbs, etc.
@@ -31,49 +16,49 @@ export interface AppRouteMeta {
 
 export const routesMeta: AppRouteMeta[] = [
   {
-    path: RoutePaths.Home,
+    path: RoutePaths.landing,
     title: 'Home',
     icon: <Home />,
     description: 'Welcome to MakerWorks',
     access: 'public',
   },
   {
-    path: RoutePaths.Dashboard,
+    path: RoutePaths.dashboard,
     title: 'Dashboard',
     icon: <Eye />,
     description: 'Your personal dashboard',
     access: 'protected',
   },
   {
-    path: RoutePaths.Upload,
+    path: RoutePaths.upload,
     title: 'Upload',
     icon: <Upload />,
     description: 'Upload new models',
     access: 'protected',
   },
   {
-    path: RoutePaths.Estimate,
+    path: RoutePaths.estimate,
     title: 'Estimate',
     icon: <FileText />,
     description: 'Estimate print jobs',
     access: 'protected',
   },
   {
-    path: RoutePaths.Settings,
+    path: RoutePaths.settings,
     title: 'Settings',
     icon: <Cog />,
     description: 'Manage your account settings',
     access: 'protected',
   },
   {
-    path: RoutePaths.Browse,
+    path: RoutePaths.browse,
     title: 'Browse',
     icon: <Eye />,
     description: 'Browse available models',
     access: 'protected',
   },
   {
-    path: RoutePaths.Checkout,
+    path: RoutePaths.checkout,
     title: 'Checkout',
     icon: <FileText />,
     description: 'Complete your purchase',
@@ -81,10 +66,13 @@ export const routesMeta: AppRouteMeta[] = [
     hidden: true,
   },
   {
-    path: RoutePaths.Admin,
+    path: RoutePaths.admin,
     title: 'Admin',
     icon: <Users />,
     description: 'Admin panel for managing the platform',
     role: 'MakerWorks-Admin',
     access: 'admin',
-  },]
+  },
+] as const
+
+export default routesMeta
