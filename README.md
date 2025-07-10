@@ -35,7 +35,13 @@ Run the linter with:
 npm run lint
 ```
 
-This template currently does not include automated tests.
+Run the unit tests with:
+
+```bash
+npm test
+```
+
+This command uses [Vitest](https://vitest.dev/) to execute all test files.
 
 ### Theme Toggle
 
