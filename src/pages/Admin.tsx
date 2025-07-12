@@ -259,7 +259,7 @@ export default function Admin() {
 
                   <GlassButton
                     size="sm"
-                    variant="destructive"
+                    variant="danger"
                     disabled={loadingId === u.id}
                     onClick={() => handleBanUser(u.id, u.username)}
                     title="Ban user"
@@ -318,7 +318,7 @@ export default function Admin() {
                       </GlassButton>
                       <GlassButton
                         size="sm"
-                        variant="destructive"
+                        variant="danger"
                         onClick={() => handleDeleteFilament(f.id)}
                         disabled={loadingId === f.id}
                       >
