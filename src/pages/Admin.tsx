@@ -10,6 +10,7 @@ import {
   banUser,
   promoteUser,
   resetPassword,
+  fetchAllModels,
   updateModel,
   updateFilament,
   addFilament,
@@ -51,7 +52,7 @@ export default function Admin() {
   }
 
   const loadModels = () => {
-    updateModel.fetchAllModels?.()
+    fetchAllModels()
       .then(setModels)
       .catch(err => {
         console.error(err)
