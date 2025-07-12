@@ -29,7 +29,7 @@ export const uploadAvatar = async (
 
   try {
     const res = await axios.post<AvatarUploadResponse>(
-      '/api/v1/users/users/avatar',
+      '/users/avatar',
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -60,7 +60,7 @@ export const updateUserProfile = async (
   }
 
   try {
-    await axios.patch('/api/v1/users/users/me', parsed.data)
+    await axios.patch('/users/me', parsed.data)
     toast.success('✅ Profile updated.')
   } catch (err: any) {
     console.error('[updateUserProfile] error', err)
@@ -76,7 +76,7 @@ export const updateUserProfile = async (
  */
 export const deleteAccount = async (): Promise<void> => {
   try {
-    await axios.delete('/api/v1/users/users/me')
+    await axios.delete('/users/me')
     toast.success('✅ Account deleted.')
   } catch (err: any) {
     console.error('[deleteAccount] error', err)

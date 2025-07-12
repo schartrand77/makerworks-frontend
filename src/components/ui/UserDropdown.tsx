@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTheme } from '@/hooks/useTheme';
-import { Sun, Moon } from 'lucide-react'; // 👈 modern icons
+import { Sun, Moon } from 'lucide-react';
 
 type User = {
   username: string;
@@ -18,14 +18,14 @@ type Props = {
 const UserDropdown = ({ user }: Props) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { signOut } = useAuthStore();
+  const { logout } = useAuthStore(); // 🔷 fixed here
   const { theme, setTheme } = useTheme();
 
   const isDark = theme === 'dark';
 
   const handleSignOut = () => {
-    signOut();
-    navigate('/auth/signin');
+    logout(); // 🔷 fixed here
+    window.location.href = '/'; // same pattern as UserDashboardCard
   };
 
   const handleGoTo = (path: string) => {
@@ -64,7 +64,6 @@ const UserDropdown = ({ user }: Props) => {
 
           <hr className="border-gray-300 dark:border-gray-600" />
 
-          {/* Theme Toggle */}
           <div className="flex items-center gap-1 justify-center text-xs text-gray-700 dark:text-gray-300">
             <Sun className="w-4 h-4" />
             <button

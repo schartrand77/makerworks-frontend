@@ -3,57 +3,82 @@ import PageLayout from '@/components/layout/PageLayout'
 import GlassInput from '@/components/ui/GlassInput'
 import GlassButton from '@/components/ui/GlassButton'
 import { useUser } from '@/hooks/useUser'
+import { useToast } from '@/hooks/useToast'
+import { fetchAvailableFilaments, Filament } from '@/api/filaments'
 import {
   fetchAllUsers,
   banUser,
-  fetchAllModels,
+  promoteUser,
+  resetPassword,
   updateModel,
   updateFilament,
   addFilament,
+  deleteFilament,
+  AdminUser,
+  Model,
 } from '@/api/admin'
-import { fetchAvailableFilaments, Filament } from '@/api/filaments'
-import type { AdminUser, Model } from '@/api/admin'
+
+import { confirmAlert } from 'react-confirm-alert'
+import 'react-confirm-alert/src/react-confirm-alert.css'
 
 export default function Admin() {
   const { user, isAdmin, loading } = useUser()
+  const { toast } = useToast()
   const [tab, setTab] = useState<'users' | 'filaments' | 'models'>('users')
   const [users, setUsers] = useState<AdminUser[]>([])
   const [filaments, setFilaments] = useState<Filament[]>([])
   const [models, setModels] = useState<Model[]>([])
-  const [newFilament, setNewFilament] = useState<Omit<Filament, 'id'>>({
-    type: '',
-    color: '',
-    hex: '',
-  })
+  const [newFilament, setNewFilament] = useState<Omit<Filament, 'id'>>({ type: '', color: '', hex: '' })
+  const [editingFilamentId, setEditingFilamentId] = useState<string | null>(null)
+  const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  const loadUsers = () => {
+    fetchAllUsers()
+      .then(setUsers)
+      .catch(err => {
+        console.error(err)
+        toast('Failed to load users', 'error')
+      })
+  }
+
+  const loadFilaments = () => {
+    fetchAvailableFilaments()
+      .then(setFilaments)
+      .catch(err => {
+        console.error(err)
+        toast('Failed to load filaments', 'error')
+      })
+  }
+
+  const loadModels = () => {
+    updateModel.fetchAllModels?.()
+      .then(setModels)
+      .catch(err => {
+        console.error(err)
+        toast('Failed to load models', 'error')
+      })
+  }
 
   useEffect(() => {
     if (!isAdmin) return
-    if (tab === 'users') {
-      fetchAllUsers().then(setUsers).catch(console.error)
-    } else if (tab === 'filaments') {
-      fetchAvailableFilaments().then(setFilaments).catch(console.error)
-    } else if (tab === 'models') {
-      fetchAllModels().then(setModels).catch(console.error)
-    }
+    if (tab === 'users') loadUsers()
+    if (tab === 'filaments') loadFilaments()
+    if (tab === 'models') loadModels()
   }, [tab, isAdmin])
 
   if (loading) {
     return (
-      <>
-        <PageLayout title="Admin Panel">
-          <p className="text-muted-foreground">Loading admin tools…</p>
-        </PageLayout>
-      </>
+      <PageLayout title="Admin Panel">
+        <p>Loading admin tools…</p>
+      </PageLayout>
     )
   }
 
   if (!user || !isAdmin) {
     return (
-      <>
-        <PageLayout title="Access Denied">
-          <p className="text-red-600 dark:text-red-400">Admin access required.</p>
-        </PageLayout>
-      </>
+      <PageLayout title="Access Denied">
+        <p>Admin access required.</p>
+      </PageLayout>
     )
   }
 
@@ -62,14 +87,60 @@ export default function Admin() {
   }
 
   const saveFilament = async (fil: Filament) => {
-    await updateFilament(fil.id, fil)
+    setLoadingId(fil.id)
+    try {
+      await updateFilament(fil.id, { type: fil.type, color: fil.color, hex: fil.hex })
+      await loadFilaments()
+      setEditingFilamentId(null)
+      toast('✅ Filament updated', 'success')
+    } catch (err) {
+      console.error(err)
+      toast('❌ Failed to save filament', 'error')
+    } finally {
+      setLoadingId(null)
+    }
   }
 
-  const addNewFilament = async () => {
+  const handleAddNewFilament = async () => {
     if (!newFilament.type) return
-    const created = await addFilament(newFilament)
-    setFilaments(f => [...f, created])
-    setNewFilament({ type: '', color: '', hex: '' })
+    setLoadingId('new')
+    try {
+      await addFilament(newFilament)
+      setNewFilament({ type: '', color: '', hex: '' })
+      await loadFilaments()
+      toast('✅ Filament added', 'success')
+    } catch (err) {
+      console.error(err)
+      toast('❌ Failed to add filament', 'error')
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  const handleDeleteFilament = (id: string) => {
+    confirmAlert({
+      title: 'Confirm Delete',
+      message: 'Are you sure you want to delete this filament?',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            setLoadingId(id)
+            try {
+              await deleteFilament(id)
+              await loadFilaments()
+              toast('✅ Filament deleted', 'success')
+            } catch (err) {
+              console.error(err)
+              toast('❌ Failed to delete filament', 'error')
+            } finally {
+              setLoadingId(null)
+            }
+          }
+        },
+        { label: 'No' }
+      ]
+    })
   }
 
   const handleModelChange = (idx: number, key: keyof Model, value: string) => {
@@ -77,75 +148,245 @@ export default function Admin() {
   }
 
   const saveModel = async (model: Model) => {
-    await updateModel(model.id, model)
+    setLoadingId(model.id)
+    try {
+      await updateModel(model.id, model)
+      toast('✅ Model updated', 'success')
+    } catch (err) {
+      console.error(err)
+      toast('❌ Failed to save model', 'error')
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  const handleBanUser = (id: string, username: string) => {
+    confirmAlert({
+      title: 'Confirm Ban',
+      message: `Are you sure you want to ban ${username}?`,
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: async () => {
+            setLoadingId(id)
+            try {
+              await banUser(id)
+              toast('🚫 User banned', 'success')
+              loadUsers()
+            } catch (err) {
+              console.error(err)
+              toast('❌ Failed to ban user', 'error')
+            } finally {
+              setLoadingId(null)
+            }
+          }
+        },
+        { label: 'No' }
+      ]
+    })
   }
 
   return (
-    <>
-      <PageLayout title="Admin Panel" maxWidth="xl" padding="p-4">
-        <div className="flex gap-3 mb-4">
-          <GlassButton variant={tab === 'users' ? 'primary' : 'secondary'} onClick={() => setTab('users')}>
-            Users
+    <PageLayout title="Admin Panel" maxWidth="xl" padding="p-4">
+      <div className="flex gap-3 mb-4">
+        {['users', 'filaments', 'models'].map(t => (
+          <GlassButton
+            key={t}
+            variant={tab === t ? 'primary' : 'secondary'}
+            onClick={() => setTab(t as typeof tab)}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
           </GlassButton>
-          <GlassButton variant={tab === 'filaments' ? 'primary' : 'secondary'} onClick={() => setTab('filaments')}>
-            Filaments
-          </GlassButton>
-          <GlassButton variant={tab === 'models' ? 'primary' : 'secondary'} onClick={() => setTab('models')}>
-            Models
-          </GlassButton>
-        </div>
+        ))}
+      </div>
 
-        {tab === 'users' && (
-          <div className="space-y-3">
+      {tab === 'users' && (
+        <div className="space-y-4">
+          <div className="glass-card p-4">
             {users.map(u => (
-              <div key={u.id} className="flex justify-between items-center border-b pb-2">
+              <div
+                key={u.id}
+                className="flex justify-between items-center border-b last:border-0 py-2"
+              >
                 <div>
                   <div className="font-medium">{u.username}</div>
                   <div className="text-sm text-zinc-500">{u.email}</div>
                 </div>
-                <GlassButton size="sm" variant="secondary" onClick={() => banUser(u.id)}>
-                  Ban
+
+                <div className="flex gap-2">
+                  <GlassButton
+                    size="sm"
+                    variant="primary"
+                    disabled={loadingId === u.id}
+                    onClick={async () => {
+                      setLoadingId(u.id)
+                      try {
+                        await promoteUser(u.id)
+                        toast('✅ User promoted', 'success')
+                        loadUsers()
+                      } catch (err) {
+                        console.error(err)
+                        toast('❌ Failed to promote user', 'error')
+                      } finally {
+                        setLoadingId(null)
+                      }
+                    }}
+                    title="Promote user"
+                  >
+                    {loadingId === u.id ? 'Promoting…' : 'Promote'}
+                  </GlassButton>
+
+                  <GlassButton
+                    size="sm"
+                    variant="secondary"
+                    disabled={loadingId === u.id}
+                    onClick={async () => {
+                      setLoadingId(u.id)
+                      try {
+                        await resetPassword(u.id)
+                        toast('🔒 Password reset', 'success')
+                      } catch (err) {
+                        console.error(err)
+                        toast('❌ Failed to reset password', 'error')
+                      } finally {
+                        setLoadingId(null)
+                      }
+                    }}
+                    title="Reset password"
+                  >
+                    {loadingId === u.id ? 'Resetting…' : 'Reset'}
+                  </GlassButton>
+
+                  <GlassButton
+                    size="sm"
+                    variant="destructive"
+                    disabled={loadingId === u.id}
+                    onClick={() => handleBanUser(u.id, u.username)}
+                    title="Ban user"
+                  >
+                    {loadingId === u.id ? 'Banning…' : 'Ban'}
+                  </GlassButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'filaments' && (
+        <div className="space-y-4">
+          <div className="glass-card p-4">
+            <h3 className="font-medium mb-2">Add Filament</h3>
+            <div className="flex flex-wrap gap-2 items-end">
+              {['type', 'color', 'hex'].map(k => (
+                <GlassInput
+                  key={k}
+                  id={`new-${k}`}
+                  label={k.charAt(0).toUpperCase() + k.slice(1)}
+                  value={(newFilament as any)[k] || ''}
+                  onChange={e => setNewFilament({ ...newFilament, [k]: e.target.value })}
+                />
+              ))}
+              <GlassButton size="sm" onClick={handleAddNewFilament} disabled={loadingId === 'new'}>
+                {loadingId === 'new' ? 'Adding…' : 'Add'}
+              </GlassButton>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 space-y-2">
+            {filaments.map((f, i) => (
+              <div
+                key={f.id}
+                className="flex flex-wrap gap-2 items-center border-b last:border-0 pb-2 justify-between"
+              >
+                {editingFilamentId !== f.id ? (
+                  <>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{f.type}</span>
+                      <span className="text-sm">
+                        {f.color}{' '}
+                        <span style={{ color: f.hex, marginLeft: '0.5rem' }}>●</span>
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <GlassButton
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setEditingFilamentId(f.id)}
+                      >
+                        Edit
+                      </GlassButton>
+                      <GlassButton
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteFilament(f.id)}
+                        disabled={loadingId === f.id}
+                      >
+                        {loadingId === f.id ? 'Deleting…' : 'Delete'}
+                      </GlassButton>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {['type', 'color', 'hex'].map(k => (
+                      <GlassInput
+                        key={k}
+                        id={`${k}-${i}`}
+                        label={k}
+                        value={(f as any)[k] || ''}
+                        onChange={e => handleFilamentChange(i, k as keyof Filament, e.target.value)}
+                      />
+                    ))}
+                    <GlassButton size="sm" onClick={() => saveFilament(f)} disabled={loadingId === f.id}>
+                      {loadingId === f.id ? 'Saving…' : 'Save'}
+                    </GlassButton>
+                    <GlassButton
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setEditingFilamentId(null)}
+                    >
+                      Cancel
+                    </GlassButton>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'models' && (
+        <div className="space-y-4">
+          <div className="glass-card p-4 space-y-2">
+            {models.map((m, i) => (
+              <div
+                key={m.id}
+                className="flex flex-wrap gap-2 items-end border-b last:border-0 pb-2"
+              >
+                <GlassInput
+                  id={`mn-${i}`}
+                  label="Name"
+                  value={m.name || ''}
+                  onChange={e => handleModelChange(i, 'name', e.target.value)}
+                />
+                <GlassInput
+                  id={`md-${i}`}
+                  label="Description"
+                  value={m.description || ''}
+                  onChange={e => handleModelChange(i, 'description', e.target.value)}
+                />
+                <GlassButton
+                  size="sm"
+                  onClick={() => saveModel(m)}
+                  disabled={loadingId === m.id}
+                >
+                  {loadingId === m.id ? 'Saving…' : 'Save'}
                 </GlassButton>
               </div>
             ))}
           </div>
-        )}
-
-        {tab === 'filaments' && (
-          <div className="space-y-4">
-            {filaments.map((f, i) => (
-              <div key={f.id} className="flex flex-wrap gap-2 items-end">
-                <GlassInput id={`ft-${i}`} label="Type" value={f.type} onChange={e => handleFilamentChange(i, 'type', e.target.value)} />
-                <GlassInput id={`fc-${i}`} label="Color" value={f.color} onChange={e => handleFilamentChange(i, 'color', e.target.value)} />
-                <GlassInput id={`fh-${i}`} label="Hex" value={f.hex} onChange={e => handleFilamentChange(i, 'hex', e.target.value)} />
-                <GlassButton size="sm" onClick={() => saveFilament(f)}>Save</GlassButton>
-              </div>
-            ))}
-
-            <div className="pt-4 border-t mt-4">
-              <h3 className="font-medium mb-2">Add Filament</h3>
-              <div className="flex flex-wrap gap-2 items-end">
-                <GlassInput id="new-type" label="Type" value={newFilament.type} onChange={e => setNewFilament({ ...newFilament, type: e.target.value })} />
-                <GlassInput id="new-color" label="Color" value={newFilament.color} onChange={e => setNewFilament({ ...newFilament, color: e.target.value })} />
-                <GlassInput id="new-hex" label="Hex" value={newFilament.hex} onChange={e => setNewFilament({ ...newFilament, hex: e.target.value })} />
-                <GlassButton size="sm" onClick={addNewFilament}>Add</GlassButton>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {tab === 'models' && (
-          <div className="space-y-4">
-            {models.map((m, i) => (
-              <div key={m.id} className="flex flex-wrap gap-2 items-end">
-                <GlassInput id={`mn-${i}`} label="Name" value={m.name} onChange={e => handleModelChange(i, 'name', e.target.value)} />
-                <GlassInput id={`md-${i}`} label="Description" value={m.description || ''} onChange={e => handleModelChange(i, 'description', e.target.value)} />
-                <GlassButton size="sm" onClick={() => saveModel(m)}>Save</GlassButton>
-              </div>
-            ))}
-          </div>
-        )}
-      </PageLayout>
-    </>
+        </div>
+      )}
+    </PageLayout>
   )
 }

@@ -1,27 +1,33 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import clsx from 'clsx'
 
 interface ToastProps {
   message: string
+  type?: 'info' | 'success' | 'error'
   show: boolean
-  onClose: () => void
+  onClose?: () => void
 }
 
-const Toast: React.FC<ToastProps> = ({ message, show, onClose }) => {
+export default function Toast({ message, type = 'info', show, onClose }: ToastProps) {
+  const bgClass = clsx(
+    'toast-info', // fallback
+    {
+      'toast-success': type === 'success',
+      'toast-error': type === 'error',
+      'toast-info': type === 'info',
+    }
+  )
+
   return (
     <AnimatePresence>
       {show && (
         <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 50, opacity: 0 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 30 }}
           transition={{ duration: 0.3 }}
-          className="
-            px-4 py-2 rounded-xl text-sm
-            backdrop-blur-md bg-white/60 dark:bg-zinc-800/70
-            border border-white/30 dark:border-zinc-700/50
-            shadow text-black dark:text-white
-            pointer-events-auto
-          "
+          onClick={onClose}
+          className={bgClass}
         >
           {message}
         </motion.div>
@@ -29,5 +35,3 @@ const Toast: React.FC<ToastProps> = ({ message, show, onClose }) => {
     </AnimatePresence>
   )
 }
-
-export default Toast

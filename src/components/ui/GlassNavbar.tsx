@@ -56,6 +56,7 @@ const GlassNavbar = () => {
                 border border-blue-300
                 shadow
                 transition
+                hover:bg-blue-300/50 dark:hover:bg-blue-400/30
                 ${isActive ? 'bg-blue-500 text-white' : ''}
               `}
             >
@@ -65,13 +66,24 @@ const GlassNavbar = () => {
         })}
       </div>
 
-      <div>
+      <div className="flex items-center gap-2">
         {isAuthenticated() ? (
           <UserDropdown user={user} />
         ) : (
           <Link
             to="/auth/signin"
-            className="px-4 py-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition shadow"
+            className={`
+              text-sm
+              px-3 py-1
+              rounded-full
+              backdrop-blur
+              bg-blue-200/40 dark:bg-blue-300/20
+              text-blue-700 dark:text-blue-200
+              border border-blue-300
+              shadow
+              hover:bg-blue-300/50 dark:hover:bg-blue-400/30
+              transition
+            `}
           >
             Sign In
           </Link>
@@ -80,4 +92,5 @@ const GlassNavbar = () => {
     </nav>
   );
 };
+
 export default GlassNavbar;

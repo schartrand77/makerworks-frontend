@@ -1,6 +1,6 @@
 import React from 'react'
 import { useUser } from '@/hooks/useUser'
-import { useSignOut } from '@/hooks/useSignOut'
+import { useAuthStore } from '@/store/useAuthStore'
 
 interface MobileDrawerProps {
   open: boolean
@@ -9,17 +9,20 @@ interface MobileDrawerProps {
 
 export default function MobileDrawer({ open, onClose }: MobileDrawerProps) {
   const { user, isAdmin } = useUser()
-  const { signOut } = useSignOut()
 
   if (!open) return null
 
   const handleAuthClick = () => {
     if (user) {
-      signOut()
+      console.info('[MobileDrawer] Signing out...')
+      useAuthStore.getState().logout()
+      window.location.href = '/'
+      // no onClose — page is reloading
     } else {
+      console.info('[MobileDrawer] Navigating to Sign In...')
+      onClose()
       window.location.href = '/auth/signin'
     }
-    onClose()
   }
 
   return (
@@ -79,7 +82,7 @@ export default function MobileDrawer({ open, onClose }: MobileDrawerProps) {
         {user && (
           <div
             className="
-              mt-2 text-xs text-center text-gray-700 dark:text-gray-300 
+              mt-2 text-xs text-center text-gray-700 dark:text-zinc-300 
               truncate max-w-[180px] px-2
             "
             title={user.email}

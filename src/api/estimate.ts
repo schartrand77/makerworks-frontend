@@ -18,7 +18,12 @@ export interface EstimateResult {
   printDurationSeconds: number
 }
 
-export async function getEstimate(payload: EstimatePayload): Promise<EstimateResult> {
+/**
+ * Request an estimate for a given model & settings.
+ */
+export async function getEstimate(
+  payload: EstimatePayload
+): Promise<EstimateResult> {
   const res = await axios.post<EstimateResult>('/estimate/estimates/', payload)
   return res.data
 }

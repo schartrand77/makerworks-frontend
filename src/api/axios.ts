@@ -14,7 +14,7 @@ console.debug('[Axios] Using API base URL:', baseURL)
 
 const instance: AxiosInstance = axios.create({
   baseURL: `${baseURL}/api/v1`,
-  withCredentials: true, // let browser send cookies
+  withCredentials: true,
 })
 
 instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConfig => {
@@ -26,7 +26,6 @@ instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConf
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
 
-    // optional: log who you think the session is for, if backend sends info
     const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`
     console.debug(label)
     window.__DEBUG_LOG__?.(label)
