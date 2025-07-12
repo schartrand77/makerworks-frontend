@@ -18,7 +18,7 @@ describe('users.ts', () => {
 
     expect(result?.status).toBe('ok')
     expect(axios.post).toHaveBeenCalledWith(
-      '/api/v1/users/users/avatar',
+      '/users/avatar',
       expect.any(FormData),
       expect.any(Object)
     )
@@ -32,7 +32,7 @@ describe('users.ts', () => {
     ).resolves.not.toThrow()
 
     expect(axios.patch).toHaveBeenCalledWith(
-      '/api/v1/users/users/me',
+      '/users/me',
       expect.objectContaining({ username: 'valid' })
     )
   })
@@ -48,6 +48,6 @@ describe('users.ts', () => {
 
     await expect(deleteAccount()).resolves.not.toThrow()
 
-    expect(axios.delete).toHaveBeenCalledWith('/api/v1/users/users/me')
+    expect(axios.delete).toHaveBeenCalledWith('/users/me')
   })
 })
