@@ -29,7 +29,7 @@ export const useSignIn = (): UseSignInResult => {
     setError(null)
 
     try {
-      console.debug('[useSignIn] Payload:', { emailOrUsername })
+      console.debug('[useSignIn] Sending credentials:', { emailOrUsername })
 
       const res = await axios.post('/auth/signin', {
         email_or_username: emailOrUsername,
@@ -39,32 +39,50 @@ export const useSignIn = (): UseSignInResult => {
       const { user, token } = res.data
 
       if (!user || !token) {
-        throw new Error('Invalid response format')
+        throw new Error('Invalid response: missing user or token')
       }
 
-      if (typeof setToken === 'function') {
-        setToken(token)
+      console.info('[useSignIn] Login successful:', { user, token })
+
+      // ✅ Save token explicitly
+      setToken(token) // writes to Zustand + localStorage
+
+      // optionally, explicitly ensure localStorage as fallback
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token)
       }
 
-      localStorage.setItem('token', token)
       setUser(user)
 
-      console.debug('[useSignIn] User authed:', user)
-      navigate('/dashboard')
-    } catch (err: any) {
-      console.error('[useSignIn] Sign in error', err)
+      console.debug('[useSignIn] User + token saved to store & localStorage:', { user, token })
 
-      const detail = err?.response?.data?.detail
-      if (Array.isArray(detail)) {
-        const messages = detail.map(
-          (e: any) => `${e.loc?.join('.')}: ${e.msg}`
-        )
-        setError(messages.join('; '))
-      } else if (typeof detail === 'string') {
-        setError(detail)
-      } else {
-        setError('Sign in failed')
+      navigate('/dashboard')
+    } catch (err: unknown) {
+      console.error('[useSignIn] Login failed:', err)
+
+      let message = 'Sign in failed'
+
+      if (axios.isAxiosError(err)) {
+        const detail = err.response?.data?.detail
+
+        if (Array.isArray(detail)) {
+          const messages = detail
+            .map(
+              (e: { loc?: string[]; msg?: string }) =>
+                `${e.loc?.join('.')}: ${e.msg}`
+            )
+            .join('; ')
+          message = messages
+        } else if (typeof detail === 'string') {
+          message = detail
+        } else if (err.response?.status) {
+          message = `Error ${err.response.status}: ${err.response.statusText}`
+        }
+      } else if (err instanceof Error) {
+        message = err.message
       }
+
+      setError(message)
     } finally {
       setLoading(false)
     }

@@ -65,6 +65,9 @@ export const useAuthStore = create<AuthState>()(
 
       clearUser: () => {
         console.debug('[AuthStore] clearUser()');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+        }
         set({ user: null, token: null, resolved: true });
       },
 
@@ -73,12 +76,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           await axios.post('/auth/logout', {}, { withCredentials: true });
         } catch (err) {
-          console.warn('[AuthStore] logout request failed (proceeding anyway):', err);
+          console.warn('[AuthStore] logout request failed, proceeding anyway:', err);
         }
-        set({ user: null, token: null, resolved: true });
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('token');
-        }
+        get().clearUser();
       },
 
       isAuthenticated: () => {
@@ -108,11 +108,21 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true });
         try {
           const res = await axios.get('/auth/me', { withCredentials: true });
-          set({ user: res.data, resolved: true });
-          console.debug('[AuthStore] ✅ fetchUser success:', res.data);
+          const { user, token } = res.data;
+
+          if (user) {
+            set({ user, resolved: true });
+            console.debug('[AuthStore] ✅ fetchUser success:', user);
+          }
+
+          if (token) {
+            get().setToken(token);
+            console.debug('[AuthStore] ✅ fetchUser updated token');
+          }
+
         } catch (err) {
           console.warn('[AuthStore] ⚠️ fetchUser failed:', err);
-          set({ user: null, resolved: true });
+          get().clearUser();
         } finally {
           set({ loading: false });
         }
