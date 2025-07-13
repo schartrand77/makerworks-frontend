@@ -15,7 +15,8 @@ export async function handleAuthCallback(
 
     if (res.status === 200 && res.data?.token && res.data?.user) {
       useAuthStore.getState().setToken(res.data.token)
-      useAuthStore.getState().setUser(res.data.user, res.data.token)
+      // update user in auth store
+      useAuthStore.getState().setUser(res.data.user)
 
       // Store token consistently with other auth flows
       localStorage.setItem('token', res.data.token)
