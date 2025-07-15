@@ -1,6 +1,6 @@
 // src/api/authCallback.ts
 import axios from "./axios";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export async function handleAuthCallback(code: string): Promise<void> {
   const res = await axios.post("/auth/token", { code });
