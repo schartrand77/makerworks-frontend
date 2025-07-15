@@ -1,72 +1,27 @@
-import { useSignIn } from '@/hooks/useSignIn'
-import GlassInput from '@/components/ui/GlassInput'
-import GlassButton from '@/components/ui/GlassButton'
-import GlassCard from '@/components/ui/GlassCard'
+import PageLayout from "@/components/layout/PageLayout"
 
 const SignIn = () => {
-  const {
-    emailOrUsername,
-    setEmailOrUsername,
-    password,
-    setPassword,
-    error,
-    loading,
-    handleSubmit,
-  } = useSignIn()
+  const loginUrl = import.meta.env.VITE_AUTHENTIK_LOGIN_URL
+
+  const handleSignIn = () => {
+    window.location.href = loginUrl
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
-      <GlassCard>
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 w-full max-w-sm px-6 py-8"
-          aria-labelledby="signin-title"
+    <PageLayout title="Sign In">
+      <div className="glass-card p-8 text-center">
+        <h1 className="text-xl font-semibold mb-4">Welcome Back</h1>
+        <p className="text-muted-foreground mb-6">
+          Click below to sign in with Authentik.
+        </p>
+        <button
+          className="btn btn-primary"
+          onClick={handleSignIn}
         >
-          <h1
-            id="signin-title"
-            className="text-2xl font-semibold mb-4 text-center"
-          >
-            Sign In
-          </h1>
-
-          <GlassInput
-            id="emailOrUsername"
-            label="Username or Email"
-            value={emailOrUsername}
-            onChange={(e) => setEmailOrUsername(e.target.value)}
-            autoComplete="username"
-            autoFocus
-          />
-
-          <GlassInput
-            id="password"
-            type="password"
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-
-          {error && (
-            <div
-              className="text-red-500 text-sm mb-4 text-center"
-              role="alert"
-            >
-              {error}
-            </div>
-          )}
-
-          <GlassButton
-            type="submit"
-            loading={loading}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? 'Signing In…' : 'Sign In'}
-          </GlassButton>
-        </form>
-      </GlassCard>
-    </div>
+          Sign in with Authentik
+        </button>
+      </div>
+    </PageLayout>
   )
 }
 

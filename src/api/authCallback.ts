@@ -1,33 +1,13 @@
 // src/api/authCallback.ts
-import axios from "@/api/axios"
-import { useAuthStore } from "@/store/useAuthStore"
-import { NavigateFunction } from "react-router-dom"
+import axios from "./axios";
+import { useAuthStore } from "@/stores/authStore";
 
-export async function handleAuthCallback(
-  code: string,
-  navigate: NavigateFunction
-): Promise<void> {
-  console.debug("[AuthCallback] Received code:", code)
+export async function handleAuthCallback(code: string): Promise<void> {
+  const res = await axios.post("/auth/token", { code });
+  const { token, user } = res.data;
 
-  try {
-    const res = await axios.post("/auth/token", { code })
-    console.debug("[AuthCallback] Token exchange response:", res)
+  useAuthStore.getState().setUser(user);
+  useAuthStore.getState().setToken(token);
 
-    if (res.status === 200 && res.data?.token && res.data?.user) {
-      useAuthStore.getState().setToken(res.data.token)
-      // update user in auth store
-      useAuthStore.getState().setUser(res.data.user)
-
-      // Store token consistently with other auth flows
-      localStorage.setItem('token', res.data.token)
-      console.debug("[AuthCallback] ✅ Token saved and user updated")
-
-      navigate("/dashboard")
-    } else {
-      console.error("[AuthCallback] ⚠️ Invalid response from /auth/token:", res)
-    }
-  } catch (err: any) {
-    console.error("[AuthCallback] ❌ Failed to exchange code:", err)
-    useAuthStore.getState().logout()
-  }
+  localStorage.setItem("token", token);
 }

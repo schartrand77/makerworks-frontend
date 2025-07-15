@@ -1,61 +1,27 @@
-import GlassCard from "@/components/ui/GlassCard"
-import { useSignUp } from "@/hooks/useSignUp"
-import GlassInput from "@/components/ui/GlassInput"
-import GlassButton from "@/components/ui/GlassButton"
+import PageLayout from "@/components/layout/PageLayout"
 
-const SignUp: React.FC = () => {
-  const {
-    email,
-    setEmail,
-    username,
-    setUsername,
-    password,
-    setPassword,
-    error,
-    loading,
-    handleSubmit,
-  } = useSignUp()
+const SignUp = () => {
+  const registerUrl = import.meta.env.VITE_AUTHENTIK_REGISTER_URL
+
+  const handleSignUp = () => {
+    window.location.href = registerUrl
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <GlassCard>
-        <h1 className="text-2xl font-semibold mb-6 text-center">
-          Create a MakerWorks Account
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <GlassInput
-            id="email"
-            type="email"
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <GlassInput
-            id="username"
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <GlassInput
-            id="password"
-            type="password"
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          {error && (
-            <p className="text-red-500 text-sm whitespace-pre-wrap text-center">
-              {error}
-            </p>
-          )}
-
-          <div className="text-center">
-            <GlassButton loading={loading}>Sign Up</GlassButton>
-          </div>
-        </form>
-      </GlassCard>
-    </div>
+    <PageLayout title="Sign Up">
+      <div className="glass-card p-8 text-center">
+        <h1 className="text-xl font-semibold mb-4">Join MakerWorks</h1>
+        <p className="text-muted-foreground mb-6">
+          Click below to create your account.
+        </p>
+        <button
+          className="btn btn-primary"
+          onClick={handleSignUp}
+        >
+          Sign up with Authentik
+        </button>
+      </div>
+    </PageLayout>
   )
 }
 

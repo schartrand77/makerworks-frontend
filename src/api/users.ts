@@ -1,6 +1,7 @@
-import axios from '@/api/axios'
+import axios from './axios'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { useAuthStore } from '@/store/useAuthStore'
 
 export interface AvatarUploadResponse {
   status: 'ok'
@@ -24,6 +25,12 @@ export type UpdateProfilePayload = z.infer<typeof UpdateProfileSchema>
 export const uploadAvatar = async (
   file: File
 ): Promise<AvatarUploadResponse | null> => {
+  const token = useAuthStore.getState().token
+  if (!token) {
+    toast.error('❌ Not authenticated. Please log in.')
+    return null
+  }
+
   const formData = new FormData()
   formData.append('file', file)
 
@@ -32,9 +39,13 @@ export const uploadAvatar = async (
       '/users/avatar',
       formData,
       {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
       }
     )
+
     toast.success('✅ Avatar updated.')
     return res.data
   } catch (err: any) {
@@ -52,6 +63,12 @@ export const uploadAvatar = async (
 export const updateUserProfile = async (
   data: UpdateProfilePayload
 ): Promise<void> => {
+  const token = useAuthStore.getState().token
+  if (!token) {
+    toast.error('❌ Not authenticated. Please log in.')
+    throw new Error('Not authenticated')
+  }
+
   const parsed = UpdateProfileSchema.safeParse(data)
   if (!parsed.success) {
     toast.error('❌ Invalid profile data.')
@@ -60,7 +77,12 @@ export const updateUserProfile = async (
   }
 
   try {
-    await axios.patch('/users/me', parsed.data)
+    await axios.patch('/users/me', parsed.data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
     toast.success('✅ Profile updated.')
   } catch (err: any) {
     console.error('[updateUserProfile] error', err)
@@ -75,8 +97,19 @@ export const updateUserProfile = async (
  * Delete the current user's account.
  */
 export const deleteAccount = async (): Promise<void> => {
+  const token = useAuthStore.getState().token
+  if (!token) {
+    toast.error('❌ Not authenticated. Please log in.')
+    throw new Error('Not authenticated')
+  }
+
   try {
-    await axios.delete('/users/me')
+    await axios.delete('/users/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
     toast.success('✅ Account deleted.')
   } catch (err: any) {
     console.error('[deleteAccount] error', err)

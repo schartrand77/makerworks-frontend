@@ -1,86 +1,80 @@
 // src/pages/Landing.tsx
-import { useEffect, useState } from 'react'
-import GlassCard from '@/components/ui/GlassCard'
-import { useUser } from '@/hooks/useUser'
-import { useAuthStore } from '@/store/useAuthStore'
-import { useDevModeStore } from '@/store/useDevModeStore'
+import { useEffect, useState } from 'react';
+import GlassCard from '@/components/ui/GlassCard';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useDevModeStore } from '@/store/useDevModeStore';
+import { buildLoginUrl, buildRegisterUrl } from '@/utils/auth';
 
 const Landing: React.FC = () => {
-  const { user, isAuthenticated, loading } = useUser()
-  const resolved = useAuthStore((s) => s.resolved)
-  const fetchUser = useAuthStore.getState().fetchUser
-  const enableDevMode = useDevModeStore((s) => s.enable)
+  const { resolved, loading, user, fetchUser, isAuthenticated } = useAuthStore();
+  const enableDevMode = useDevModeStore((s) => s.enable);
 
-  const [printedLetters, setPrintedLetters] = useState('')
-  const fullText = 'MakerWorks'
-  const [nozzlePosition, setNozzlePosition] = useState(0)
-  const [finished, setFinished] = useState(false)
-  const [ripple, setRipple] = useState(false)
-  const [spinningIndexes, setSpinningIndexes] = useState<number[]>([])
-
-  const isAuthed = typeof isAuthenticated === 'function' && isAuthenticated()
+  const [printedLetters, setPrintedLetters] = useState('');
+  const fullText = 'MakerWorks';
+  const [nozzlePosition, setNozzlePosition] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const [ripple, setRipple] = useState(false);
+  const [spinningIndexes, setSpinningIndexes] = useState<number[]>([]);
 
   useEffect(() => {
     if (!resolved && !loading) {
-      fetchUser?.()
+      fetchUser?.();
     }
-  }, [resolved, loading])
+  }, [resolved, loading, fetchUser]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') {
-        enableDevMode()
+        enableDevMode();
       }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [enableDevMode])
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [enableDevMode]);
 
   useEffect(() => {
-    if (!loading && isAuthed) {
-      window.location.href = '/dashboard'
+    if (!loading && isAuthenticated()) {
+      window.location.href = '/dashboard';
     }
-  }, [loading, user, isAuthenticated, resolved])
+  }, [loading, user, resolved, isAuthenticated]);
 
   useEffect(() => {
-    let idx = 0
+    let idx = 0;
     const interval = setInterval(() => {
-      setPrintedLetters(fullText.slice(0, idx + 1))
-      setNozzlePosition(idx)
-      idx++
+      setPrintedLetters(fullText.slice(0, idx + 1));
+      setNozzlePosition(idx);
+      idx++;
       if (idx === fullText.length) {
-        clearInterval(interval)
-        setTimeout(() => setFinished(true), 1000)
+        clearInterval(interval);
+        setTimeout(() => setFinished(true), 1000);
       }
-    }, 300)
+    }, 300);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
-  // Ripple after print
   useEffect(() => {
-    if (!finished) return
+    if (!finished) return;
     const rippleInterval = setInterval(() => {
-      setRipple(true)
-      setTimeout(() => setRipple(false), 1000)
-    }, 5000)
-    return () => clearInterval(rippleInterval)
-  }, [finished])
+      setRipple(true);
+      setTimeout(() => setRipple(false), 1000);
+    }, 5000);
+    return () => clearInterval(rippleInterval);
+  }, [finished]);
 
-  // Random spins after print
   useEffect(() => {
-    if (!finished) return
+    if (!finished) return;
     const spinInterval = setInterval(() => {
-      const howMany = Math.ceil(Math.random() * 3)
-      const indices = new Set<number>()
+      const howMany = Math.ceil(Math.random() * 3);
+      const indices = new Set<number>();
       while (indices.size < howMany) {
-        indices.add(Math.floor(Math.random() * fullText.length))
+        indices.add(Math.floor(Math.random() * fullText.length));
       }
-      setSpinningIndexes(Array.from(indices))
-      setTimeout(() => setSpinningIndexes([]), 1000)
-    }, 7000) // every 7s
-    return () => clearInterval(spinInterval)
-  }, [finished])
+      setSpinningIndexes(Array.from(indices));
+      setTimeout(() => setSpinningIndexes([]), 1000);
+    }, 7000);
+    return () => clearInterval(spinInterval);
+  }, [finished]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -106,7 +100,6 @@ const Landing: React.FC = () => {
               </span>
             </h1>
 
-            {/* Nozzle */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -130,22 +123,18 @@ const Landing: React.FC = () => {
 
           {loading ? (
             <p className="text-sm text-zinc-400">Checking authentication status…</p>
-          ) : isAuthed ? (
+          ) : isAuthenticated() ? (
             <p className="text-sm text-zinc-400">Redirecting to dashboard…</p>
           ) : (
             <div className="flex gap-4 mt-2">
               <button
-                onClick={() => {
-                  window.location.href = '/auth/signin'
-                }}
+                onClick={() => (window.location.href = buildLoginUrl())}
                 className="px-6 py-2 bg-blue-300 hover:bg-blue-400 text-black rounded-full text-sm shadow"
               >
                 Sign In
               </button>
               <button
-                onClick={() => {
-                  window.location.href = '/auth/signup'
-                }}
+                onClick={() => (window.location.href = buildRegisterUrl())}
                 className="px-6 py-2 bg-green-300 hover:bg-green-400 text-black rounded-full text-sm shadow"
               >
                 Sign Up
@@ -155,7 +144,6 @@ const Landing: React.FC = () => {
         </div>
       </GlassCard>
 
-      {/* Ripple & Spin Animation */}
       <style>
         {`
           .ripple {
@@ -179,7 +167,7 @@ const Landing: React.FC = () => {
         `}
       </style>
     </div>
-  )
-}
+  );
+};
 
-export default Landing
+export default Landing;

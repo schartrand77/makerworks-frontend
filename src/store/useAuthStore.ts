@@ -73,12 +73,22 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         console.debug('[AuthStore] logout()');
+
         try {
           await axios.post('/auth/logout', {}, { withCredentials: true });
         } catch (err) {
           console.warn('[AuthStore] logout request failed, proceeding anyway:', err);
         }
+
         get().clearUser();
+
+        const logoutUrl = import.meta.env.VITE_AUTHENTIK_LOGOUT_URL;
+        if (logoutUrl) {
+          console.debug('[AuthStore] redirecting to Authentik logout URL:', logoutUrl);
+          window.location.href = logoutUrl;
+        } else {
+          console.warn('[AuthStore] no VITE_AUTHENTIK_LOGOUT_URL configured');
+        }
       },
 
       isAuthenticated: () => {
