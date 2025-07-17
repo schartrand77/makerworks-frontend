@@ -4,12 +4,12 @@
  */
 export function buildLoginUrl(withState = false, extraParams: Record<string, string> = {}): string {
   const baseUrl = import.meta.env.VITE_AUTHENTIK_BASE_URL;
-  const clientId = import.meta.env.VITE_AUTH_CLIENT_ID;
+  const clientId = import.meta.env.VITE_AUTHENTIK_CLIENT_ID;
   const redirectUri = import.meta.env.VITE_AUTHENTIK_REDIRECT_URI;
 
   if (!baseUrl || !clientId || !redirectUri) {
     throw new Error(
-      'Missing environment variables: VITE_AUTHENTIK_BASE_URL, VITE_AUTH_CLIENT_ID, VITE_AUTHENTIK_REDIRECT_URI'
+      'Missing environment variables: VITE_AUTHENTIK_BASE_URL, VITE_AUTHENTIK_CLIENT_ID, VITE_AUTHENTIK_REDIRECT_URI'
     );
   }
 
