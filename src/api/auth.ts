@@ -5,8 +5,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { User } from '@/types/user';
 
 const AUTH_BASE = import.meta.env.VITE_AUTHENTIK_BASE_URL;
-const CLIENT_ID = import.meta.env.VITE_AUTH_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_AUTH_CLIENT_SECRET;
+const CLIENT_ID = import.meta.env.VITE_AUTHENTIK_CLIENT_ID;
+const CLIENT_SECRET = import.meta.env.VITE_AUTHENTIK_CLIENT_SECRET;
 
 const TOKEN_URL = `${AUTH_BASE}/application/o/token/`;
 const CURRENT_USER_URL = `/users/users/me`;
