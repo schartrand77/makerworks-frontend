@@ -35,7 +35,23 @@ Run the linter with:
 npm run lint
 ```
 
-This template currently does not include automated tests.
+Vitest unit tests live under `src/api/__tests__` and can be run with:
+
+```bash
+npm run test
+```
+
+Cypress end-to-end tests are also included. Open the Cypress GUI with:
+
+```bash
+npm run cy:open
+```
+
+Or run them headlessly with:
+
+```bash
+npm run cy:run
+```
 
 ### Theme Toggle
 
