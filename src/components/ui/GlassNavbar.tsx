@@ -1,9 +1,11 @@
+// src/components/ui/GlassNavbar.tsx
 import { Link, useLocation } from 'react-router-dom';
 import UserDropdown from '@/components/ui/UserDropdown';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const GlassNavbar = () => {
-  const { user, isAuthenticated } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const location = useLocation();
 
   const navRoutes = [

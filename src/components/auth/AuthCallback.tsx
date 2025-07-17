@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import axios from '@/api/axios';
@@ -7,16 +7,34 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
   const setToken = useAuthStore((s) => s.setToken);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
+    const returnedState = urlParams.get('state');
+    const expectedState = localStorage.getItem('auth_state');
 
     if (!code) {
-      console.error('No authorization code found.');
+      console.error('[AuthCallback] No authorization code found.');
+      setError('No authorization code found.');
       navigate('/auth/signin');
       return;
     }
+
+    if (!returnedState || returnedState !== expectedState) {
+      console.error('[AuthCallback] Invalid or missing state parameter.', {
+        expectedState,
+        returnedState,
+      });
+      setError('Invalid authentication state. Please try again.');
+      localStorage.removeItem('auth_state');
+      navigate('/auth/signin');
+      return;
+    }
+
+    // state validated — remove it
+    localStorage.removeItem('auth_state');
 
     const exchangeCode = async () => {
       try {
@@ -27,16 +45,19 @@ const AuthCallback = () => {
 
         const { token, user } = res.data;
 
-        if (token) {
+        if (token && user) {
+          console.info('[AuthCallback] Successfully exchanged code.');
           setToken(token);
           setUser(user);
           navigate('/dashboard');
         } else {
-          console.error('No token received from backend');
+          console.error('[AuthCallback] No token or user received from backend.');
+          setError('Authentication failed. Please try again.');
           navigate('/auth/signin');
         }
       } catch (err) {
-        console.error('Failed to exchange code:', err);
+        console.error('[AuthCallback] Failed to exchange code:', err);
+        setError('Failed to exchange code. Please try again.');
         navigate('/auth/signin');
       }
     };
@@ -46,7 +67,11 @@ const AuthCallback = () => {
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <p className="text-lg">Signing you in…</p>
+      {error ? (
+        <p className="text-lg text-red-500">{error}</p>
+      ) : (
+        <p className="text-lg">Signing you in…</p>
+      )}
     </div>
   );
 };

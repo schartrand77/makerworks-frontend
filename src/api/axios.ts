@@ -5,52 +5,66 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
   AxiosError,
-} from 'axios'
+} from 'axios';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const baseURL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'https://api.makerworks.com'
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') ||
+  'http://192.168.1.170:49152';
 
-console.debug('[Axios] Using API base URL:', baseURL)
+console.debug('[Axios] Using API base URL:', baseURL);
 
 const instance: AxiosInstance = axios.create({
   baseURL: `${baseURL}/api/v1`,
-  withCredentials: true,
-})
+  // removed withCredentials since we're using Bearer tokens
+});
 
-instance.interceptors.request.use((config: AxiosRequestConfig): AxiosRequestConfig => {
-  try {
-    const token =
-      typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    config.headers = {
-      ...config.headers,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+instance.interceptors.request.use(
+  (config: AxiosRequestConfig): AxiosRequestConfig => {
+    try {
+      let token: string | null = null;
+
+      if (typeof window !== 'undefined') {
+        // Prefer Zustand over raw localStorage
+        token = useAuthStore.getState().token || localStorage.getItem('token');
+      }
+
+      if (!config.headers) config.headers = {};
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`;
+      console.debug(label);
+      window.__DEBUG_LOG__?.(label);
+    } catch (e) {
+      console.warn('[Axios] Failed to process request config:', e);
     }
 
-    const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`
-    console.debug(label)
-    window.__DEBUG_LOG__?.(label)
-  } catch (e) {
-    console.warn('[Axios] Failed to process request config:', e)
+    return config;
+  },
+  (error) => {
+    console.error('[Axios] Request error:', error);
+    return Promise.reject(error);
   }
-
-  return config
-})
+);
 
 instance.interceptors.response.use(
   (response: AxiosResponse): AxiosResponse => {
-    const label = `[RES] ${response.status} ${response.config.url}`
-    console.debug(label)
-    window.__DEBUG_LOG__?.(label)
-    return response
+    const label = `[RES] ${response.status} ${response.config.url}`;
+    console.debug(label);
+    window.__DEBUG_LOG__?.(label);
+    return response;
   },
   (error: AxiosError): Promise<never> => {
-    const status = error?.response?.status || 'ERR'
-    const url = error?.config?.url || '(unknown URL)'
-    const label = `[ERR] ${status} ${url}`
-    console.error(label, error)
-    window.__DEBUG_LOG__?.(label)
-    return Promise.reject(error)
+    const status = error?.response?.status || 'ERR';
+    const url = error?.config?.url || '(unknown URL)';
+    const label = `[ERR] ${status} ${url}`;
+    console.error(label, error);
+    window.__DEBUG_LOG__?.(label);
+    return Promise.reject(error);
   }
-)
+);
 
-export default instance
+export default instance;

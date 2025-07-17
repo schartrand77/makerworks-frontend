@@ -11,8 +11,14 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0',  // ✅ Expose dev server on LAN
+    host: '0.0.0.0',  // bind to all interfaces so LAN clients can connect
     port: 5173,
     strictPort: true,
+    open: false,
+    cors: true,
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
   },
 })

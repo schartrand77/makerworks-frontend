@@ -1,22 +1,23 @@
 // src/api/auth.ts
 
-import axios from './axios'
-import { User } from '@/types/user'
+import axios from './axios';
+import { useAuthStore } from '@/store/useAuthStore';
+import { User } from '@/types/user';
 
-const AUTH_BASE = import.meta.env.VITE_AUTHENTIK_BASE_URL
-const CLIENT_ID = import.meta.env.VITE_AUTH_CLIENT_ID
-const CLIENT_SECRET = import.meta.env.VITE_AUTH_CLIENT_SECRET
+const AUTH_BASE = import.meta.env.VITE_AUTHENTIK_BASE_URL;
+const CLIENT_ID = import.meta.env.VITE_AUTH_CLIENT_ID;
+const CLIENT_SECRET = import.meta.env.VITE_AUTH_CLIENT_SECRET;
 
-const TOKEN_URL = `${AUTH_BASE}/application/o/token/`
-const CURRENT_USER_URL = `/users/users/me`
-const SIGNUP_URL = `/auth/signup`
+const TOKEN_URL = `${AUTH_BASE}/application/o/token/`;
+const CURRENT_USER_URL = `/users/users/me`;
+const SIGNUP_URL = `/auth/signup`;
 
 interface TokenResponse {
-  access_token: string
-  token_type: string
-  expires_in: number
-  refresh_token?: string
-  scope?: string
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token?: string;
+  scope?: string;
 }
 
 /**
@@ -24,11 +25,13 @@ interface TokenResponse {
  */
 export async function getCurrentUser(): Promise<User> {
   try {
-    const res = await axios.get<User>(CURRENT_USER_URL)
-    return res.data
+    const res = await axios.get<User>(CURRENT_USER_URL);
+    const user = res.data;
+    useAuthStore.getState().setUser(user);
+    return user;
   } catch (err) {
-    console.error('[Auth] getCurrentUser error:', err)
-    throw new Error('Failed to fetch current user')
+    console.error('[Auth] getCurrentUser error:', err);
+    throw new Error('Failed to fetch current user');
   }
 }
 
@@ -46,25 +49,31 @@ export async function loginWithPassword(
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
     scope: 'openid profile email',
-  })
+  });
 
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
-  })
+  });
 
   if (!res.ok) {
-    const errText = await res.text()
-    console.error('[Auth] Failed login:', errText)
-    throw new Error(`Login failed: ${errText}`)
+    const errText = await res.text();
+    console.error('[Auth] Failed login:', errText);
+    throw new Error(`Login failed: ${errText}`);
   }
 
-  const tokenData: TokenResponse = await res.json()
-  console.debug('[Auth] Received token:', tokenData)
+  const tokenData: TokenResponse = await res.json();
+  console.debug('[Auth] Received token:', tokenData);
 
-  localStorage.setItem('token', tokenData.access_token)
-  return tokenData
+  // Save token to Zustand (which persists)
+  const authStore = useAuthStore.getState();
+  authStore.setToken(tokenData.access_token);
+
+  // Optionally fetch user immediately
+  await getCurrentUser();
+
+  return tokenData;
 }
 
 /**
@@ -75,22 +84,24 @@ export async function signup({
   username,
   password,
 }: {
-  email: string
-  username: string
-  password: string
+  email: string;
+  username: string;
+  password: string;
 }) {
   const res = await fetch(SIGNUP_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, username, password }),
-  })
+  });
 
-  return res // caller will .json() or .text()
+  return res; // caller will .json() or .text()
 }
 
 /**
- * Clear auth token from storage.
+ * Clear auth token & user from Zustand & storage.
  */
 export function logout() {
-  localStorage.removeItem('token')
+  const authStore = useAuthStore.getState();
+  authStore.logout();
+  console.debug('[Auth] Logged out');
 }

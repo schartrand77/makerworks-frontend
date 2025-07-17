@@ -1,9 +1,8 @@
-// src/utils/auth.ts
-
 /**
- * Builds the Authentik OAuth2 login URL dynamically
+ * Builds the Authentik OAuth2 login URL dynamically.
+ * Optionally accepts extra params & generates CSRF state if requested.
  */
-export function buildLoginUrl(): string {
+export function buildLoginUrl(withState = false, extraParams: Record<string, string> = {}): string {
   const baseUrl = import.meta.env.VITE_AUTHENTIK_BASE_URL;
   const clientId = import.meta.env.VITE_AUTH_CLIENT_ID;
   const redirectUri = import.meta.env.VITE_AUTHENTIK_REDIRECT_URI;
@@ -19,13 +18,20 @@ export function buildLoginUrl(): string {
     response_type: 'code',
     scope: 'openid email profile',
     redirect_uri: redirectUri,
+    ...extraParams,
   });
+
+  if (withState) {
+    const state = crypto.randomUUID();
+    sessionStorage.setItem('auth_state', state);
+    params.set('state', state);
+  }
 
   return `${baseUrl}/application/o/authorize/?${params.toString()}`;
 }
 
 /**
- * Builds the Authentik Registration flow URL
+ * Builds the Authentik Registration flow URL.
  */
 export function buildRegisterUrl(): string {
   const baseUrl = import.meta.env.VITE_AUTHENTIK_BASE_URL;

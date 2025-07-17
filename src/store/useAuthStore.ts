@@ -1,5 +1,3 @@
-// src/store/useAuthStore.ts
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from '@/api/axios';
@@ -8,178 +6,49 @@ interface User {
   id: string;
   email: string;
   username: string;
-  avatar?: string | null;
-  groups?: string[] | null;
-  role?: string | null;
-  bio?: string | null;
-  created_at?: string;
-  last_login?: string | null;
-  is_verified?: boolean;
-  is_active?: boolean;
-  language?: string;
-  theme?: string;
+  avatar?: string;
+  role: string;
 }
 
 interface AuthState {
-  user: User | null;
   token: string | null;
-  loading: boolean;
-  resolved: boolean;
-
-  setUser: (user: User | null) => void;
+  user: User | null;
   setToken: (token: string | null) => void;
-  clearUser: () => void;
-
-  logout: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  logout: () => void;
   fetchUser: () => Promise<void>;
-  refreshToken: () => Promise<void>;
-
   isAuthenticated: () => boolean;
-  hasRole: (role: 'admin' | 'user') => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
+      token: null,
       user: null,
-      token: (typeof window !== 'undefined' && localStorage.getItem('token')) || null,
-      loading: false,
-      resolved: false,
-
-      setUser: (user) => {
-        console.debug('[AuthStore] setUser:', user);
-        set({ user, resolved: true });
-      },
-
       setToken: (token) => {
-        console.debug('[AuthStore] setToken:', token);
-        if (typeof window !== 'undefined') {
-          if (token) {
-            localStorage.setItem('token', token);
-          } else {
-            localStorage.removeItem('token');
-          }
-        }
         set({ token });
       },
-
-      clearUser: () => {
-        console.debug('[AuthStore] clearUser()');
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('token');
-        }
-        set({ user: null, token: null, resolved: true });
+      setUser: (user) => {
+        set({ user });
       },
-
-      logout: async () => {
-        console.debug('[AuthStore] logout()');
-
-        try {
-          await axios.post('/auth/logout', {}, { withCredentials: true });
-        } catch (err) {
-          console.warn('[AuthStore] logout request failed, proceeding anyway:', err);
-        }
-
-        get().clearUser();
-
-        const logoutUrl = import.meta.env.VITE_AUTHENTIK_LOGOUT_URL;
-        if (logoutUrl) {
-          console.debug('[AuthStore] redirecting to Authentik logout URL:', logoutUrl);
-          window.location.href = logoutUrl;
-        } else {
-          console.warn('[AuthStore] no VITE_AUTHENTIK_LOGOUT_URL configured');
-        }
+      logout: () => {
+        set({ token: null, user: null });
+        localStorage.removeItem('token');
       },
-
-      isAuthenticated: () => {
-        const state = get();
-        const authenticated = !!state.user?.id && !!state.token;
-        console.debug('[AuthStore] isAuthenticated:', authenticated);
-        return authenticated;
-      },
-
-      hasRole: (role) => {
-        const state = get();
-        const groups = state.user?.groups ?? [];
-        const normalized = `MakerWorks-${role.charAt(0).toUpperCase() + role.slice(1)}`;
-        const inGroups = groups.includes(normalized);
-        const roleMatch = state.user?.role === role;
-
-        const has = inGroups || roleMatch;
-        console.debug(`[AuthStore] Checking role '${role}':`, has, {
-          groups,
-          roleField: state.user?.role,
-        });
-        return has;
-      },
-
       fetchUser: async () => {
-        console.debug('[AuthStore] fetchUser()');
-        set({ loading: true });
         try {
-          const res = await axios.get('/auth/me', { withCredentials: true });
-          const { user, token } = res.data;
-
-          if (user) {
-            set({ user, resolved: true });
-            console.debug('[AuthStore] ✅ fetchUser success:', user);
-          }
-
-          if (token) {
-            get().setToken(token);
-            console.debug('[AuthStore] ✅ fetchUser updated token');
-          }
-
+          const res = await axios.get('/auth/me');
+          set({ user: res.data });
         } catch (err) {
-          console.warn('[AuthStore] ⚠️ fetchUser failed:', err);
-          get().clearUser();
-        } finally {
-          set({ loading: false });
-        }
-      },
-
-      refreshToken: async () => {
-        console.debug('[AuthStore] refreshToken()');
-        try {
-          const res = await axios.post('/auth/refresh', {}, { withCredentials: true });
-          const { token } = res.data;
-          if (token) {
-            get().setToken(token);
-            console.debug('[AuthStore] 🔄 Token refreshed');
-          }
-        } catch (err) {
-          console.warn('[AuthStore] Failed to refresh token:', err);
+          console.error('Failed to fetch user:', err);
           get().logout();
         }
       },
+      isAuthenticated: () => !!get().user,
     }),
     {
-      name: 'auth-store',
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        resolved: state.resolved,
-      }),
+      name: 'auth-storage',
+      partialize: (state) => ({ token: state.token, user: state.user }),
     }
   )
 );
-
-// 🌐 Sync token and user across browser tabs
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (event) => {
-    if (event.key === 'token') {
-      console.debug('[AuthStore] Synced token from storage:', event.newValue);
-      useAuthStore.setState({ token: event.newValue });
-    }
-
-    if (event.key === 'auth-store') {
-      try {
-        const data = event.newValue ? JSON.parse(event.newValue) : null;
-        console.debug('[AuthStore] Synced user from storage:', data?.state?.user);
-        useAuthStore.setState({ user: data?.state?.user ?? null });
-      } catch (err) {
-        console.error('[AuthStore] Failed to sync state from storage:', err);
-      }
-    }
-  });
-}

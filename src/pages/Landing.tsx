@@ -6,7 +6,12 @@ import { useDevModeStore } from '@/store/useDevModeStore';
 import { buildLoginUrl, buildRegisterUrl } from '@/utils/auth';
 
 const Landing: React.FC = () => {
-  const { resolved, loading, user, fetchUser, isAuthenticated } = useAuthStore();
+  const resolved = useAuthStore((s) => !!s.user || !!s.token);
+  const loading = false; // you can replace with proper loading state if desired
+  const fetchUser = useAuthStore((s) => s.fetchUser);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+
   const enableDevMode = useDevModeStore((s) => s.enable);
 
   const [printedLetters, setPrintedLetters] = useState('');
