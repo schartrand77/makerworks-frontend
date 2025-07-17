@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import GlassNavbar from '@/components/ui/GlassNavbar';
 import RoutesRenderer from '@/routes';
-import { ToastProvider } from '@/context/ToastProvider';
 import { useAuthStore } from '@/store/useAuthStore';
 
 function AppContent() {
@@ -23,9 +22,9 @@ export default function App() {
   }, [token, fetchUser]);
 
   return (
-    <ToastProvider>
+    <>
       <GlassNavbar />
       <AppContent />
-    </ToastProvider>
+    </>
   );
 }
