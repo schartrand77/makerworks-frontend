@@ -8,7 +8,6 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import SignIn from "@/pages/SignIn";
 import NotFound from "@/pages/NotFound";
-import AuthCallbackPage from "@/pages/AuthCallbackPage"; // 👈 add this import
 
 export default function AppRoutes() {
   return (
@@ -19,7 +18,6 @@ export default function AppRoutes() {
       <Route path="/upload" element={<Upload />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
-      <Route path="/auth/callback" element={<AuthCallbackPage />} /> {/* 👈 add this route */}
       <Route path="/signin" element={<SignIn />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

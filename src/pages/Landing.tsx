@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDevModeStore } from '@/store/useDevModeStore';
-import { buildLoginUrl, buildRegisterUrl } from '@/utils/auth';
+
 
 const Landing: React.FC = () => {
   const resolved = useAuthStore((s) => !!s.user || !!s.token);
@@ -133,13 +133,13 @@ const Landing: React.FC = () => {
           ) : (
             <div className="flex gap-4 mt-2">
               <button
-                onClick={() => (window.location.href = buildLoginUrl())}
+                onClick={() => (window.location.href = '/auth/signin')}
                 className="px-6 py-2 bg-blue-300 hover:bg-blue-400 text-black rounded-full text-sm shadow"
               >
                 Sign In
               </button>
               <button
-                onClick={() => (window.location.href = buildRegisterUrl())}
+                onClick={() => (window.location.href = '/auth/signup')}
                 className="px-6 py-2 bg-green-300 hover:bg-green-400 text-black rounded-full text-sm shadow"
               >
                 Sign Up

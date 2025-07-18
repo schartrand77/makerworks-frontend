@@ -7,7 +7,7 @@ type UseSignOutResult = {
 };
 
 /**
- * Handles signing out both locally (Zustand) and remotely (Authentik).
+ * Handles signing out locally.
  * Sets a disabled flag to prevent repeated clicks during the process.
  */
 export const useSignOut = (): UseSignOutResult => {
@@ -25,19 +25,7 @@ export const useSignOut = (): UseSignOutResult => {
 
     logout();
 
-    const AUTHENTIK_LOGOUT_URL =
-      import.meta.env.VITE_AUTHENTIK_LOGOUT_URL?.trim();
-
-    if (!AUTHENTIK_LOGOUT_URL) {
-      console.error(
-        "[useSignOut] ❌ Missing VITE_AUTHENTIK_LOGOUT_URL — cannot redirect."
-      );
-      setDisabled(false);
-      return;
-    }
-
-    console.info("[useSignOut] Redirecting to:", AUTHENTIK_LOGOUT_URL);
-    window.location.href = AUTHENTIK_LOGOUT_URL;
+    setDisabled(false);
   };
 
   return {

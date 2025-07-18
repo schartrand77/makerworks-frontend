@@ -20,8 +20,6 @@ function mountApp(): void {
 
     // Log environment variables (sanitized)
     console.debug('[MakerWorks] ENV:', {
-      VITE_AUTHENTIK_LOGIN_URL: import.meta.env.VITE_AUTHENTIK_LOGIN_URL,
-      VITE_AUTHENTIK_REGISTER_URL: import.meta.env.VITE_AUTHENTIK_REGISTER_URL,
       MODE: import.meta.env.MODE,
     })
 
