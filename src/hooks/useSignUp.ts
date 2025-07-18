@@ -1,7 +1,9 @@
 // src/hooks/useSignUp.ts
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '@/api/axios';
+import axiosInstance from '@/api/axios';
+import axios from 'axios'; // to use axios.isAxiosError properly
 import { useAuthStore } from '@/store/useAuthStore';
 
 type UseSignUpResult = {
@@ -41,7 +43,7 @@ export const useSignUp = (): UseSignUpResult => {
     try {
       console.debug('[useSignUp] Payload:', { email, username });
 
-      const res = await axios.post('/auth/signup', {
+      const res = await axiosInstance.post('/auth/signup', {
         email,
         username,
         password,
@@ -65,6 +67,7 @@ export const useSignUp = (): UseSignUpResult => {
       let message = 'Signup failed';
       if (axios.isAxiosError(err)) {
         const detail = err.response?.data?.detail;
+
         if (Array.isArray(detail)) {
           message = detail
             .map(
@@ -76,6 +79,8 @@ export const useSignUp = (): UseSignUpResult => {
           message = detail;
         } else if (err.response?.status) {
           message = `Error ${err.response.status}: ${err.response.statusText}`;
+        } else if (err.message) {
+          message = err.message;
         }
       } else if (err instanceof Error) {
         message = err.message;

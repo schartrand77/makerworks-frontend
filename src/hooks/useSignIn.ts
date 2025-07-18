@@ -1,6 +1,9 @@
+// src/hooks/useSignIn.ts
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '@/api/axios';
+import axiosInstance from '@/api/axios';
+import axios from 'axios'; // to use axios.isAxiosError properly
 import { useAuthStore } from '@/store/useAuthStore';
 
 interface UseSignInResult {
@@ -25,6 +28,7 @@ export const useSignIn = (): UseSignInResult => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!emailOrUsername.trim() || !password.trim()) {
       setError('Email/username and password are required.');
       return;
@@ -36,7 +40,7 @@ export const useSignIn = (): UseSignInResult => {
     try {
       console.debug('[useSignIn] Sending credentials:', { emailOrUsername });
 
-      const res = await axios.post('/auth/signin', {
+      const res = await axiosInstance.post('/auth/signin', {
         email_or_username: emailOrUsername,
         password,
       });
@@ -49,7 +53,7 @@ export const useSignIn = (): UseSignInResult => {
 
       console.info('[useSignIn] Login successful:', { user, token });
 
-      setToken(token); // Zustand handles persistence
+      setToken(token);
       setUser(user);
 
       console.debug('[useSignIn] User + token saved to store:', { user, token });
@@ -64,17 +68,18 @@ export const useSignIn = (): UseSignInResult => {
         const detail = err.response?.data?.detail;
 
         if (Array.isArray(detail)) {
-          const messages = detail
+          message = detail
             .map(
               (e: { loc?: string[]; msg?: string }) =>
                 `${e.loc?.join('.')}: ${e.msg}`
             )
             .join('; ');
-          message = messages;
         } else if (typeof detail === 'string') {
           message = detail;
         } else if (err.response?.status) {
           message = `Error ${err.response.status}: ${err.response.statusText}`;
+        } else if (err.message) {
+          message = err.message;
         }
       } else if (err instanceof Error) {
         message = err.message;
