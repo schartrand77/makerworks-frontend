@@ -6,8 +6,7 @@ type SignOutButtonProps = {
 };
 
 /**
- * Logs the user out from MakerWorks & Authentik.
- * Calls useAuthStore().logout(), then redirects to Authentik logout URL.
+ * Logs the user out locally.
  */
 export default function SignOutButton({ className = "" }: SignOutButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -15,28 +14,8 @@ export default function SignOutButton({ className = "" }: SignOutButtonProps) {
 
   const handleSignOut = async () => {
     setLoading(true);
-    try {
-      logout(); // Zustand clears token + user
-    } finally {
-      setLoading(false);
-
-      const AUTHENTIK_BASE = import.meta.env.VITE_AUTHENTIK_BASE_URL;
-      const NEXT_URL = window.location.origin;
-
-      if (!AUTHENTIK_BASE) {
-        console.error(
-          "Missing VITE_AUTHENTIK_BASE_URL — cannot redirect to Authentik logout."
-        );
-        return;
-      }
-
-      const logoutUrl =
-        `${AUTHENTIK_BASE}/application/o/logout/` +
-        `?next=${encodeURIComponent(NEXT_URL)}`;
-
-      console.debug("[SignOutButton] Redirecting to:", logoutUrl);
-      window.location.href = logoutUrl;
-    }
+    logout();
+    setLoading(false);
   };
 
   return (

@@ -10,7 +10,6 @@ import Upload from '@/pages/Upload'
 import Cart from '@/pages/Cart'
 import Checkout from '@/pages/Checkout'
 import Settings from '@/pages/Settings'
-import AuthCallbackPage from '@/pages/AuthCallbackPage'
 import PageNotFound from '@/pages/PageNotFound'
 
 // Auth
@@ -30,7 +29,6 @@ export const RoutePaths = Object.freeze({
   settings: '/settings',
   signin: '/auth/signin',
   signup: '/auth/signup',
-  authCallback: '/auth/callback', // 👈 added
 })
 
 export default function RoutesRenderer() {
@@ -39,7 +37,6 @@ export default function RoutesRenderer() {
       <Route path={RoutePaths.landing} element={<Landing />} />
       <Route path={RoutePaths.signin} element={<SignIn />} />
       <Route path={RoutePaths.signup} element={<SignUp />} />
-      <Route path={RoutePaths.authCallback} element={<AuthCallbackPage />} /> {/* 👈 added */}
 
       <Route
         path={RoutePaths.admin}
