@@ -1,11 +1,11 @@
-# React + Vite
+# MakerWorks Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository contains the MakerWorks React application built with Vite. A small
+FastAPI service is included under the `backend` folder for local development and tests.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The project uses the official
+[@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc)
+plugin for fast refresh during development.
 
 ## Getting Started
 
@@ -21,13 +21,22 @@ npm install
 npm run dev
 ```
 
+### Start the FastAPI backend
+
+The backend service is used for authentication tests and local development.
+Run it with:
+
+```bash
+python backend/main.py
+```
+
 ### Build for production
 
 ```bash
 npm run build
 ```
 
-### Lint and tests
+### Linting and tests
 
 Run the linter with:
 
@@ -47,7 +56,7 @@ Cypress end-to-end tests are also included. Open the Cypress GUI with:
 npm run cy:open
 ```
 
-Or run them headlessly with:
+Run Cypress headlessly with:
 
 ```bash
 npm run cy:run
@@ -58,6 +67,20 @@ npm run cy:run
 The navigation bar includes a small sun/moon button that toggles between light
 and dark mode. Your selected theme is saved to `localStorage` and applied on
 future visits.
+
+## Environment variables
+
+Copy `.env.example` to `.env` and customise as needed. Important values include:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_yourkeyhere
+```
+
+`VITE_API_BASE_URL` determines where API calls are sent and
+`VITE_STRIPE_PUBLISHABLE_KEY` is required to run the checkout example. Optional
+settings like `VITE_APP_NAME` and `VITE_ENV` can be used to further configure the
+frontend.
 
 ## Folder structure
 
@@ -73,9 +96,9 @@ future visits.
 - **src/assets** – static assets
 - **public** – static files served directly by Vite
 
-## Expanding the ESLint configuration
+## Lint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+ESLint ships with sensible defaults. Adjust `eslint.config.js` to tweak rules for your project.
 
 ## License
 
