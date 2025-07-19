@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
+import { toast } from 'sonner';
 
 type SignOutButtonProps = {
   className?: string;
@@ -9,7 +10,7 @@ type SignOutButtonProps = {
 };
 
 /**
- * Logs the user out locally & optionally calls backend to revoke session.
+ * Logs the user out locally & notifies the backend to revoke session.
  */
 export default function SignOutButton({
   className = '',
@@ -20,20 +21,20 @@ export default function SignOutButton({
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
+    if (loading) return;
     setLoading(true);
 
     try {
-      // Optionally notify backend
-      await axiosInstance.post('/auth/signout').catch((err) => {
-        console.warn('[SignOutButton] Backend signout failed, ignoring', err);
-      });
-
-      logout();
-
-      navigate(redirectTo);
+      const res = await axiosInstance.post('/auth/signout');
+      if (res.status !== 200) {
+        throw new Error(`Unexpected status: ${res.status}`);
+      }
     } catch (err) {
-      console.error('[SignOutButton] Signout error:', err);
+      console.error('[SignOutButton] Backend signout error:', err);
+      toast.error('Could not fully sign you out from server, cleared locally.');
     } finally {
+      logout(); // clear frontend session regardless
+      navigate(redirectTo);
       setLoading(false);
     }
   };

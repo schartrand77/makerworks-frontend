@@ -1,21 +1,20 @@
-import { Routes, Route } from 'react-router-dom'
+import { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import RequireAuth from '@/components/auth/RequireAuth';
 
-// Pages
-import Landing from '@/pages/Landing'
-import Admin from '@/pages/Admin'
-import Dashboard from '@/pages/Dashboard'
-import Browse from '@/pages/Browse'
-import Estimate from '@/pages/Estimate'
-import Upload from '@/pages/Upload'
-import Cart from '@/pages/Cart'
-import Checkout from '@/pages/Checkout'
-import Settings from '@/pages/Settings'
-import PageNotFound from '@/pages/PageNotFound'
-
-// Auth
-import SignIn from '@/components/auth/SignIn'
-import SignUp from '@/components/auth/SignUp'
-import RequireAuth from '@/components/auth/RequireAuth'
+// Lazy-loaded pages
+const Landing = lazy(() => import('@/pages/Landing'));
+const Admin = lazy(() => import('@/pages/Admin'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Browse = lazy(() => import('@/pages/Browse'));
+const Estimate = lazy(() => import('@/pages/Estimate'));
+const Upload = lazy(() => import('@/pages/Upload'));
+const Cart = lazy(() => import('@/pages/Cart'));
+const Checkout = lazy(() => import('@/pages/Checkout'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const SignIn = lazy(() => import('@/components/auth/SignIn'));
+const SignUp = lazy(() => import('@/components/auth/SignUp'));
+const PageNotFound = lazy(() => import('@/pages/PageNotFound'));
 
 export const RoutePaths = Object.freeze({
   landing: '/',
@@ -29,80 +28,82 @@ export const RoutePaths = Object.freeze({
   settings: '/settings',
   signin: '/auth/signin',
   signup: '/auth/signup',
-})
+});
 
 export default function RoutesRenderer() {
   return (
-    <Routes>
-      <Route path={RoutePaths.landing} element={<Landing />} />
-      <Route path={RoutePaths.signin} element={<SignIn />} />
-      <Route path={RoutePaths.signup} element={<SignUp />} />
+    <Suspense fallback={<div className="text-center mt-8">Loading…</div>}>
+      <Routes>
+        <Route path={RoutePaths.landing} element={<Landing />} />
+        <Route path={RoutePaths.signin} element={<SignIn />} />
+        <Route path={RoutePaths.signup} element={<SignUp />} />
 
-      <Route
-        path={RoutePaths.admin}
-        element={
-          <RequireAuth adminOnly>
-            <Admin />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.dashboard}
-        element={
-          <RequireAuth>
-            <Dashboard />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.browse}
-        element={
-          <RequireAuth>
-            <Browse />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.estimate}
-        element={
-          <RequireAuth>
-            <Estimate />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.upload}
-        element={
-          <RequireAuth>
-            <Upload />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.cart}
-        element={
-          <RequireAuth>
-            <Cart />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.checkout}
-        element={
-          <RequireAuth>
-            <Checkout />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={RoutePaths.settings}
-        element={
-          <RequireAuth>
-            <Settings />
-          </RequireAuth>
-        }
-      />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
-  )
+        <Route
+          path={RoutePaths.admin}
+          element={
+            <RequireAuth requiredRoles={['admin']}>
+              <Admin />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.dashboard}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.browse}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Browse />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.estimate}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Estimate />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.upload}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Upload />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.cart}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Cart />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.checkout}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Checkout />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.settings}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <Settings />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </Suspense>
+  );
 }

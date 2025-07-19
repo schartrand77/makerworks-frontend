@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import GlassNavbar from '@/components/ui/GlassNavbar';
-import RoutesRenderer from '@/routes';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useEffect } from "react";
+import GlassNavbar from "@/components/ui/GlassNavbar";
+import RoutesRenderer from "@/routes";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function AppContent() {
   return (

@@ -15,18 +15,15 @@ const baseURL =
 console.debug('[Axios] Using API base URL:', `${baseURL}/api/v1`);
 
 const instance: AxiosInstance = axios.create({
-  baseURL: `${baseURL}/api/v1`, // include api/v1 here so all calls are just /auth/signup etc
-  // removed withCredentials since we're using Bearer tokens
+  baseURL: `${baseURL}/api/v1`,
+  timeout: 15000,
 });
 
 instance.interceptors.request.use(
   (config: AxiosRequestConfig): AxiosRequestConfig => {
     try {
-      let token: string | null = null;
-
-      if (typeof window !== 'undefined') {
-        token = useAuthStore.getState().token || localStorage.getItem('token');
-      }
+      const store = useAuthStore.getState();
+      const token = store.token || (typeof window !== 'undefined' && localStorage.getItem('token'));
 
       if (!config.headers) config.headers = {};
 
@@ -56,12 +53,39 @@ instance.interceptors.response.use(
     window.__DEBUG_LOG__?.(label);
     return response;
   },
-  (error: AxiosError): Promise<never> => {
+  async (error: AxiosError): Promise<never> => {
+    const store = useAuthStore.getState();
+    const originalRequest: any = error.config;
     const status = error?.response?.status || 'ERR';
     const url = error?.config?.url || '(unknown URL)';
     const label = `[ERR] ${status} ${url}`;
     console.error(label, error);
     window.__DEBUG_LOG__?.(label);
+
+    // Transparent refresh token flow
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      store.refreshToken
+    ) {
+      originalRequest._retry = true;
+      try {
+        const res = await instance.post('/auth/refresh', {
+          refresh_token: store.refreshToken,
+        });
+        const { token, refresh_token } = res.data;
+        useAuthStore.getState().setToken(token, refresh_token);
+        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+        console.info('[Axios] Retrying original request after refresh…');
+        return instance(originalRequest);
+      } catch (refreshError) {
+        console.error('[Axios] Refresh token failed, logging out.', refreshError);
+        useAuthStore.getState().logout();
+        window.location.href = '/';
+        return Promise.reject(refreshError);
+      }
+    }
+
     return Promise.reject(error);
   }
 );

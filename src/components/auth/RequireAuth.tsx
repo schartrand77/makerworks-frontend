@@ -1,25 +1,42 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 
+/**
+ * Guards a route, redirecting unauthenticated users to fallback
+ * and unauthorized users (wrong role) to /unauthorized.
+ */
 const RequireAuth = ({
   children,
   requiredRoles,
+  fallbackTo = "/", // fallback for unauthenticated
 }: {
-  children: React.ReactNode;
+  children: JSX.Element;
   requiredRoles?: string[];
+  fallbackTo?: string;
 }) => {
   const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
 
   if (!isAuthenticated()) {
-    return <Navigate to="/auth/signin" state={{ from: location }} replace />;
+    console.info("[RequireAuth] Not authenticated → redirecting to fallback.");
+    return (
+      <Navigate
+        to={fallbackTo}
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
   if (
     requiredRoles &&
-    (!user?.groups ||
-      !requiredRoles.some((role) => user.groups.includes(role)))
+    (!user?.role || !requiredRoles.includes(user.role))
   ) {
+    console.info(
+      `[RequireAuth] Authenticated but role "${user?.role}" not in [${requiredRoles.join(
+        ", "
+      )}] → redirecting to /unauthorized.`
+    );
     return <Navigate to="/unauthorized" replace />;
   }
 

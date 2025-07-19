@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from '@/api/axios';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -12,8 +13,10 @@ interface User {
 
 interface AuthState {
   token: string | null;
+  refreshToken: string | null;
   user: User | null;
-  setToken: (token: string | null) => void;
+
+  setToken: (token: string, refreshToken: string) => void;
   setUser: (user: User | null) => void;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -24,30 +27,58 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       token: null,
+      refreshToken: null,
       user: null,
-      setToken: (token) => {
-        set({ token });
+
+      /**
+       * Sets both access and refresh tokens
+       */
+      setToken: (token: string, refreshToken: string) => {
+        set({ token, refreshToken });
       },
-      setUser: (user) => {
+
+      /**
+       * Sets the current user object
+       */
+      setUser: (user: User | null) => {
         set({ user });
       },
+
+      /**
+       * Logs out fully: clears tokens & user state
+       */
       logout: () => {
-        set({ token: null, user: null });
+        set({ token: null, refreshToken: null, user: null });
+        toast.info('You have been signed out.');
       },
+
+      /**
+       * Fetches /auth/me and updates user
+       */
       fetchUser: async () => {
         try {
           const res = await axios.get('/auth/me');
-          set({ user: res.data });
+          set({ user: res.data.user });
         } catch (err) {
-          console.error('Failed to fetch user:', err);
+          console.error('[useAuthStore] Failed to fetch user', err);
           get().logout();
         }
       },
-      isAuthenticated: () => !!get().user,
+
+      /**
+       * Checks if a valid token exists
+       */
+      isAuthenticated: () => {
+        return !!get().token && !!get().user && get().user?.role !== 'guest';
+      },
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({
+        token: state.token,
+        refreshToken: state.refreshToken,
+        user: state.user,
+      }),
     }
   )
 );
