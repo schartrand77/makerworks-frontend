@@ -1,5 +1,15 @@
 import axios from "./axios";
 
+export {
+  fetchAvailableFilaments,
+  addFilament,
+  updateFilament,
+  deleteFilament,
+  type Filament,
+  type NewFilament,
+  type UpdateFilament,
+} from "./filaments";
+
 /**
  * TYPES
  */
@@ -19,21 +29,6 @@ export interface Model {
   description?: string;
 }
 
-export interface Filament {
-  id: string;
-  name: string;
-  type: string;
-  subtype?: string;
-  surface?: string;
-  texture?: string;
-  colorHex?: string;
-  colorName?: string;
-  pricePerKg: number;
-  currency: string;
-  description?: string;
-  is_active?: boolean;
-  is_biodegradable?: boolean;
-}
 
 /**
  * USERS
@@ -122,50 +117,3 @@ export async function updateModel(
   }
 }
 
-/**
- * FILAMENTS
- */
-
-export async function fetchAvailableFilaments(): Promise<Filament[]> {
-  try {
-    const res = await axios.get<Filament[]>("/filaments/");
-    return res.data;
-  } catch (err) {
-    console.error("[Admin] Failed to fetch filaments:", err);
-    throw err;
-  }
-}
-
-export async function addFilament(
-  data: Omit<Filament, "id">
-): Promise<Filament> {
-  try {
-    const res = await axios.post<Filament>("/filaments/", data);
-    return res.data;
-  } catch (err) {
-    console.error("[Admin] Failed to add filament:", err);
-    throw err;
-  }
-}
-
-export async function updateFilament(
-  id: string,
-  data: Partial<Omit<Filament, "id">>
-): Promise<Filament> {
-  try {
-    const res = await axios.put<Filament>(`/filaments/${id}`, data);
-    return res.data;
-  } catch (err) {
-    console.error(`[Admin] Failed to update filament ${id}:`, err);
-    throw err;
-  }
-}
-
-export async function deleteFilament(id: string): Promise<void> {
-  try {
-    await axios.delete(`/filaments/${id}`);
-  } catch (err) {
-    console.error(`[Admin] Failed to delete filament ${id}:`, err);
-    throw err;
-  }
-}
