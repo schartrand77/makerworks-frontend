@@ -1,4 +1,6 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { handleCartCheckout } from '@/lib/checkout'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
 import { useCartStore } from '@/store/useCartStore'
@@ -10,6 +12,7 @@ interface CartItem {
 
 export default function Cart() {
   const { items, removeItem, clearCart } = useCartStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
     console.debug('[Cart] Mounted with items:', items)
@@ -17,7 +20,7 @@ export default function Cart() {
 
   const handleCheckout = () => {
     console.info('[Cart] Proceed to checkout')
-    // TODO: implement actual checkout flow
+    handleCartCheckout(navigate)
   }
 
   return (
