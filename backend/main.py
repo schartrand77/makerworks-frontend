@@ -54,6 +54,13 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
+class AuthResponse(BaseModel):
+    """Returned after successful authentication."""
+
+    user: UserOut
+    token: str
+
 app = FastAPI()
 
 
@@ -98,13 +105,13 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
     return {"message": "User created"}
 
-@app.post('/auth/signin', response_model=Token)
+@app.post('/auth/signin', response_model=AuthResponse)
 def signin(form: UserSignIn, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form.email).first()
     if not user or not pwd_context.verify(form.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": str(user.id)})
-    return {"access_token": token, "token_type": "bearer"}
+    return {"user": user, "token": token}
 
 @app.get('/auth/me', response_model=UserOut)
 def read_users_me(current_user: User = Depends(get_current_user)):
