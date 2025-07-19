@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
-import axios from 'axios'; // to use axios.isAxiosError properly
+import axios, { AxiosError } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
+import { UserOut } from '@/types/auth';
 
 type UseSignUpResult = {
   email: string;
@@ -16,6 +17,11 @@ type UseSignUpResult = {
   loading: boolean;
   error: string | null;
   handleSubmit: (e: React.FormEvent) => void;
+};
+
+type SignupResponse = {
+  user: UserOut;
+  token: string;
 };
 
 export const useSignUp = (): UseSignUpResult => {
@@ -33,21 +39,32 @@ export const useSignUp = (): UseSignUpResult => {
     e.preventDefault();
     setError(null);
 
-    if (!email.trim() || !username.trim() || !password.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedUsername || !trimmedPassword) {
       setError('All fields are required.');
       return;
     }
 
     setLoading(true);
 
-    try {
-      console.debug('[useSignUp] Payload:', { email, username });
+    const payload = {
+      email: trimmedEmail,
+      username: trimmedUsername,
+      password: trimmedPassword,
+    };
 
-      const res = await axiosInstance.post('/auth/signup', {
-        email,
-        username,
-        password,
-      });
+    console.debug('[useSignUp] Payload sent to backend:', payload);
+
+    try {
+      const res = await axiosInstance.post<SignupResponse>(
+        '/auth/signup',
+        payload
+      );
+
+      console.debug('[useSignUp] Response:', res);
 
       const { user, token } = res.data;
 
@@ -55,32 +72,34 @@ export const useSignUp = (): UseSignUpResult => {
         throw new Error('Invalid response: missing user or token');
       }
 
-      setToken(token); // Zustand persists automatically
+      setToken(token);
       setUser(user);
 
-      console.info('[useSignUp] User registered:', user);
+      console.info('[useSignUp] User registered & state updated', user);
 
       navigate('/dashboard');
-    } catch (err: unknown) {
-      console.error('[useSignUp] Signup error', err);
+    } catch (err) {
+      console.error('[useSignUp] Signup error raw:', err);
 
-      let message = 'Signup failed';
+      let message = 'Signup failed. Please try again.';
+
       if (axios.isAxiosError(err)) {
-        const detail = err.response?.data?.detail;
+        const axErr = err as AxiosError<{ detail?: string | Array<any> }>;
+        const detail = axErr.response?.data?.detail;
+
+        console.error('[useSignUp] Server response detail:', detail);
 
         if (Array.isArray(detail)) {
           message = detail
-            .map(
-              (e: { loc?: string[]; msg?: string }) =>
-                `${e.loc?.join('.')}: ${e.msg}`
+            .map((e: { loc?: string[]; msg?: string }) =>
+              e.loc && e.msg ? `${e.loc.join('.')}: ${e.msg}` : ''
             )
+            .filter(Boolean)
             .join('; ');
         } else if (typeof detail === 'string') {
           message = detail;
-        } else if (err.response?.status) {
-          message = `Error ${err.response.status}: ${err.response.statusText}`;
-        } else if (err.message) {
-          message = err.message;
+        } else if (axErr.response?.status) {
+          message = `Error ${axErr.response.status}: ${axErr.response.statusText}`;
         }
       } else if (err instanceof Error) {
         message = err.message;

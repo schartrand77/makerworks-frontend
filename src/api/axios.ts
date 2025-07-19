@@ -10,12 +10,12 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 const baseURL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') ||
-  'http://192.168.1.170:49152';
+  'http://localhost:8000';
 
-console.debug('[Axios] Using API base URL:', baseURL);
+console.debug('[Axios] Using API base URL:', `${baseURL}/api/v1`);
 
 const instance: AxiosInstance = axios.create({
-  baseURL: `${baseURL}/api/v1`,
+  baseURL: `${baseURL}/api/v1`, // include api/v1 here so all calls are just /auth/signup etc
   // removed withCredentials since we're using Bearer tokens
 });
 
@@ -25,7 +25,6 @@ instance.interceptors.request.use(
       let token: string | null = null;
 
       if (typeof window !== 'undefined') {
-        // Prefer Zustand over raw localStorage
         token = useAuthStore.getState().token || localStorage.getItem('token');
       }
 

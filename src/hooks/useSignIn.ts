@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
-import axios from 'axios'; // to use axios.isAxiosError properly
+import axios, { AxiosError } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
+import { UserOut } from '@/types/auth'; // optional: adjust path if needed
 
 interface UseSignInResult {
   emailOrUsername: string;
@@ -14,6 +15,11 @@ interface UseSignInResult {
   error: string | null;
   loading: boolean;
   handleSubmit: (e: React.FormEvent) => void;
+}
+
+interface SigninResponse {
+  user: UserOut;
+  token: string;
 }
 
 export const useSignIn = (): UseSignInResult => {
@@ -38,9 +44,12 @@ export const useSignIn = (): UseSignInResult => {
     setError(null);
 
     try {
-      console.debug('[useSignIn] Sending credentials:', { emailOrUsername });
+      console.debug('[useSignIn] Sending credentials:', {
+        emailOrUsername,
+        password: '[hidden]',
+      });
 
-      const res = await axiosInstance.post('/auth/signin', {
+      const res = await axiosInstance.post<SigninResponse>('/auth/signin', {
         email_or_username: emailOrUsername,
         password,
       });
@@ -62,24 +71,23 @@ export const useSignIn = (): UseSignInResult => {
     } catch (err: unknown) {
       console.error('[useSignIn] Login failed:', err);
 
-      let message = 'Sign in failed';
+      let message = 'Sign in failed. Please try again.';
 
       if (axios.isAxiosError(err)) {
-        const detail = err.response?.data?.detail;
+        const axErr = err as AxiosError<{ detail?: string | Array<any> }>;
+        const detail = axErr.response?.data?.detail;
 
         if (Array.isArray(detail)) {
           message = detail
-            .map(
-              (e: { loc?: string[]; msg?: string }) =>
-                `${e.loc?.join('.')}: ${e.msg}`
+            .map((e: { loc?: string[]; msg?: string }) =>
+              e.loc && e.msg ? `${e.loc.join('.')}: ${e.msg}` : ''
             )
+            .filter(Boolean)
             .join('; ');
         } else if (typeof detail === 'string') {
           message = detail;
-        } else if (err.response?.status) {
-          message = `Error ${err.response.status}: ${err.response.statusText}`;
-        } else if (err.message) {
-          message = err.message;
+        } else if (axErr.response?.status) {
+          message = `Error ${axErr.response.status}: ${axErr.response.statusText}`;
         }
       } else if (err instanceof Error) {
         message = err.message;

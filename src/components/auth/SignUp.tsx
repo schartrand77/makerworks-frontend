@@ -16,30 +16,85 @@ const SignUp = () => {
 
   return (
     <PageLayout title="Sign Up">
-      <form className="glass-card p-8 flex flex-col gap-4" onSubmit={handleSubmit}>
-        <h1 className="text-xl font-semibold text-center">Create Account</h1>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <input
-          className="input"
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="input"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          className="input"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="btn btn-primary" type="submit" disabled={loading}>
+      <form
+        className="glass-card p-8 flex flex-col gap-4 max-w-sm mx-auto"
+        onSubmit={(e) => {
+          e.preventDefault();
+
+          // sanity: trim all fields here to match backend expectations
+          setEmail(email.trim());
+          setUsername(username.trim());
+          setPassword(password.trim());
+
+          handleSubmit(e);
+        }}
+        noValidate
+      >
+        <h1 className="text-2xl font-semibold text-center">Create Your Account</h1>
+
+        {error && (
+          <p
+            className="text-red-500 text-sm text-center bg-red-100 border border-red-300 p-2 rounded"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="email" className="text-sm font-medium">
+            Email
+          </label>
+          <input
+            id="email"
+            className="input"
+            placeholder="you@example.com"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="username" className="text-sm font-medium">
+            Username
+          </label>
+          <input
+            id="username"
+            className="input"
+            placeholder="yourusername"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            disabled={loading}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="password" className="text-sm font-medium">
+            Password
+          </label>
+          <input
+            id="password"
+            className="input"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+          />
+        </div>
+
+        <button
+          className="btn btn-primary mt-4"
+          type="submit"
+          disabled={loading || !email.trim() || !username.trim() || !password.trim()}
+        >
           {loading ? 'Signing up…' : 'Sign Up'}
         </button>
       </form>
