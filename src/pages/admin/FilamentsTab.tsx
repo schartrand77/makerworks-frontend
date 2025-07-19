@@ -7,8 +7,8 @@ import {
   addFilament,
   updateFilament,
   deleteFilament,
-  Filament,
-} from '@/api/admin';
+  type Filament,
+} from '@/api/filaments';
 import { confirmAlert } from 'react-confirm-alert';
 
 export default function FilamentsTab() {
