@@ -33,7 +33,6 @@ export const useAuthStore = create<AuthState>()(
       },
       logout: () => {
         set({ token: null, user: null });
-        localStorage.removeItem('token');
       },
       fetchUser: async () => {
         try {

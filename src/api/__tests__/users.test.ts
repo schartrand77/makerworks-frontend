@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from '@/api/axios'
 import { uploadAvatar, updateUserProfile, deleteAccount } from '../users'
+import { useAuthStore } from '@/store/useAuthStore'
 
 vi.mock('@/api/axios')
 
 beforeEach(() => {
   vi.resetAllMocks()
+  useAuthStore.setState({ token: 'test-token' } as any)
 })
 
 describe('users.ts', () => {
@@ -33,7 +35,8 @@ describe('users.ts', () => {
 
     expect(axios.patch).toHaveBeenCalledWith(
       '/users/me',
-      expect.objectContaining({ username: 'valid' })
+      expect.objectContaining({ username: 'valid' }),
+      expect.any(Object)
     )
   })
 
@@ -48,6 +51,9 @@ describe('users.ts', () => {
 
     await expect(deleteAccount()).resolves.not.toThrow()
 
-    expect(axios.delete).toHaveBeenCalledWith('/users/me')
+    expect(axios.delete).toHaveBeenCalledWith(
+      '/users/me',
+      expect.any(Object)
+    )
   })
 })
