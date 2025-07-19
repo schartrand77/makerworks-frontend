@@ -1,9 +1,9 @@
 import axios from './axios';
 import { useAuthStore } from '@/store/useAuthStore';
-import { User } from '@/types/user';
+import { UserOut } from '@/types/auth';
 
 interface SignInResponse {
-  user: User;
+  user: UserOut;
   token: string;
 }
 
@@ -26,8 +26,8 @@ export async function signUp(payload: { email: string; username: string; passwor
 /**
  * GET /auth/me
  */
-export async function getCurrentUser(): Promise<User> {
-  const res = await axios.get<User>('/auth/me');
+export async function getCurrentUser(): Promise<UserOut> {
+  const res = await axios.get<UserOut>('/auth/me');
   const user = res.data;
   useAuthStore.getState().setUser(user);
   return user;

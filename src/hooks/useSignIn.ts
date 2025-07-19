@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
 import axios, { AxiosError } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
-import { UserOut } from '@/types/auth'; // optional: adjust path if needed
+import { UserOut } from '@/types/auth';
 
 interface UseSignInResult {
   emailOrUsername: string;
