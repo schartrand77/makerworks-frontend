@@ -1,61 +1,60 @@
-import React, { createContext, useState, useCallback } from 'react'
-import Toast from '@/components/ui/Toast'
+import React, { createContext, useContext } from 'react';
+// If you’re using sonner (recommended for modern projects), import it:
+import { Toaster, toast } from 'sonner';
+// If you prefer react-toastify, replace above with:
+// import { ToastContainer, toast } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
 
-type ToastType = 'info' | 'success' | 'error'
-
-interface ToastState {
-  message: string
-  type: ToastType
-  show: boolean
+interface ToastContextProps {
+  success: (message: string) => void;
+  error: (message: string) => void;
+  info: (message: string) => void;
 }
 
-interface ToastContextValue {
-  toast: (message: string, type?: ToastType) => void
-}
-
-export const ToastContext = createContext<ToastContextValue | null>(null)
+const ToastContext = createContext<ToastContextProps | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toastState, setToastState] = useState<ToastState>({
-    message: '',
-    type: 'info',
-    show: false,
-  })
+  const show = (type: 'success' | 'error' | 'info', message: string) => {
+    switch (type) {
+      case 'success':
+        toast.success(message);
+        break;
+      case 'error':
+        toast.error(message);
+        break;
+      case 'info':
+      default:
+        toast(message);
+        break;
+    }
+  };
 
-  const showToast = useCallback(
-    (msg: any, t: any = 'info') => {
-      const safeMessage =
-        typeof msg === 'string'
-          ? msg
-          : typeof msg?.message === 'string'
-          ? msg.message
-          : JSON.stringify(msg)
-
-      const safeType: ToastType =
-        t === 'success' || t === 'error' || t === 'info' ? t : 'info'
-
-      setToastState({ message: safeMessage, type: safeType, show: true })
-
-      setTimeout(() => {
-        setToastState({ message: '', type: 'info', show: false })
-      }, 3000)
-    },
-    []
-  )
+  const value: ToastContextProps = {
+    success: (msg) => show('success', msg),
+    error: (msg) => show('error', msg),
+    info: (msg) => show('info', msg),
+  };
 
   return (
-    <ToastContext.Provider value={{ toast: showToast }}>
+    <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50">
-        <Toast
-          message={toastState.message}
-          type={toastState.type}
-          show={toastState.show}
-          onClose={() =>
-            setToastState({ message: '', type: 'info', show: false })
-          }
-        />
-      </div>
+      {/* Mount the toaster component here */}
+      <Toaster
+        position="top-right"
+        richColors
+        expand
+        duration={4000}
+      />
+      {/* If using react-toastify, replace above with:
+      <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} /> */}
     </ToastContext.Provider>
-  )
-}
+  );
+};
+
+export const useToast = (): ToastContextProps => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
+};

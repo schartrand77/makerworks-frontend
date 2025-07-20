@@ -35,6 +35,7 @@ createRoot(rootElement).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <UserProvider>
+          {/* ToastProvider enables useToast() hook */}
           <ToastProvider>
             <ErrorBoundary>
               <App />
@@ -42,7 +43,7 @@ createRoot(rootElement).render(
           </ToastProvider>
         </UserProvider>
 
-        {/* React Query Devtools — dev-only aid */}
+        {/* React Query Devtools — development aid */}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </BrowserRouter>
