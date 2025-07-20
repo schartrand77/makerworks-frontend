@@ -1,51 +1,47 @@
-import React, { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from '@/App'
-import ErrorBoundary from '@/components/system/ErrorBoundary'
+import React, { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import App from '@/App';
+import ErrorBoundary from '@/components/system/ErrorBoundary';
 import { ToastProvider } from '@/context/ToastProvider';
-import '@/index.css'
+import { UserProvider } from '@/context/UserContext';
+import queryClient from '@/api/queryClient';
+import '@/index.css';
 
-function mountApp(): void {
-  try {
-    console.debug('[MakerWorks] Mounting App...')
-    const rootElement = document.getElementById('root')
+const rootElement = document.getElementById('root');
 
-    if (!rootElement) {
-      console.error('[MakerWorks] ❌ No #root element found in DOM.')
-      throw new Error('No #root element found')
-    }
+if (!rootElement) {
+  console.error('[MakerWorks] ❌ No #root element found in DOM.');
+  const fallback = document.createElement('div');
+  fallback.style.color = 'red';
+  fallback.style.fontFamily = 'monospace';
+  fallback.style.margin = '2rem';
+  fallback.innerText =
+    '⚠️ MakerWorks frontend failed to load. Check the browser console for details.';
+  document.body.appendChild(fallback);
+  throw new Error('No #root element found');
+}
 
-    console.debug('[MakerWorks] ✅ Found root element:', rootElement)
+console.debug('[MakerWorks] ✅ Found root element:', rootElement);
 
-    // Log environment variables (sanitized)
-    console.debug('[MakerWorks] ENV:', {
-      MODE: import.meta.env.MODE,
-    })
-
-    createRoot(rootElement).render(
-      <StrictMode>
-        <BrowserRouter>
+createRoot(rootElement).render(
+  <StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
           <ToastProvider>
             <ErrorBoundary>
               <App />
             </ErrorBoundary>
           </ToastProvider>
-        </BrowserRouter>
-      </StrictMode>
-    )
+        </UserProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </BrowserRouter>
+  </StrictMode>
+);
 
-    console.debug('[MakerWorks] ✅ App render initialized.')
-  } catch (error) {
-    console.error('[MakerWorks] ❌ Failed to mount App:', error)
-    const fallback = document.createElement('div')
-    fallback.style.color = 'red'
-    fallback.style.fontFamily = 'monospace'
-    fallback.style.margin = '2rem'
-    fallback.innerText =
-      '⚠️ MakerWorks frontend failed to load. Check the browser console for details.'
-    document.body.appendChild(fallback)
-  }
-}
-
-mountApp()
+console.debug('[MakerWorks] ✅ App render initialized.');

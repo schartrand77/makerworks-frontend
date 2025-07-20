@@ -19,23 +19,24 @@ const instance: AxiosInstance = axios.create({
   timeout: 15000,
 });
 
+// REQUEST INTERCEPTOR
 instance.interceptors.request.use(
   (config: AxiosRequestConfig): AxiosRequestConfig => {
-    try {
-      const store = useAuthStore.getState();
-      const token = store.token || (typeof window !== 'undefined' && localStorage.getItem('token'));
+    const store = useAuthStore.getState();
+    const token =
+      store.token ||
+      (typeof window !== 'undefined' && window.localStorage?.getItem('token'));
 
-      if (!config.headers) config.headers = {};
+    config.headers = config.headers || {};
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-      const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`;
-      console.debug(label);
-      window.__DEBUG_LOG__?.(label);
-    } catch (e) {
-      console.warn('[Axios] Failed to process request config:', e);
+    const label = `[REQ] ${config.method?.toUpperCase() || 'GET'} ${config.url}`;
+    console.debug(label);
+    if (typeof window !== 'undefined') {
+      (window as any).__DEBUG_LOG__?.(label);
     }
 
     return config;
@@ -46,23 +47,30 @@ instance.interceptors.request.use(
   }
 );
 
+// RESPONSE INTERCEPTOR
 instance.interceptors.response.use(
   (response: AxiosResponse): AxiosResponse => {
     const label = `[RES] ${response.status} ${response.config.url}`;
     console.debug(label);
-    window.__DEBUG_LOG__?.(label);
+    if (typeof window !== 'undefined') {
+      (window as any).__DEBUG_LOG__?.(label);
+    }
     return response;
   },
   async (error: AxiosError): Promise<never> => {
     const store = useAuthStore.getState();
-    const originalRequest: any = error.config;
+    const originalRequest: AxiosRequestConfig & { _retry?: boolean } =
+      error.config || {};
+
     const status = error?.response?.status || 'ERR';
     const url = error?.config?.url || '(unknown URL)';
     const label = `[ERR] ${status} ${url}`;
     console.error(label, error);
-    window.__DEBUG_LOG__?.(label);
 
-    // Transparent refresh token flow
+    if (typeof window !== 'undefined') {
+      (window as any).__DEBUG_LOG__?.(label);
+    }
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -75,13 +83,18 @@ instance.interceptors.response.use(
         });
         const { token, refresh_token } = res.data;
         useAuthStore.getState().setToken(token, refresh_token);
+
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers['Authorization'] = `Bearer ${token}`;
-        console.info('[Axios] Retrying original request after refresh…');
+
+        console.info('[Axios] Retrying original request after token refresh…');
         return instance(originalRequest);
       } catch (refreshError) {
         console.error('[Axios] Refresh token failed, logging out.', refreshError);
         useAuthStore.getState().logout();
-        window.location.href = '/';
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
         return Promise.reject(refreshError);
       }
     }
@@ -89,5 +102,9 @@ instance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ✅ React Query fetcher
+export const axiosFetcher = <T>(url: string, config?: AxiosRequestConfig) =>
+  instance.get<T>(url, config).then((res) => res.data);
 
 export default instance;
