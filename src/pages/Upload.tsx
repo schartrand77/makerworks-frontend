@@ -1,5 +1,6 @@
 import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
+import GlassButton from '@/components/ui/GlassButton';
 import { toast } from 'sonner';
 import axios from '@/api/axios';
 
@@ -10,6 +11,7 @@ export default function Upload() {
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [renderStatus, setRenderStatus] = useState<RenderStatus>(null);
   const dropzoneRef = useRef<HTMLDivElement | null>(null);
@@ -41,7 +43,7 @@ export default function Upload() {
           toast.error('❌ Render failed');
           clearInterval(interval);
         }
-      } catch (err) {
+      } catch {
         toast.error('⚠️ Render status polling failed');
         clearInterval(interval);
       }
@@ -63,9 +65,18 @@ export default function Upload() {
 
     try {
       setUploading(true);
+      setUploadProgress(0);
+
       const res = await axios.post('/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        },
       });
+
       const { id } = res.data;
 
       toast.success('✅ Model uploaded successfully');
@@ -79,95 +90,125 @@ export default function Upload() {
       toast.error('❌ Upload failed');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
   return (
-    <>
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-        <GlassCard>
-          <div
-            ref={dropzoneRef}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            className="w-full border-2 border-dashed border-zinc-400 rounded-lg p-6 text-center dark:border-zinc-600 mb-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            aria-label="File upload drop zone"
-          >
-            <p className="text-zinc-600 dark:text-zinc-400 mb-2">
-              Drag and drop an STL or 3MF file here
-            </p>
-            <input
-              type="file"
-              accept=".stl,.3mf"
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                if (e.target.files?.[0]) handleFileChange(e.target.files[0]);
-              }}
-              className="w-full"
-              aria-label="File upload input"
-            />
-          </div>
+    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+      <GlassCard className="max-w-md w-full p-6 rounded-2xl shadow-xl bg-white/30 dark:bg-zinc-800/30 backdrop-blur-md space-y-4">
+        <div
+          ref={dropzoneRef}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed rounded-xl text-zinc-500 dark:text-zinc-400 transition-colors cursor-pointer hover:border-blue-400 hover:bg-blue-50/20 dark:hover:bg-zinc-700/20 relative overflow-hidden"
+          aria-label="File upload drop zone"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/20 dark:to-black/20 pointer-events-none rounded-xl"></div>
+          <p className="z-10">Drag & drop an STL/3MF here or click below</p>
+          <input
+            type="file"
+            accept=".stl,.3mf"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              if (e.target.files?.[0]) handleFileChange(e.target.files[0]);
+            }}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label="File upload input"
+          />
+        </div>
 
-          {previewUrl && (
-            <div className="mb-4 text-center">
-              <p className="text-sm mb-2 text-zinc-500">Selected:</p>
+        {previewUrl && (
+          <div className="mb-4 text-center">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Preview</p>
+            <div className="w-40 h-40 mx-auto rounded-xl border border-white/30 dark:border-zinc-700 backdrop-blur-md bg-white/10 dark:bg-zinc-900/20 shadow-inner p-2">
               <img
                 src={previewUrl}
                 alt="Model preview"
-                className="w-32 h-32 mx-auto object-contain border border-zinc-300 dark:border-zinc-700 rounded-lg shadow"
+                className="object-contain w-full h-full rounded-md"
               />
             </div>
-          )}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 border rounded-md dark:bg-zinc-800"
-                placeholder="Model name"
-                required
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl
+                         bg-white/20 dark:bg-zinc-700/40
+                         text-zinc-900 dark:text-white
+                         placeholder-zinc-500 dark:placeholder-zinc-400
+                         backdrop-blur
+                         border border-white/30
+                         focus:outline-none focus:ring-2 focus:ring-blue-400
+                         shadow-inner transition"
+              placeholder="Model name"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium mb-1">
+              Description
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl
+                         bg-white/20 dark:bg-zinc-700/40
+                         text-zinc-900 dark:text-white
+                         placeholder-zinc-500 dark:placeholder-zinc-400
+                         backdrop-blur
+                         border border-white/30
+                         focus:outline-none focus:ring-2 focus:ring-blue-400
+                         shadow-inner transition"
+              rows={2}
+              placeholder="Optional description"
+            />
+          </div>
+
+          <GlassButton
+            type="submit"
+            variant={uploading ? 'primary' : 'uploadBlue'}
+            size="md"
+            loading={uploading}
+            disabled={uploading}
+            className="w-full"
+          >
+            Upload Model
+          </GlassButton>
+        </form>
+
+        {uploading && (
+          <div className="mt-4">
+            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 transition-all"
+                style={{ width: `${uploadProgress}%` }}
               />
             </div>
+            <p className="text-xs text-center mt-1 text-zinc-600 dark:text-zinc-300">
+              Uploading: {uploadProgress}%
+            </p>
+          </div>
+        )}
 
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium mb-1">
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 border rounded-md dark:bg-zinc-800"
-                rows={3}
-                placeholder="Model description (optional)"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={uploading}
-              className="w-full bg-zinc-900 text-white py-2 rounded-md hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-busy={uploading}
-            >
-              {uploading ? 'Uploading…' : 'Upload Model'}
-            </button>
-          </form>
-
-          {renderStatus && (
-            <div className="mt-6 text-sm text-center text-zinc-700 dark:text-zinc-300">
-              <p>
-                Render Status:{' '}
-                <strong className="capitalize">{renderStatus}</strong>
-              </p>
-            </div>
-          )}
-        </GlassCard>
-      </div>
-    </>
+        {renderStatus && (
+          <div className="mt-4 text-sm text-center text-zinc-600 dark:text-zinc-300">
+            <p>
+              Render Status: <strong className="capitalize">{renderStatus}</strong>
+            </p>
+          </div>
+        )}
+      </GlassCard>
+    </div>
   );
 }
+

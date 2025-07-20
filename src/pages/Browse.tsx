@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '@/api/axios';
 import GlassCard from '@/components/ui/GlassCard';
+import PageTitle from '@/components/ui/PageTitle';
 import { useAuthStore } from '@/store/useAuthStore';
 
 interface Model {
@@ -116,7 +117,10 @@ const Browse: React.FC = () => {
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6 text-center">Browse Models</h1>
+      <PageTitle
+        title="Browse Models"
+        withDivider
+      />
 
       {error && <div className="text-center text-red-500 py-8">{error}</div>}
 

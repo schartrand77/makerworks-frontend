@@ -25,6 +25,7 @@ interface GlassCardProps<T extends ElementType = 'div'> {
   elevation?: Elevation
   padding?: string
   maxWidth?: MaxWidth
+  glow?: boolean // 🔷 new prop
 }
 
 export default function GlassCard<T extends ElementType = 'div'>({
@@ -34,6 +35,7 @@ export default function GlassCard<T extends ElementType = 'div'>({
   elevation = 'md',
   padding = 'p-6',
   maxWidth = 'lg',
+  glow = true, // 🔷 default to true
   ...props
 }: GlassCardProps<T> & ComponentPropsWithoutRef<T>) {
   const Component = as || 'div'
@@ -45,6 +47,8 @@ export default function GlassCard<T extends ElementType = 'div'>({
         elevationClasses[elevation],
         maxWidthClasses[maxWidth],
         padding,
+        glow &&
+          'shadow-[0_8px_30px_rgba(147,197,253,0.45)]', // light-blue glow
         className
       )}
       {...props}

@@ -1,80 +1,88 @@
-// src/components/ui/GlassButton.tsx
-import clsx from 'clsx'
-import {
-  ComponentPropsWithoutRef,
-  ElementType,
-  ReactNode,
-} from 'react'
+import React from 'react';
+import clsx from 'clsx';
 
-type GlassButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
-type GlassButtonSize = 'sm' | 'md' | 'lg'
-
-interface BaseProps {
-  as?: ElementType
-  children: ReactNode
-  className?: string
-  variant?: GlassButtonVariant
-  size?: GlassButtonSize
-  disabled?: boolean
-  loading?: boolean
+interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'uploadBlue';
+  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+  as?: keyof JSX.IntrinsicElements;
+  className?: string;
 }
 
-type GlassButtonProps<T extends ElementType = 'button'> = BaseProps &
-  ComponentPropsWithoutRef<T>
+const variants = {
+  primary:
+    'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600',
+  secondary:
+    'bg-zinc-200/80 text-black dark:bg-zinc-700/70 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-600',
+  ghost:
+    'bg-transparent text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100/40 dark:hover:bg-zinc-700/40',
+  danger:
+    'bg-red-500/80 text-white dark:bg-red-600/80 hover:bg-red-600 dark:hover:bg-red-700',
+  uploadBlue:
+    'bg-blue-100/30 text-blue-700 border border-blue-200/40 backdrop-blur hover:bg-blue-100/50 hover:text-blue-800',
+};
 
-export default function GlassButton<T extends ElementType = 'button'>({
-  as,
-  children,
-  className = '',
-  variant = 'primary',
-  size = 'md',
-  disabled = false,
-  loading = false,
-  ...rest
-}: GlassButtonProps<T>) {
-  const Component = as || 'button'
+const sizes = {
+  sm: 'px-3 py-1 text-sm rounded-md',
+  md: 'px-4 py-2 text-base rounded-lg',
+  lg: 'px-6 py-3 text-lg rounded-xl',
+};
 
-  const base =
-    'inline-flex items-center justify-center font-medium transition-all rounded-pill backdrop-blur-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
+const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
+  (
+    {
+      children,
+      variant = 'secondary',
+      size = 'md',
+      loading = false,
+      as = 'button',
+      className,
+      ...props
+    },
+    ref
+  ) => {
+    const Component = as as any;
 
-  const variants = {
-    primary:
-      'bg-black/80 text-white dark:bg-white/80 dark:text-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black',
-    secondary:
-      'bg-zinc-200/80 text-black dark:bg-zinc-700/70 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-600',
-    ghost:
-      'bg-transparent text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100/40 dark:hover:bg-zinc-700/40',
-    danger:
-      'bg-red-500/80 text-white dark:bg-red-600/80 hover:bg-red-600 dark:hover:bg-red-700',
+    return (
+      <Component
+        ref={ref}
+        className={clsx(
+          'inline-flex justify-center items-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+          variants[variant],
+          sizes[size],
+          className
+        )}
+        {...props}
+      >
+        {loading && (
+          <svg
+            className="animate-spin mr-2 h-4 w-4 text-current"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8H4z"
+            ></path>
+          </svg>
+        )}
+        {loading ? 'Loading…' : children}
+      </Component>
+    );
   }
+);
 
-  const sizes = {
-    sm: 'text-sm px-3 py-1.5',
-    md: 'text-base px-5 py-2',
-    lg: 'text-lg px-6 py-3',
-  }
+GlassButton.displayName = 'GlassButton';
 
-  const isDisabled = disabled || loading
-
-  return (
-    <Component
-      className={clsx(
-        base,
-        variants[variant],
-        sizes[size],
-        isDisabled && 'opacity-50 pointer-events-none',
-        className
-      )}
-      disabled={isDisabled}
-      aria-disabled={isDisabled}
-      type={!as || as === 'button' ? 'submit' : undefined}
-      {...rest}
-    >
-      {loading ? (
-        <span className="animate-pulse">Loading…</span>
-      ) : (
-        children
-      )}
-    </Component>
-  )
-}
+export default GlassButton;
