@@ -31,14 +31,14 @@ describe('useAuthStore.logout', () => {
   })
 
   it('clears auth-storage without stray keys', () => {
-    const before = localStorage.getItem('auth-storage')
+    const before = localStorage.getItem('auth-store')
     expect(before).toBeTruthy()
     useAuthStore.getState().logout()
     expect(localStorage.getItem('token')).toBeNull()
-    const persisted = JSON.parse(localStorage.getItem('auth-storage') || '{}')
+    const persisted = JSON.parse(localStorage.getItem('auth-store') || '{}')
     expect(persisted.state.token).toBeNull()
     expect(persisted.state.user).toBeNull()
     expect(localStorage.length).toBe(1)
-    expect(localStorage.key(0)).toBe('auth-storage')
+    expect(localStorage.key(0)).toBe('auth-store')
   })
 })

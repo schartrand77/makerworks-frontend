@@ -13,8 +13,12 @@ interface Model {
 }
 
 const Browse: React.FC = () => {
-  const [models, setModels] = useState<Model[] | null>(null);
+  const [models, setModels] = useState<Model[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const limit = 6;
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [source, setSource] = useState<'local' | 'makerworld' | 'thingiverse' | 'printables' | 'thangs'>('local');
@@ -24,20 +28,39 @@ const Browse: React.FC = () => {
 
   useEffect(() => {
     if (source === 'local') {
-      fetchModels();
+      setModels([]);
+      setPage(1);
+      setHasMore(true);
+      fetchModels(1, limit);
       if (user?.id) fetchFavorites();
     } else {
       redirectToExternal(source);
     }
   }, [source]);
 
-  const fetchModels = async () => {
+  useEffect(() => {
+    if (page > 1 && source === 'local') {
+      fetchModels(page, limit);
+    }
+  }, [page, source]);
+
+  const fetchModels = async (pageParam = 1, limitParam = limit) => {
+    if (pageParam > 1) setLoadingMore(true);
     try {
-      const res = await axios.get<{ models: Model[] }>('/api/models');
-      setModels(res.data.models);
+      const res = await axios.get<{ models: Model[] }>('/api/models', {
+        params: { page: pageParam, limit: limitParam },
+      });
+      setModels((prev) =>
+        pageParam === 1 ? res.data.models : [...prev, ...res.data.models]
+      );
+      if (res.data.models.length < limitParam) {
+        setHasMore(false);
+      }
     } catch (err) {
       console.error('[Browse] Failed to load models:', err);
       setError('⚠️ Failed to load models. Please try again.');
+    } finally {
+      if (pageParam > 1) setLoadingMore(false);
     }
   };
 
@@ -81,15 +104,15 @@ const Browse: React.FC = () => {
     window.location.href = urls[platform];
   };
 
-  const isLoading = models === null && !error;
+  const isLoading = models.length === 0 && !error;
 
   const filteredModels =
-    models?.filter(model => {
+    models.filter(model => {
       const matchesQuery =
         model.name.toLowerCase().includes(query.toLowerCase()) ||
         model.description.toLowerCase().includes(query.toLowerCase());
       return matchesQuery;
-    }) || [];
+    });
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
@@ -120,6 +143,7 @@ const Browse: React.FC = () => {
       </div>
 
       {source === 'local' && (
+        <>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {isLoading &&
             Array.from({ length: 6 }).map((_, idx) => (
@@ -131,7 +155,6 @@ const Browse: React.FC = () => {
                 </div>
               </GlassCard>
             ))}
-
           {!isLoading &&
             filteredModels.map((model) => (
               <GlassCard
@@ -178,6 +201,18 @@ const Browse: React.FC = () => {
               </GlassCard>
             ))}
         </div>
+        {hasMore && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={loadingMore}
+              className="px-4 py-2 rounded-full bg-blue-600/80 hover:bg-blue-500 transition text-white text-sm shadow disabled:opacity-50"
+            >
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </button>
+          </div>
+        )}
+        </>
       )}
     </main>
   );
