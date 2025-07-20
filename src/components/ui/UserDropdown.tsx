@@ -3,29 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Sun, Moon } from 'lucide-react';
-
-type User = {
-  username: string;
-  email: string;
-  avatarUrl?: string;
-  isAdmin?: boolean;
-};
+import type { UserProfile } from '@/types/UserProfile';
 
 type Props = {
-  user: User;
+  user: UserProfile;
 };
 
 const UserDropdown = ({ user }: Props) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuthStore(); // 🔷 fixed here
+  const { logout } = useAuthStore();
   const { theme, setTheme } = useTheme();
 
   const isDark = theme === 'dark';
 
   const handleSignOut = () => {
-    logout(); // 🔷 fixed here
-    window.location.href = '/'; // same pattern as UserDashboardCard
+    logout();
+    window.location.href = '/';
   };
 
   const handleGoTo = (path: string) => {
@@ -37,6 +31,12 @@ const UserDropdown = ({ user }: Props) => {
     setTheme(isDark ? 'light' : 'dark');
   };
 
+  // Compute safe avatar URL
+  const avatarSrc =
+    user.avatar_url ||
+    user.thumbnail_url ||
+    '/default-avatar.png';
+
   return (
     <div className="relative">
       <button
@@ -44,9 +44,12 @@ const UserDropdown = ({ user }: Props) => {
         className="rounded-full overflow-hidden border border-white/20 w-10 h-10 bg-white/10 backdrop-blur shadow"
       >
         <img
-          src={user.avatarUrl || '/default-avatar.png'}
+          src={avatarSrc}
           alt={user.username}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = '/default-avatar.png';
+          }}
         />
       </button>
 
@@ -68,23 +71,13 @@ const UserDropdown = ({ user }: Props) => {
             <Sun className="w-4 h-4" />
             <button
               onClick={toggleTheme}
-              className={`
-                w-12 h-6 rounded-full p-0.5 flex items-center
-                transition-colors duration-300 relative
-                ${isDark
-                  ? 'bg-zinc-700/50 justify-end'
-                  : 'bg-green-300/50 justify-start'}
-                backdrop-blur
-                border border-white/20 dark:border-zinc-700/30
-                shadow
-              `}
-              aria-label="Toggle theme"
+              className="w-12 h-6 rounded-full p-0.5 flex items-center"
             >
               <span
-                className="
-                  w-5 h-5 rounded-full bg-white shadow
-                  transform transition-transform duration-300
-                "
+                className="w-5 h-5 rounded-full bg-white shadow transform transition-transform duration-300"
+                style={{
+                  transform: isDark ? 'translateX(24px)' : 'translateX(0)',
+                }}
               ></span>
             </button>
             <Moon className="w-4 h-4" />
@@ -92,35 +85,15 @@ const UserDropdown = ({ user }: Props) => {
 
           <button
             onClick={() => handleGoTo('/settings')}
-            className="
-              w-full text-center py-2 px-4 text-sm rounded-full
-              backdrop-blur
-              bg-white/20 dark:bg-zinc-800/30
-              border border-white/20 dark:border-zinc-700/30
-              text-blue-800 dark:text-blue-200
-              shadow
-              hover:bg-white/30 dark:hover:bg-zinc-700/50
-              hover:shadow-md
-              transition
-            "
+            className="w-full text-center py-2 px-4 text-sm rounded-full backdrop-blur bg-white/20 dark:bg-zinc-800/30 border border-white/20 dark:border-zinc-700/30 text-blue-800 dark:text-blue-200 shadow hover:bg-white/30 dark:hover:bg-zinc-700/50 hover:shadow-md transition"
           >
             Settings
           </button>
 
-          {user.isAdmin && (
+          {user.role === 'admin' && (
             <button
               onClick={() => handleGoTo('/admin')}
-              className="
-                w-full text-center py-2 px-4 text-sm rounded-full
-                backdrop-blur
-                bg-red-500/20 dark:bg-red-700/30
-                border border-red-500/30 dark:border-red-700/40
-                text-red-800 dark:text-red-200
-                shadow
-                hover:bg-red-500/30 dark:hover:bg-red-700/50
-                hover:shadow-md
-                transition
-              "
+              className="w-full text-center py-2 px-4 text-sm rounded-full backdrop-blur bg-red-500/20 dark:bg-red-700/30 border border-red-500/30 dark:border-red-700/40 text-red-800 dark:text-red-200 shadow hover:bg-red-500/30 dark:hover:bg-red-700/50 hover:shadow-md transition"
             >
               Admin Panel
             </button>
@@ -130,17 +103,7 @@ const UserDropdown = ({ user }: Props) => {
 
           <button
             onClick={handleSignOut}
-            className="
-              w-full text-center py-2 px-4 text-sm rounded-full
-              backdrop-blur
-              bg-zinc-900/30 dark:bg-zinc-700/30
-              border border-zinc-300/20 dark:border-zinc-600/30
-              text-white
-              shadow
-              hover:bg-zinc-900/50 dark:hover:bg-zinc-700/50
-              hover:shadow-md
-              transition
-            "
+            className="w-full text-center py-2 px-4 text-sm rounded-full backdrop-blur bg-white/20 dark:bg-zinc-800/30 border border-white/20 dark:border-zinc-700/30 text-red-600 dark:text-red-300 shadow hover:bg-white/30 dark:hover:bg-zinc-700/50 hover:shadow-md transition"
           >
             Sign Out
           </button>

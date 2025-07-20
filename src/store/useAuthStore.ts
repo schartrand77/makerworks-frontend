@@ -2,14 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from '@/api/axios';
 import { toast } from 'sonner';
+import type { UserOut } from '@/types/auth';
 
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  avatar?: string;
-  role: string;
-}
+type User = UserOut;
 
 interface AuthState {
   token: string | null;
@@ -22,7 +17,7 @@ interface AuthState {
   setUser: (user: User | null) => void;
   setResolved: (val: boolean) => void;
   logout: () => void;
-  fetchUser: () => Promise<User | null>;
+  fetchUser: (force?: boolean) => Promise<User | null>;
   isAuthenticated: () => boolean;
   hasRole: (role: string) => boolean;
 }
@@ -36,45 +31,50 @@ export const useAuthStore = create<AuthState>()(
       loading: false,
       resolved: false,
 
-      /**
-       * Sets both access and refresh tokens
-       */
-      setToken: (token: string, refreshToken: string) => {
+      setToken: (token, refreshToken) => {
         set({ token, refreshToken });
       },
 
-      /**
-       * Sets the current user object
-       */
-      setUser: (user: User | null) => {
+      setUser: (user) => {
         set({ user });
+        if (user?.avatar_url) {
+          localStorage.setItem('avatar_url', user.avatar_url);
+        } else {
+          localStorage.removeItem('avatar_url');
+        }
       },
 
-      /**
-       * Marks hydration resolved
-       */
-      setResolved: (val: boolean) => {
+      setResolved: (val) => {
         set({ resolved: val });
       },
 
-      /**
-       * Logs out fully: clears tokens & user state
-       */
       logout: () => {
         set({ token: null, refreshToken: null, user: null, loading: false, resolved: false });
+        localStorage.removeItem('avatar_url');
         toast.info('You have been signed out.');
       },
 
-      /**
-       * Fetches /auth/me and updates user
-       */
-      fetchUser: async () => {
+      fetchUser: async (force = false) => {
+        if (!force && get().resolved) {
+          console.debug('[useAuthStore] fetchUser skipped: already resolved');
+          return get().user;
+        }
+
         set({ loading: true });
         try {
-          const res = await axios.get('/auth/me');
+          const res = await axios.get<UserOut>('/auth/me');
           console.debug('[useAuthStore] fetched user:', res.data);
-          set({ user: res.data, loading: false, resolved: true });
-          return res.data;
+
+          const avatarUrl =
+            res.data.avatar_url ||
+            `/uploads/users/${res.data.id}/avatars/avatar.jpg`;
+
+          const userWithAvatar: User = { ...res.data, avatar_url: avatarUrl };
+
+          localStorage.setItem('avatar_url', avatarUrl);
+          set({ user: userWithAvatar, loading: false, resolved: true });
+
+          return userWithAvatar;
         } catch (err) {
           console.error('[useAuthStore] Failed to fetch user', err);
           get().logout();
@@ -83,29 +83,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      /**
-       * Checks if a valid token and user exist
-       */
       isAuthenticated: () => {
         const state = get();
         return !!state.token && !!state.user && state.user.role !== 'guest';
       },
 
-      /**
-       * Checks if user has specific role
-       */
       hasRole: (role: string) => {
         const state = get();
         return state.user?.role === role;
       },
     }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        token: state.token,
-        refreshToken: state.refreshToken,
-        user: state.user,
-      }),
-    }
+    { name: 'auth-store' }
   )
 );

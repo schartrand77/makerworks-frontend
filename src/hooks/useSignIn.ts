@@ -1,46 +1,16 @@
-// src/hooks/useSignIn.ts
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '@/api/axios';
-import axios, { AxiosError } from 'axios';
+import axiosInstance from '@/api/axios'; // ✅ use the configured instance
 import { useAuthStore } from '@/store/useAuthStore';
-import { UserOut } from '@/types/auth';
+import type { SigninResponse, UserOut } from '@/types/auth';
 
-interface UseSignInResult {
-  emailOrUsername: string;
-  setEmailOrUsername: (v: string) => void;
-  password: string;
-  setPassword: (v: string) => void;
-  error: string | null;
-  loading: boolean;
-  handleSubmit: (e: React.FormEvent) => void;
-}
-
-interface SigninResponse {
-  user: UserOut;
-  token: string;
-}
-
-export const useSignIn = (): UseSignInResult => {
-  const [emailOrUsername, setEmailOrUsername] = useState('');
-  const [password, setPassword] = useState('');
+export const useSignIn = () => {
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const setUser = useAuthStore((s) => s.setUser);
-  const setToken = useAuthStore((s) => s.setToken);
   const navigate = useNavigate();
+  const setToken = useAuthStore((s) => s.setToken);
+  const setUser = useAuthStore((s) => s.setUser);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!emailOrUsername.trim() || !password.trim()) {
-      setError('Email/username and password are required.');
-      return;
-    }
-
-    setLoading(true);
+  const signIn = async (emailOrUsername: string, password: string) => {
     setError(null);
 
     try {
@@ -48,6 +18,11 @@ export const useSignIn = (): UseSignInResult => {
         emailOrUsername,
         password: '[hidden]',
       });
+
+      console.debug(
+        '[useSignIn] Full URL:',
+        `${axiosInstance.defaults.baseURL}/auth/signin`
+      );
 
       const res = await axiosInstance.post<SigninResponse>('/auth/signin', {
         email_or_username: emailOrUsername,
@@ -62,20 +37,24 @@ export const useSignIn = (): UseSignInResult => {
 
       console.info('[useSignIn] Login successful:', { user, token });
 
+      const avatarPath = `/avatars/${user.id}.png`;
+      localStorage.setItem('avatar_url', avatarPath);
+
+      const userWithAvatar: UserOut = { ...user, avatar_url: avatarPath };
+
       setToken(token);
-      setUser(user);
+      setUser(userWithAvatar);
 
       console.debug('[useSignIn] User + token saved to store:', { user, token });
 
       navigate('/dashboard');
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('[useSignIn] Login failed:', err);
 
       let message = 'Sign in failed. Please try again.';
 
-      if (axios.isAxiosError(err)) {
-        const axErr = err as AxiosError<{ detail?: string | Array<any> }>;
-        const detail = axErr.response?.data?.detail;
+      if (axiosInstance.isAxiosError(err)) {
+        const detail = err.response?.data?.detail;
 
         if (Array.isArray(detail)) {
           message = detail
@@ -86,26 +65,14 @@ export const useSignIn = (): UseSignInResult => {
             .join('; ');
         } else if (typeof detail === 'string') {
           message = detail;
-        } else if (axErr.response?.status) {
-          message = `Error ${axErr.response.status}: ${axErr.response.statusText}`;
+        } else if (err.response?.status) {
+          message = `Error ${err.response.status}: ${err.response.statusText}`;
         }
-      } else if (err instanceof Error) {
-        message = err.message;
       }
 
       setError(message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  return {
-    emailOrUsername,
-    setEmailOrUsername,
-    password,
-    setPassword,
-    error,
-    loading,
-    handleSubmit,
-  };
+  return { signIn, error };
 };

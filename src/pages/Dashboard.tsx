@@ -7,16 +7,21 @@ import { useUser } from '@/hooks/useUser';
 import { Star, Upload, Shield } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { user, isAdmin, loading, resolved } = useUser();
+  const { user, isAdmin, loading, resolved, refresh } = useUser();
 
   useEffect(() => {
-    console.debug('[Dashboard] user state:', {
+    console.debug('[Dashboard] user state before refresh:', {
       user,
       isAdmin,
       loading,
       resolved,
     });
-  }, [user, isAdmin, loading, resolved]);
+
+    // 🔷 Always refresh user on mount to get latest avatar & state
+    refresh?.().then((u) => {
+      console.debug('[Dashboard] user state after refresh:', u);
+    });
+  }, []);
 
   if (loading || !resolved) {
     return (

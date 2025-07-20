@@ -15,14 +15,17 @@ const rootElement = document.getElementById('root');
 
 if (!rootElement) {
   console.error('[MakerWorks] ❌ No #root element found in DOM.');
+
   const fallback = document.createElement('div');
   fallback.style.color = 'red';
   fallback.style.fontFamily = 'monospace';
-  fallback.style.margin = '2rem';
+  fallback.style.padding = '2rem';
+  fallback.style.backgroundColor = '#fff0f0';
   fallback.innerText =
-    '⚠️ MakerWorks frontend failed to load. Check the browser console for details.';
+    '⚠️ MakerWorks frontend failed to load: #root not found.\nCheck browser console for details.';
   document.body.appendChild(fallback);
-  throw new Error('No #root element found');
+
+  throw new Error('No #root element found in DOM');
 }
 
 console.debug('[MakerWorks] ✅ Found root element:', rootElement);
@@ -38,6 +41,8 @@ createRoot(rootElement).render(
             </ErrorBoundary>
           </ToastProvider>
         </UserProvider>
+
+        {/* React Query Devtools — dev-only aid */}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </BrowserRouter>

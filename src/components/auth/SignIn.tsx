@@ -3,21 +3,21 @@ import PageLayout from '@/components/layout/PageLayout';
 import { useSignIn } from '@/hooks/useSignIn';
 
 const SignIn = () => {
-  const {
-    emailOrUsername,
-    setEmailOrUsername,
-    password,
-    setPassword,
-    loading,
-    error,
-    handleSubmit,
-  } = useSignIn();
-
+  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const { signIn, error } = useSignIn();
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleSubmit(e);
+    setLoading(true);
+    try {
+      await signIn(emailOrUsername, password);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

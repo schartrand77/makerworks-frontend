@@ -17,9 +17,16 @@ const GlassNavbar = () => {
     { path: '/checkout', label: 'Checkout' },
   ];
 
+  const fallbackUser = {
+    username: 'Guest',
+    email: 'guest@example.com',
+    avatar_url: '/default-avatar.png',
+    role: 'guest',
+  };
+
   return (
     <nav
-      className={`
+      className="
         fixed
         top-4
         left-1/2
@@ -32,7 +39,7 @@ const GlassNavbar = () => {
         backdrop-blur-md
         shadow-md
         z-50
-      `}
+      "
     >
       <div className="flex items-center gap-2">
         <Link
@@ -70,11 +77,11 @@ const GlassNavbar = () => {
 
       <div className="flex items-center gap-2">
         {isAuthenticated() ? (
-          <UserDropdown user={user} />
+          <UserDropdown user={{ ...fallbackUser, ...user }} />
         ) : (
           <Link
             to="/auth/signin"
-            className={`
+            className="
               text-sm
               px-3 py-1
               rounded-full
@@ -85,7 +92,7 @@ const GlassNavbar = () => {
               shadow
               hover:bg-blue-300/50 dark:hover:bg-blue-400/30
               transition
-            `}
+            "
           >
             Sign In
           </Link>

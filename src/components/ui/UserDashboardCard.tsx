@@ -9,17 +9,24 @@ const UserDashboardCard = () => {
 
   if (!user) return null;
 
+  // Prefer avatar from state → user.avatar_url → thumbnail → default
   const avatarSrc =
-    avatar || user.avatar_url || user.thumbnail_url || null;
+    avatar ||
+    user.avatar_url ||
+    user.thumbnail_url ||
+    '/default-avatar.png';
 
   return (
     <GlassCard className="w-full max-w-md p-6 text-center flex flex-col items-center gap-4">
       <div className="w-20 h-20 rounded-full bg-zinc-300 dark:bg-zinc-700 overflow-hidden shadow-md">
-        {avatarSrc ? (
+        {avatarSrc && !avatarSrc.includes('default') ? (
           <img
             src={avatarSrc}
             alt="User avatar"
             className="w-full h-full object-cover rounded-full"
+            onError={(e) => {
+              e.currentTarget.src = '/default-avatar.png';
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center font-semibold text-xl text-white dark:text-zinc-200">
@@ -39,9 +46,7 @@ const UserDashboardCard = () => {
 
       <div className="mt-4 flex gap-3 justify-center">
         <button
-          onClick={() => {
-            navigate('/settings');
-          }}
+          onClick={() => navigate('/settings')}
           className="
             px-5 py-2 rounded-full
             bg-blue-500 text-white

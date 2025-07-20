@@ -1,119 +1,157 @@
-import { useState, useEffect, useRef, ChangeEvent } from 'react'
-import { toast } from 'sonner'
-import { Box } from 'lucide-react'
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { toast } from 'sonner';
+import { Box } from 'lucide-react';
 
-import { useAuthStore } from '@/store/useAuthStore'
-import { cn } from '@/lib/utils'
-import { updateUserProfile, uploadAvatar, deleteAccount } from '@/api/users'
-import type { AvatarUploadResponse } from '@/api/users'
+import { useAuthStore } from '@/store/useAuthStore';
+import { cn } from '@/lib/utils';
+import { updateUserProfile, uploadAvatar, deleteAccount } from '@/api/users';
+import type { AvatarUploadResponse } from '@/api/users';
 
-const themes = ['system', 'light', 'dark'] as const
-type Theme = typeof themes[number]
+const themes = ['system', 'light', 'dark'] as const;
+type Theme = typeof themes[number];
 
 export default function Settings() {
-  const user = useAuthStore((state) => state.user)
-  const setUser = useAuthStore((state) => state.setUser)
-  const loading = false
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+  const loading = false;
 
-  const [theme, setTheme] = useState<Theme>('system')
-  const [bio, setBio] = useState('')
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [theme, setTheme] = useState<Theme>('system');
+  const [bio, setBio] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [initialProfile, setInitialProfile] = useState({
+    username: '',
+    email: '',
+    bio: '',
+    avatar_url: '',
+  });
 
-  const bioRef = useRef<HTMLTextAreaElement>(null)
+  const bioRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const saved = (localStorage.getItem('theme') as Theme) || 'system'
-    setTheme(saved)
-    if (user?.bio) setBio(user.bio)
-    if (user?.username) setUsername(user.username)
-    if (user?.email) setEmail(user.email)
-    if (!user?.bio && bioRef.current) {
-      bioRef.current.focus()
+    const saved = (localStorage.getItem('theme') as Theme) || 'system';
+    setTheme(saved);
+
+    if (user) {
+      setBio(user.bio || '');
+      setUsername(user.username || '');
+      setEmail(user.email || '');
+      setInitialProfile({
+        username: user.username || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        avatar_url: user.avatar_url || '',
+      });
     }
-  }, [user])
+
+    if (!user?.bio && bioRef.current) {
+      bioRef.current.focus();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const changed =
+      username !== initialProfile.username ||
+      email !== initialProfile.email ||
+      bio !== initialProfile.bio;
+
+    setDirty(changed);
+  }, [username, email, bio, initialProfile]);
 
   const handleThemeChange = (val: Theme) => {
-    setTheme(val)
-    localStorage.setItem('theme', val)
-    document.documentElement.classList.remove('light', 'dark')
-    if (val === 'light') document.documentElement.classList.add('light')
-    if (val === 'dark') document.documentElement.classList.add('dark')
-  }
+    setTheme(val);
+    localStorage.setItem('theme', val);
+    document.documentElement.classList.remove('light', 'dark');
+    if (val === 'light') document.documentElement.classList.add('light');
+    if (val === 'dark') document.documentElement.classList.add('dark');
+  };
 
   const handleSave = async () => {
-    if (saving) return
-    setSaving(true)
+    if (saving || !dirty) return;
 
-    const payload = { username, email, bio }
-    const prevUser = { ...user! }
-    setUser({ ...prevUser, ...payload })
+    setSaving(true);
+
+    const payload = { username, email, bio };
+    const prevUser = { ...user! };
+    setUser({ ...prevUser, ...payload });
 
     try {
-      console.log("🔷 Sending payload:", payload)
-      await updateUserProfile(payload)
-      toast.success('✅ Profile updated')
+      console.log('🔷 Sending payload:', payload);
+      await updateUserProfile(payload);
+      toast.success('✅ Profile updated');
+      setInitialProfile({
+        username,
+        email,
+        bio,
+        avatar_url: user!.avatar_url || '',
+      });
+      setDirty(false);
     } catch (err) {
-      console.error('[updateUserProfile] error', err)
-      setUser(prevUser) // rollback
-      toast.error('❌ Failed to save profile')
+      console.error('[updateUserProfile] error', err);
+      setUser(prevUser); // rollback
+      toast.error('❌ Failed to save profile');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (!file) {
-      toast.error('❌ No file selected')
-      return
+      toast.error('❌ No file selected');
+      return;
     }
 
-    setUploadingAvatar(true)
+    setUploadingAvatar(true);
     try {
-      const res: AvatarUploadResponse | null = await uploadAvatar(file)
+      const res: AvatarUploadResponse | null = await uploadAvatar(file);
       if (res) {
         setUser({
           ...user!,
           avatar_url: res.avatar_url,
           thumbnail_url: res.thumbnail_url,
-        })
-        toast.success('✅ Avatar updated successfully')
+        });
+        setDirty(true);
+        toast.success('✅ Avatar updated successfully');
       } else {
-        toast.error('❌ Failed to upload avatar — no response from server')
+        toast.error('❌ Failed to upload avatar — no response from server');
       }
     } catch (err) {
-      console.error(err)
-      toast.error('❌ Failed to upload avatar — unexpected error')
+      console.error(err);
+      toast.error('❌ Failed to upload avatar — unexpected error');
     } finally {
-      setUploadingAvatar(false)
+      setUploadingAvatar(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!confirmDelete || deleting) return
-    setDeleting(true)
+    if (!confirmDelete || deleting) return;
+
+    setDeleting(true);
     try {
-      await deleteAccount()
-      toast.success('✅ Account deleted')
-      window.location.href = '/'
+      await deleteAccount();
+      toast.success('✅ Account deleted');
+      window.location.href = '/';
     } catch {
-      toast.error('❌ Failed to delete account')
+      toast.error('❌ Failed to delete account');
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen animate-pulse">
         <div className="h-8 bg-white/10 rounded w-1/3"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -192,7 +230,7 @@ export default function Settings() {
             <div className="flex justify-between">
               <div className="text-xs text-zinc-400">{bio.length}/140</div>
               <button
-                disabled={saving}
+                disabled={saving || !dirty}
                 onClick={handleSave}
                 className="px-4 py-2 rounded-xl text-sm text-zinc-400 bg-white/10 backdrop-blur shadow border border-white/20 hover:bg-white/20 transition disabled:opacity-50"
               >
@@ -257,5 +295,5 @@ export default function Settings() {
         </section>
       </div>
     </div>
-  )
+  );
 }
