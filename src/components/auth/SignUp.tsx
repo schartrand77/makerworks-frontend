@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { useSignUp } from '@/hooks/useSignUp';
 
@@ -14,30 +15,52 @@ const SignUp = () => {
     handleSubmit,
   } = useSignUp();
 
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setEmail(email.trim());
+    setUsername(username.trim());
+    setPassword(password.trim());
+    setConfirmPassword(confirmPassword.trim());
+
+    if (password.trim() !== confirmPassword.trim()) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setPasswordError(null);
+    handleSubmit(e);
+  };
+
   return (
     <PageLayout title="Sign Up">
       <form
         className="glass-card p-8 flex flex-col gap-4 max-w-sm mx-auto"
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          // sanity: trim all fields here to match backend expectations
-          setEmail(email.trim());
-          setUsername(username.trim());
-          setPassword(password.trim());
-
-          handleSubmit(e);
-        }}
+        onSubmit={onSubmit}
         noValidate
       >
-        <h1 className="text-2xl font-semibold text-center">Create Your Account</h1>
+        <h1 className="text-2xl font-semibold text-center">
+          Create Your Account
+        </h1>
 
         {error && (
           <p
-            className="text-red-500 text-sm text-center bg-red-100 border border-red-300 p-2 rounded"
+            className="text-red-500 text-sm text-center bg-red-100 border border-red-300 p-2 rounded-full"
             role="alert"
           >
             {error}
+          </p>
+        )}
+        {passwordError && (
+          <p
+            className="text-red-500 text-sm text-center bg-red-100 border border-red-300 p-2 rounded-full"
+            role="alert"
+          >
+            {passwordError}
           </p>
         )}
 
@@ -47,7 +70,7 @@ const SignUp = () => {
           </label>
           <input
             id="email"
-            className="input"
+            className="input rounded-full px-4 py-2"
             placeholder="you@example.com"
             type="email"
             autoComplete="email"
@@ -64,7 +87,7 @@ const SignUp = () => {
           </label>
           <input
             id="username"
-            className="input"
+            className="input rounded-full px-4 py-2"
             placeholder="yourusername"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -73,14 +96,14 @@ const SignUp = () => {
           />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 relative">
           <label htmlFor="password" className="text-sm font-medium">
             Password
           </label>
           <input
             id="password"
-            className="input"
-            type="password"
+            className="input rounded-full px-4 py-2 pr-12"
+            type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             autoComplete="new-password"
             value={password}
@@ -88,12 +111,57 @@ const SignUp = () => {
             required
             disabled={loading}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-7 text-xs text-blue-600 hover:text-blue-800"
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="confirmPassword" className="text-sm font-medium">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            className="input rounded-full px-4 py-2"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Confirm your password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            disabled={loading}
+          />
         </div>
 
         <button
-          className="btn btn-primary mt-4"
+          className="
+            mt-4
+            rounded-full
+            px-6
+            py-2
+            backdrop-blur-md
+            bg-blue-200/30
+            border border-blue-300/30
+            shadow-inner shadow-blue-100/20
+            hover:bg-blue-200/50
+            hover:shadow-blue-200/30
+            text-blue-900
+            dark:text-blue-100
+            transition-all
+            duration-200
+          "
           type="submit"
-          disabled={loading || !email.trim() || !username.trim() || !password.trim()}
+          disabled={
+            loading ||
+            !email.trim() ||
+            !username.trim() ||
+            !password.trim() ||
+            !confirmPassword.trim()
+          }
         >
           {loading ? 'Signing up…' : 'Sign Up'}
         </button>

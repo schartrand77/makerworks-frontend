@@ -15,12 +15,16 @@ interface AuthState {
   token: string | null;
   refreshToken: string | null;
   user: User | null;
+  loading: boolean;
+  resolved: boolean;
 
   setToken: (token: string, refreshToken: string) => void;
   setUser: (user: User | null) => void;
+  setResolved: (val: boolean) => void;
   logout: () => void;
-  fetchUser: () => Promise<void>;
+  fetchUser: () => Promise<User | null>;
   isAuthenticated: () => boolean;
+  hasRole: (role: string) => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -29,6 +33,8 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       refreshToken: null,
       user: null,
+      loading: false,
+      resolved: false,
 
       /**
        * Sets both access and refresh tokens
@@ -45,10 +51,17 @@ export const useAuthStore = create<AuthState>()(
       },
 
       /**
+       * Marks hydration resolved
+       */
+      setResolved: (val: boolean) => {
+        set({ resolved: val });
+      },
+
+      /**
        * Logs out fully: clears tokens & user state
        */
       logout: () => {
-        set({ token: null, refreshToken: null, user: null });
+        set({ token: null, refreshToken: null, user: null, loading: false, resolved: false });
         toast.info('You have been signed out.');
       },
 
@@ -56,20 +69,34 @@ export const useAuthStore = create<AuthState>()(
        * Fetches /auth/me and updates user
        */
       fetchUser: async () => {
+        set({ loading: true });
         try {
           const res = await axios.get('/auth/me');
-          set({ user: res.data.user });
+          console.debug('[useAuthStore] fetched user:', res.data);
+          set({ user: res.data, loading: false, resolved: true });
+          return res.data;
         } catch (err) {
           console.error('[useAuthStore] Failed to fetch user', err);
           get().logout();
+          set({ loading: false, resolved: true });
+          return null;
         }
       },
 
       /**
-       * Checks if a valid token exists
+       * Checks if a valid token and user exist
        */
       isAuthenticated: () => {
-        return !!get().token && !!get().user && get().user?.role !== 'guest';
+        const state = get();
+        return !!state.token && !!state.user && state.user.role !== 'guest';
+      },
+
+      /**
+       * Checks if user has specific role
+       */
+      hasRole: (role: string) => {
+        const state = get();
+        return state.user?.role === role;
       },
     }),
     {

@@ -9,6 +9,7 @@ interface Model {
   name: string;
   description: string;
   thumbnail_url?: string;
+  uploader_username?: string;
 }
 
 const Browse: React.FC = () => {
@@ -32,8 +33,8 @@ const Browse: React.FC = () => {
 
   const fetchModels = async () => {
     try {
-      const res = await axios.get<Model[]>('/api/models');
-      setModels(res.data);
+      const res = await axios.get<{ models: Model[] }>('/api/models');
+      setModels(res.data.models);
     } catch (err) {
       console.error('[Browse] Failed to load models:', err);
       setError('⚠️ Failed to load models. Please try again.');
@@ -152,15 +153,21 @@ const Browse: React.FC = () => {
                     className="rounded-md mb-2 w-full h-40 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-40 bg-white/10 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-300">
-                    No Thumbnail
+                  <div className="w-full h-40 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-500">
+                    No thumbnail available
                   </div>
                 )}
 
                 <h2 className="text-lg font-semibold mb-1">{model.name}</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
                   {model.description}
                 </p>
+
+                {model.uploader_username && (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                    Uploaded by <span className="font-medium">{model.uploader_username}</span>
+                  </p>
+                )}
 
                 <button
                   className="mt-2 w-full py-1.5 rounded-full bg-blue-600/80 hover:bg-blue-500 transition text-white text-sm shadow"

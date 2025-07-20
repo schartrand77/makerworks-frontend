@@ -1,20 +1,23 @@
 // src/components/ui/UserDashboardCard.tsx
-import { useAuthStore } from '@/store/useAuthStore'
-import GlassCard from '@/components/ui/GlassCard'
-import { useNavigate } from 'react-router-dom'
+import { useUser } from '@/hooks/useUser';
+import GlassCard from '@/components/ui/GlassCard';
+import { useNavigate } from 'react-router-dom';
 
 const UserDashboardCard = () => {
-  const user = useAuthStore((s) => s.user)
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { user, avatar, signOut } = useUser();
 
-  if (!user) return null
+  if (!user) return null;
+
+  const avatarSrc =
+    avatar || user.avatar_url || user.thumbnail_url || null;
 
   return (
     <GlassCard className="w-full max-w-md p-6 text-center flex flex-col items-center gap-4">
       <div className="w-20 h-20 rounded-full bg-zinc-300 dark:bg-zinc-700 overflow-hidden shadow-md">
-        {user.avatar ? (
+        {avatarSrc ? (
           <img
-            src={user.avatar}
+            src={avatarSrc}
             alt="User avatar"
             className="w-full h-full object-cover rounded-full"
           />
@@ -29,17 +32,19 @@ const UserDashboardCard = () => {
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
           {user.username}
         </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{user.email}</p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {user.email}
+        </p>
       </div>
 
       <div className="mt-4 flex gap-3 justify-center">
         <button
           onClick={() => {
-            navigate('/settings')
+            navigate('/settings');
           }}
           className="
             px-5 py-2 rounded-full
-            bg-blue-500 text-white 
+            bg-blue-500 text-white
             shadow hover:bg-blue-600
             transition text-sm
           "
@@ -48,12 +53,12 @@ const UserDashboardCard = () => {
         </button>
         <button
           onClick={() => {
-            useAuthStore.getState().logout()
-            window.location.href = '/'
+            signOut();
+            window.location.href = '/';
           }}
           className="
             px-5 py-2 rounded-full
-            bg-red-500 text-white 
+            bg-red-500 text-white
             shadow hover:bg-red-600
             transition text-sm
           "
@@ -62,7 +67,7 @@ const UserDashboardCard = () => {
         </button>
       </div>
     </GlassCard>
-  )
-}
+  );
+};
 
-export default UserDashboardCard
+export default UserDashboardCard;
