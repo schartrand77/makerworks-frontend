@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { Box } from 'lucide-react';
 
@@ -24,12 +24,9 @@ export default function Settings() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [dirty, setDirty] = useState(false);
-  const [initialProfile, setInitialProfile] = useState({
-    username: '',
-    email: '',
-    bio: '',
-    avatar_url: '',
-  });
+  const [initialProfile, setInitialProfile] = useState({ username: '', email: '', bio: '', avatar_url: '' });
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
 
   const bioRef = useRef<HTMLTextAreaElement>(null);
 
@@ -56,12 +53,10 @@ export default function Settings() {
 
   useEffect(() => {
     if (!user) return;
-
     const changed =
       username !== initialProfile.username ||
       email !== initialProfile.email ||
       bio !== initialProfile.bio;
-
     setDirty(changed);
   }, [username, email, bio, initialProfile]);
 
@@ -83,41 +78,30 @@ export default function Settings() {
     setUser({ ...prevUser, ...payload });
 
     try {
-      console.log('🔷 Sending payload:', payload);
       await updateUserProfile(payload);
       toast.success('✅ Profile updated');
-      setInitialProfile({
-        username,
-        email,
-        bio,
-        avatar_url: user!.avatar_url || '',
-      });
+      setInitialProfile({ username, email, bio, avatar_url: user!.avatar_url || '' });
       setDirty(false);
     } catch (err) {
       console.error('[updateUserProfile] error', err);
-      setUser(prevUser); // rollback
+      setUser(prevUser);
       toast.error('❌ Failed to save profile');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
+  const handleAvatarSave = async () => {
+    if (!selectedAvatarFile) {
       toast.error('❌ No file selected');
       return;
     }
 
     setUploadingAvatar(true);
     try {
-      const res: AvatarUploadResponse | null = await uploadAvatar(file);
+      const res: AvatarUploadResponse | null = await uploadAvatar(selectedAvatarFile);
       if (res) {
-        setUser({
-          ...user!,
-          avatar_url: res.avatar_url,
-          thumbnail_url: res.thumbnail_url,
-        });
+        setUser({ ...user!, avatar_url: res.avatar_url, thumbnail_url: res.thumbnail_url });
         setDirty(true);
         toast.success('✅ Avatar updated successfully');
       } else {
@@ -128,6 +112,8 @@ export default function Settings() {
       toast.error('❌ Failed to upload avatar — unexpected error');
     } finally {
       setUploadingAvatar(false);
+      setEditingAvatar(false);
+      setSelectedAvatarFile(null);
     }
   };
 
@@ -166,7 +152,8 @@ export default function Settings() {
         {/* Avatar */}
         <section className="space-y-4 p-4 rounded-xl bg-white/5 backdrop-blur border border-white/10 shadow">
           <h2 className="text-xl font-semibold text-zinc-400">Profile Picture</h2>
-          <div className="flex items-center gap-4">
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {uploadingAvatar ? (
               <div className="w-20 h-20 rounded-xl bg-white/20 backdrop-blur-sm shadow-inner animate-pulse border border-white/10" />
             ) : user?.avatar_url ? (
@@ -180,23 +167,35 @@ export default function Settings() {
                 {user?.username?.[0] ?? '?'}
               </div>
             )}
-            <label
-              className="
-                cursor-pointer
-                px-3 py-1
-                rounded-xl
-                text-sm text-zinc-400
-                shadow
-                backdrop-blur
-                bg-white/10
-                border border-white/20
-                hover:bg-white/20
-                transition
-              "
-            >
-              Change…
-              <input type="file" accept="image/*" hidden onChange={handleAvatarUpload} />
-            </label>
+
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => { setEditingAvatar((prev) => !prev); setSelectedAvatarFile(null); }}
+                className="px-3 py-1 rounded-xl text-sm text-zinc-400 shadow backdrop-blur bg-white/10 border border-white/20 hover:bg-white/20 transition"
+              >
+                {editingAvatar ? 'Cancel' : 'Edit Avatar'}
+              </button>
+
+              {editingAvatar && (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelectedAvatarFile(e.target.files?.[0] || null)}
+                    className="text-sm text-zinc-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAvatarSave}
+                    disabled={uploadingAvatar}
+                    className="px-3 py-1 rounded-xl text-sm text-zinc-400 shadow backdrop-blur bg-white/10 border border-white/20 hover:bg-white/20 transition disabled:opacity-50"
+                  >
+                    {uploadingAvatar ? 'Saving…' : 'Save Changes'}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -263,23 +262,23 @@ export default function Settings() {
         </section>
 
         {/* Danger Zone */}
-        <section className="space-y-4 p-4 rounded-xl bg-red-900/10 backdrop-blur border border-red-500/30 shadow">
-          <h2 className="text-xl font-semibold text-red-300">Danger Zone</h2>
+        <section className="space-y-4 p-4 rounded-xl bg-green-900/10 backdrop-blur border border-green-500/30 shadow">
+          <h2 className="text-xl font-semibold text-zinc-400">Danger Zone</h2>
           {!confirmDelete ? (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="px-4 py-2 rounded-xl backdrop-blur bg-red-500/20 text-red-300 border border-red-500/30 shadow hover:bg-red-500/30 transition"
+              className="px-4 py-2 rounded-xl backdrop-blur bg-red-500/20 text-zinc-400 border border-red-500/30 shadow hover:bg-red-500/30 transition"
             >
               Delete Account
             </button>
           ) : (
             <div className="space-y-2">
-              <p className="text-red-300">⚠️ This action is irreversible.</p>
+              <p className="text-zinc-400">⚠️ This action is irreversible.</p>
               <div className="flex gap-3">
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="px-4 py-2 rounded-xl backdrop-blur bg-red-600/20 text-red-300 border border-red-600/30 shadow hover:bg-red-600/30 disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl backdrop-blur bg-red-600/20 text-zinc-400 border border-red-600/30 shadow hover:bg-red-600/30 disabled:opacity-50"
                 >
                   {deleting ? 'Deleting…' : 'Confirm Deletion'}
                 </button>
