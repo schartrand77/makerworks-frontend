@@ -17,7 +17,7 @@ const UserDashboardCard = () => {
     '/default-avatar.png';
 
   return (
-    <GlassCard className="w-full max-w-md p-6 text-center flex flex-col items-center gap-4">
+    <GlassCard className="w-full max-w-md p-6 text-center flex flex-col items-center gap-4 shadow-[0_8px_20px_rgba(128,128,128,0.15)]">
       <div className="w-20 h-20 rounded-full bg-zinc-300 dark:bg-zinc-700 overflow-hidden shadow-md">
         {avatarSrc && !avatarSrc.includes('default') ? (
           <img

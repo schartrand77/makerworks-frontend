@@ -1,8 +1,10 @@
 import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
 import GlassButton from '@/components/ui/GlassButton';
+import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
 import axios from '@/api/axios';
+import { CloudUpload } from 'lucide-react';
 
 type RenderStatus = 'pending' | 'processing' | 'complete' | 'failed' | null;
 
@@ -18,6 +20,11 @@ export default function Upload() {
   const dropzoneRef = useRef<HTMLDivElement | null>(null);
 
   const handleFileChange = (f: File) => {
+    if (!f.name.toLowerCase().endsWith('.stl')) {
+      toast.error('❌ Only .stl files are supported.');
+      return;
+    }
+
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));
@@ -103,7 +110,12 @@ export default function Upload() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+    <div className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] px-4 py-8 space-y-6">
+      <PageHeader
+        icon={<CloudUpload className="w-8 h-8 text-zinc-400" />}
+        title="Upload Model"
+      />
+
       <GlassCard className="max-w-md w-full p-6 rounded-2xl shadow-xl bg-white/30 dark:bg-zinc-800/30 backdrop-blur-md space-y-4">
         <div
           ref={dropzoneRef}
@@ -113,10 +125,10 @@ export default function Upload() {
           aria-label="File upload drop zone"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/20 dark:to-black/20 pointer-events-none rounded-xl"></div>
-          <p className="z-10">Drag & drop an STL/3MF here or click below</p>
+          <p className="z-10">Drag & drop an STL here or click below</p>
           <input
             type="file"
-            accept=".stl,.3mf"
+            accept=".stl"
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
               if (e.target.files?.[0]) handleFileChange(e.target.files[0]);
             }}

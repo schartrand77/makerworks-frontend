@@ -22,7 +22,10 @@ export default function DashboardCard({
     <GlassCard
       as={Link}
       to={to}
-      className={clsx('flex items-start gap-4 no-underline', className)}
+      className={clsx(
+        'flex items-start gap-4 no-underline shadow-[0_8px_20px_rgba(128,128,128,0.15)]',
+        className
+      )}
     >
       {icon && <div className="text-xl" aria-hidden>{icon}</div>}
       <div>

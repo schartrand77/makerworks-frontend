@@ -3,11 +3,12 @@ import { useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardCard from '@/components/ui/DashboardCard';
 import UserDashboardCard from '@/components/ui/UserDashboardCard';
+import PageHeader from '@/components/ui/PageHeader';
 import { useUser } from '@/hooks/useUser';
-import { Star, Upload, Shield } from 'lucide-react';
+import { Star, Upload, Shield, LayoutDashboard } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { user, isAdmin, loading, resolved, refresh } = useUser();
+  const { user, isAdmin, loading, resolved, refresh, getRecentUploads } = useUser();
 
   useEffect(() => {
     console.debug('[Dashboard] user state before refresh:', {
@@ -43,34 +44,58 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const uploads = getRecentUploads();
+
   return (
     <PageLayout>
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <UserDashboardCard />
+      <div className="space-y-6">
+        <PageHeader icon={<LayoutDashboard className="w-8 h-8 text-zinc-400" />} title="Dashboard" />
 
-        <DashboardCard
-          title="Your Uploads"
-          description="View and manage your 3D model uploads."
-          icon={<Upload />}
-          to="/uploads"
-        />
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <UserDashboardCard />
 
-        <DashboardCard
-          title="Favorites"
-          description="See models you&apos;ve bookmarked."
-          icon={<Star />}
-          to="/favorites"
-        />
+          <div className="p-4 rounded-xl bg-white/60 dark:bg-zinc-800/50 shadow backdrop-blur">
+            <div className="flex items-center gap-2 mb-2">
+              <Upload />
+              <h2 className="text-lg font-semibold">Your Recent Uploads</h2>
+            </div>
+            {uploads.length > 0 ? (
+              <ul className="text-sm text-zinc-700 dark:text-zinc-300 space-y-1">
+                {uploads.map((model) => (
+                  <li key={model.id} className="truncate">
+                    <a
+                      href={`/models/${model.id}`}
+                      className="hover:underline text-blue-600 dark:text-blue-400"
+                    >
+                      📄 {model.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-sm text-zinc-500">
+                You haven’t uploaded any models yet.
+              </div>
+            )}
+          </div>
 
-        {isAdmin && (
           <DashboardCard
-            title="Admin Panel"
-            description="Manage users, models, and pricing."
-            icon={<Shield />}
-            to="/admin"
-            className="text-red-500"
+            title="Favorites"
+            description="See models you&apos;ve bookmarked."
+            icon={<Star />}
+            to="/favorites"
           />
-        )}
+
+          {isAdmin && (
+            <DashboardCard
+              title="Admin Panel"
+              description="Manage users, models, and pricing."
+              icon={<Shield />}
+              to="/admin"
+              className="text-red-500"
+            />
+          )}
+        </div>
       </div>
     </PageLayout>
   );

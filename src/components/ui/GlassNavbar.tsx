@@ -2,11 +2,26 @@
 import { Link, useLocation } from 'react-router-dom';
 import UserDropdown from '@/components/ui/UserDropdown';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useEffect, useRef } from 'react';
 
 const GlassNavbar = () => {
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const location = useLocation();
+  const gearRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (gearRef.current) {
+        gearRef.current.classList.add('animate-spin-once');
+        setTimeout(() => {
+          gearRef.current?.classList.remove('animate-spin-once');
+        }, 1000); // match the animation duration
+      }
+    }, Math.random() * 8000 + 3000); // spin every 3–11s
+
+    return () => clearInterval(interval);
+  }, []);
 
   const navRoutes = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -46,7 +61,11 @@ const GlassNavbar = () => {
           to="/"
           className="text-lg font-bold text-gray-800 dark:text-white"
         >
-          MakerW⚙️rks
+          MakerW
+          <span ref={gearRef} className="gear">
+            ⚙️
+          </span>
+          rks
         </Link>
 
         {navRoutes.map((item) => {

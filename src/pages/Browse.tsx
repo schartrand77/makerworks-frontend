@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '@/api/axios';
 import GlassCard from '@/components/ui/GlassCard';
-import PageTitle from '@/components/ui/PageTitle';
+import PageHeader from '@/components/ui/PageHeader';
+import { Search } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useToast } from '@/context/ToastProvider';
 
@@ -127,8 +128,11 @@ const Browse: React.FC = () => {
   const isLoading = loadingInitial;
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <PageTitle title="Browse Models" withDivider />
+    <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <PageHeader
+        icon={<Search className="w-8 h-8 text-zinc-400" />}
+        title="Browse Models"
+      />
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-center">
         <input

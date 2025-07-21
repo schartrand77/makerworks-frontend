@@ -1,74 +1,120 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { handleCartCheckout } from '@/lib/checkout'
-import PageLayout from '@/components/layout/PageLayout'
-import GlassCard from '@/components/ui/GlassCard'
-import { useCartStore } from '@/store/useCartStore'
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { handleCartCheckout } from '@/lib/checkout';
+import PageLayout from '@/components/layout/PageLayout';
+import PageHeader from '@/components/ui/PageHeader';
+import { useCartStore } from '@/store/useCartStore';
+import { ShoppingCart, XCircle, Minus, Plus } from 'lucide-react';
 
 interface CartItem {
-  id: string
-  name: string
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
 }
 
 export default function Cart() {
-  const { items, removeItem, clearCart } = useCartStore()
-  const navigate = useNavigate()
+  const { items, setItemQuantity, removeItem, clearCart } = useCartStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.debug('[Cart] Mounted with items:', items)
-  }, [items])
+    console.debug('[Cart] Mounted with items:', items);
+  }, [items]);
 
   const handleCheckout = () => {
-    console.info('[Cart] Proceed to checkout')
-    handleCartCheckout(navigate)
-  }
+    console.info('[Cart] Proceed to checkout');
+    handleCartCheckout(navigate);
+  };
+
+  const subtotal = items.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
 
   return (
-    <>
-      <PageLayout>
+    <PageLayout>
+      <div className="space-y-6 flex flex-col items-center w-full">
+        <div className="w-full max-w-4xl">
+          <PageHeader icon={<ShoppingCart className="w-8 h-8" />} title="Your Cart" />
+        </div>
+
         {items.length === 0 ? (
-          <GlassCard>
-            <p className="text-center text-sm text-zinc-600 dark:text-zinc-400 py-6">
-              🛒 Your cart is currently empty.
+          <div className="flex flex-col items-center justify-center py-12 w-full max-w-md rounded-2xl bg-white/20 dark:bg-zinc-800/30 shadow-xl backdrop-blur-md border border-white/30">
+            <XCircle className="w-12 h-12 text-zinc-400 mb-4" />
+            <p className="text-center text-base text-zinc-700 dark:text-zinc-300">
+              Your cart is currently empty.
             </p>
-          </GlassCard>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 w-full max-w-2xl">
             {items.map((item: CartItem) => (
-              <GlassCard key={item.id}>
-                <div className="flex items-center justify-between">
+              <div
+                key={item.id}
+                className="rounded-2xl bg-white/30 dark:bg-zinc-800/30 backdrop-blur-md p-4 shadow-lg border border-white/20"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
                     <h2 className="font-semibold text-lg">{item.name}</h2>
-                    <p className="text-sm text-zinc-500">ID: {item.id}</p>
+                    <p className="text-sm text-zinc-500">
+                      ID: {item.id} • ${item.price.toFixed(2)} each
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        onClick={() =>
+                          setItemQuantity(item.id, Math.max(1, item.quantity - 1))
+                        }
+                        className="p-1 rounded bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="px-2">{item.quantity}</span>
+                      <button
+                        onClick={() => setItemQuantity(item.id, item.quantity + 1)}
+                        className="p-1 rounded bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
+
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md"
+                    className="px-3 py-1 bg-red-500/30 hover:bg-red-500 active:bg-red-600 text-white text-sm rounded-md self-start sm:self-center"
                     aria-label={`Remove ${item.name}`}
                   >
                     Remove
                   </button>
                 </div>
-              </GlassCard>
+              </div>
             ))}
 
-            <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
-              <button
-                onClick={clearCart}
-                className="px-4 py-2 rounded-md bg-zinc-700 hover:bg-zinc-800 text-white text-sm w-full sm:w-auto"
-              >
-                Clear Cart
-              </button>
-              <button
-                onClick={handleCheckout}
-                className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm w-full sm:w-auto"
-              >
-                Proceed to Checkout
-              </button>
+            <div className="rounded-2xl bg-white/30 dark:bg-zinc-800/30 backdrop-blur-md p-4 shadow-lg border border-white/20">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="text-lg font-semibold">
+                  Subtotal:{' '}
+                  <span className="text-emerald-600">
+                    ${subtotal.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={clearCart}
+                    className="px-4 py-2 rounded-md bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300 text-sm w-full sm:w-auto"
+                  >
+                    Clear Cart
+                  </button>
+                  <button
+                    onClick={handleCheckout}
+                    className="px-4 py-2 rounded-md bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300 text-sm w-full sm:w-auto"
+                  >
+                    Proceed to Checkout
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
-      </PageLayout>
-    </>
-  )
+      </div>
+    </PageLayout>
+  );
 }

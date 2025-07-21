@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
+
+export interface Upload {
+  id: string;
+  name: string;
+  created_at: string;
+  // add more fields if your API returns them:
+  // size?: number;
+  // url?: string;
+}
 
 export const useUser = () => {
   const user = useAuthStore((s) => s.user);
@@ -25,6 +35,8 @@ export const useUser = () => {
     try {
       const u = await fetchUser?.();
 
+      if (!u) throw new Error('User not found');
+
       if (u?.avatar_url) {
         localStorage.setItem('avatar_url', u.avatar_url);
         setAvatar(u.avatar_url);
@@ -32,6 +44,21 @@ export const useUser = () => {
         localStorage.removeItem('avatar_url');
         setAvatar(null);
       }
+
+      // 🔷 fetch recent uploads
+      try {
+        const uploadsRes = await axios.get(`/api/v1/users/${u.id}/uploads`);
+        const uploads: Upload[] = uploadsRes.data?.models ?? [];
+        u.uploads = uploads.sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        console.debug('[useUser] fetched uploads:', u.uploads);
+      } catch (uploadsErr) {
+        console.warn('[useUser] failed to fetch uploads:', uploadsErr);
+        u.uploads = [];
+      }
+
+      setUser?.(u);
 
       if (!resolved) {
         setResolved?.(true);
@@ -42,7 +69,7 @@ export const useUser = () => {
     }
   };
 
-  // always refresh user on mount to get latest avatar & roles
+  // always refresh user on mount to get latest avatar, roles & uploads
   useEffect(() => {
     hydrate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -56,6 +83,10 @@ export const useUser = () => {
 
   const isAdmin = hasRoleFn?.('admin') ?? false;
   const isUser = hasRoleFn?.('user') ?? false;
+
+  const getRecentUploads = (count = 5): Upload[] => {
+    return (user?.uploads ?? []).slice(0, count);
+  };
 
   return {
     user,
@@ -71,5 +102,6 @@ export const useUser = () => {
     setUser,
     signOut: handleSignOut,
     avatar, // ✅ cached avatar, updated on hydrate()
+    getRecentUploads, // 🔷 new helper to get limited uploads
   };
 };
