@@ -13,12 +13,15 @@ export default function Upload() {
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [webmUrl, setWebmUrl] = useState<string | null>(null);
   const [renderStatus, setRenderStatus] = useState<RenderStatus>(null);
   const dropzoneRef = useRef<HTMLDivElement | null>(null);
 
   const handleFileChange = (f: File) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));
+    setWebmUrl(null);
     if (!name) setName(f.name.replace(/\.[^/.]+$/, ''));
   };
 
@@ -36,6 +39,9 @@ export default function Upload() {
         const res = await axios.get(`/upload/status/${uploadId}`);
         const status: RenderStatus = res.data.status;
         setRenderStatus(status);
+
+        if (res.data.webm_url) setWebmUrl(res.data.webm_url);
+
         if (status === 'complete') {
           toast.success('✅ Model render complete');
           clearInterval(interval);
@@ -77,11 +83,13 @@ export default function Upload() {
         },
       });
 
-      const { id } = res.data;
+      const { id, webm_url } = res.data;
+      if (webm_url) setWebmUrl(webm_url);
 
       toast.success('✅ Model uploaded successfully');
       pollRenderStatus(id);
 
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setFile(null);
       setPreviewUrl(null);
       setName('');
@@ -117,15 +125,27 @@ export default function Upload() {
           />
         </div>
 
-        {previewUrl && (
+        {(previewUrl || webmUrl) && (
           <div className="mb-4 text-center">
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Preview</p>
-            <div className="w-40 h-40 mx-auto rounded-xl border border-white/30 dark:border-zinc-700 backdrop-blur-md bg-white/10 dark:bg-zinc-900/20 shadow-inner p-2">
-              <img
-                src={previewUrl}
-                alt="Model preview"
-                className="object-contain w-full h-full rounded-md"
-              />
+            <div className="w-40 h-40 mx-auto rounded-xl border border-white/30 dark:border-zinc-700 backdrop-blur-md bg-white/10 dark:bg-zinc-900/20 shadow-inner p-2 overflow-hidden">
+              {webmUrl ? (
+                <video
+                  src={webmUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="object-contain w-full h-full rounded-md"
+                />
+              ) : (
+                <img
+                  src={previewUrl!}
+                  alt={`Preview of ${name || 'uploaded model'}`}
+                  loading="lazy"
+                  className="object-contain w-full h-full rounded-md"
+                />
+              )}
             </div>
           </div>
         )}
@@ -211,4 +231,3 @@ export default function Upload() {
     </div>
   );
 }
-

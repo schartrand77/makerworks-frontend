@@ -11,6 +11,7 @@ interface Model {
   name?: string | null;
   description?: string | null;
   thumbnail_url?: string | null;
+  webm_url?: string | null;
   uploader_username?: string | null;
 }
 
@@ -114,14 +115,14 @@ const Browse: React.FC = () => {
     window.location.href = urls[platform];
   };
 
-  const filteredModels =
-    models.filter((model) => {
-      const name = model.name ?? '';
-      const desc = model.description ?? '';
-      const nameMatch = name.toLowerCase().includes(query.toLowerCase());
-      const descMatch = desc.toLowerCase().includes(query.toLowerCase());
-      return nameMatch || descMatch;
-    });
+  const filteredModels = models.filter((model) => {
+    const name = model.name ?? '';
+    const desc = model.description ?? '';
+    return (
+      name.toLowerCase().includes(query.toLowerCase()) ||
+      desc.toLowerCase().includes(query.toLowerCase())
+    );
+  });
 
   const isLoading = loadingInitial;
 
@@ -172,9 +173,9 @@ const Browse: React.FC = () => {
             )}
 
             {!isLoading &&
-              filteredModels.map((model, idx) => (
+              filteredModels.map((model) => (
                 <GlassCard
-                  key={model.id || `model-${idx}`}
+                  key={model.id}
                   className="relative backdrop-blur bg-white/20 dark:bg-black/20 border border-white/20 shadow-lg glass"
                 >
                   <button
@@ -185,7 +186,16 @@ const Browse: React.FC = () => {
                     {favorites.has(model.id) ? '★' : '☆'}
                   </button>
 
-                  {model.thumbnail_url ? (
+                  {model.webm_url ? (
+                    <video
+                      src={model.webm_url}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="rounded-md mb-2 w-full h-40 object-cover"
+                    />
+                  ) : model.thumbnail_url ? (
                     <img
                       src={model.thumbnail_url}
                       alt={model.name ?? 'Model'}
@@ -193,7 +203,7 @@ const Browse: React.FC = () => {
                     />
                   ) : (
                     <div className="w-full h-40 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-500">
-                      No thumbnail available
+                      No preview available
                     </div>
                   )}
 

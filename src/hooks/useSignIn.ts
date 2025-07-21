@@ -1,28 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '@/api/axios'; // ✅ use the configured instance
+import axios, { isAxiosError } from 'axios';
+import axiosInstance from '@/api/axios';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { SigninResponse, UserOut } from '@/types/auth';
 
 export const useSignIn = () => {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
   const navigate = useNavigate();
   const setToken = useAuthStore((s) => s.setToken);
   const setUser = useAuthStore((s) => s.setUser);
 
   const signIn = async (emailOrUsername: string, password: string) => {
     setError(null);
+    setLoading(true);
 
     try {
-      console.debug('[useSignIn] Sending credentials:', {
-        emailOrUsername,
-        password: '[hidden]',
+      console.debug('[useSignIn] Attempting login with:', {
+        email_or_username: emailOrUsername,
       });
-
-      console.debug(
-        '[useSignIn] Full URL:',
-        `${axiosInstance.defaults.baseURL}/auth/signin`
-      );
 
       const res = await axiosInstance.post<SigninResponse>('/auth/signin', {
         email_or_username: emailOrUsername,
@@ -37,15 +35,17 @@ export const useSignIn = () => {
 
       console.info('[useSignIn] Login successful:', { user, token });
 
+      // Store avatar path locally (optional, based on your app logic)
       const avatarPath = `/avatars/${user.id}.png`;
       localStorage.setItem('avatar_url', avatarPath);
 
-      const userWithAvatar: UserOut = { ...user, avatar_url: avatarPath };
+      const userWithAvatar: UserOut = {
+        ...user,
+        avatar_url: avatarPath,
+      };
 
       setToken(token);
       setUser(userWithAvatar);
-
-      console.debug('[useSignIn] User + token saved to store:', { user, token });
 
       navigate('/dashboard');
     } catch (err) {
@@ -53,10 +53,11 @@ export const useSignIn = () => {
 
       let message = 'Sign in failed. Please try again.';
 
-      if (axiosInstance.isAxiosError(err)) {
+      if (isAxiosError(err)) {
         const detail = err.response?.data?.detail;
 
         if (Array.isArray(detail)) {
+          // detail might be a list of validation errors
           message = detail
             .map((e: { loc?: string[]; msg?: string }) =>
               e.loc && e.msg ? `${e.loc.join('.')}: ${e.msg}` : ''
@@ -68,11 +69,15 @@ export const useSignIn = () => {
         } else if (err.response?.status) {
           message = `Error ${err.response.status}: ${err.response.statusText}`;
         }
+      } else if (err instanceof Error) {
+        message = err.message;
       }
 
       setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return { signIn, error };
+  return { signIn, error, loading };
 };
