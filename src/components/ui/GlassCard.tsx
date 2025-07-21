@@ -1,14 +1,14 @@
-import { ElementType, ReactNode, ComponentPropsWithoutRef } from 'react'
-import clsx from 'clsx'
+import { ElementType, ReactNode, ComponentPropsWithoutRef } from 'react';
+import clsx from 'clsx';
 
-type Elevation = 'none' | 'md' | 'lg'
-type MaxWidth = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+type Elevation = 'none' | 'md' | 'lg';
+type MaxWidth = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
 const elevationClasses: Record<Elevation, string> = {
   none: '',
   md: 'shadow-md',
   lg: 'shadow-lg',
-}
+};
 
 const maxWidthClasses: Record<MaxWidth, string> = {
   sm: 'max-w-sm',
@@ -16,16 +16,17 @@ const maxWidthClasses: Record<MaxWidth, string> = {
   lg: 'max-w-lg',
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
-}
+};
 
 interface GlassCardProps<T extends ElementType = 'div'> {
-  as?: T
-  children: ReactNode
-  className?: string
-  elevation?: Elevation
-  padding?: string
-  maxWidth?: MaxWidth
-  glow?: boolean
+  as?: T;
+  children: ReactNode;
+  className?: string;
+  elevation?: Elevation;
+  padding?: string;
+  maxWidth?: MaxWidth;
+  glow?: boolean;
+  id?: string;
 }
 
 export default function GlassCard<T extends ElementType = 'div'>({
@@ -36,24 +37,29 @@ export default function GlassCard<T extends ElementType = 'div'>({
   padding = 'p-6',
   maxWidth = 'lg',
   glow = true,
+  id,
   ...props
 }: GlassCardProps<T> & ComponentPropsWithoutRef<T>) {
-  const Component = as || 'div'
+  const Component = as || 'div';
+
+  const glowClass = glow
+    ? 'shadow-[0_8px_20px_rgba(128,128,128,0.15)]'
+    : '';
 
   return (
     <Component
+      id={id}
       className={clsx(
         'glass-card',
         elevationClasses[elevation],
         maxWidthClasses[maxWidth],
         padding,
-        glow &&
-          'shadow-[0_8px_20px_rgba(128,128,128,0.15)]', // 🔷 updated grey glow
+        glowClass,
         className
       )}
       {...props}
     >
       {children}
     </Component>
-  )
+  );
 }

@@ -12,7 +12,6 @@ interface Model {
   name?: string | null;
   description?: string | null;
   thumbnail_url?: string | null;
-  webm_url?: string | null;
   uploader_username?: string | null;
 }
 
@@ -179,7 +178,7 @@ const Browse: React.FC = () => {
             {!isLoading &&
               filteredModels.map((model) => (
                 <GlassCard
-                  key={model.id}
+                  key={`model-${model.id}`}
                   className="relative backdrop-blur bg-white/20 dark:bg-black/20 border border-white/20 shadow-lg glass"
                 >
                   <button
@@ -190,23 +189,18 @@ const Browse: React.FC = () => {
                     {favorites.has(model.id) ? '★' : '☆'}
                   </button>
 
-                  {model.webm_url ? (
-                    <video
-                      src={model.webm_url}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="rounded-md mb-2 w-full h-40 object-cover"
-                    />
-                  ) : model.thumbnail_url ? (
+                  {model.thumbnail_url ? (
                     <img
+                      key={`thumb-${model.id}`}
                       src={model.thumbnail_url}
                       alt={model.name ?? 'Model'}
                       className="rounded-md mb-2 w-full h-40 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-40 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-500">
+                    <div
+                      key={`placeholder-${model.id}`}
+                      className="w-full h-40 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-500"
+                    >
                       No preview available
                     </div>
                   )}
@@ -219,7 +213,10 @@ const Browse: React.FC = () => {
                   </p>
 
                   {model.uploader_username && (
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                    <p
+                      key={`uploader-${model.id}`}
+                      className="text-xs text-zinc-500 dark:text-zinc-400 mb-2"
+                    >
                       Uploaded by <span className="font-medium">{model.uploader_username}</span>
                     </p>
                   )}

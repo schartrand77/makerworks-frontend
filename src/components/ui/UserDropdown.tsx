@@ -31,10 +31,17 @@ const UserDropdown = ({ user }: Props) => {
     setTheme(isDark ? 'light' : 'dark');
   };
 
+  const getAbsoluteUrl = (path: string | null | undefined) => {
+    if (!path) return null;
+    return path.startsWith('http')
+      ? path
+      : `${import.meta.env.VITE_API_URL}${path}`;
+  };
+
   // Compute safe avatar URL
   const avatarSrc =
-    user.avatar_url ||
-    user.thumbnail_url ||
+    getAbsoluteUrl(user.avatar_url) ||
+    getAbsoluteUrl(user.thumbnail_url) ||
     '/default-avatar.png';
 
   return (
@@ -48,6 +55,7 @@ const UserDropdown = ({ user }: Props) => {
           alt={user.username}
           className="w-full h-full object-cover"
           onError={(e) => {
+            e.currentTarget.onerror = null;
             e.currentTarget.src = '/default-avatar.png';
           }}
         />

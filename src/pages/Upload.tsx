@@ -1,245 +1,121 @@
-import { useRef, useState, ChangeEvent, DragEvent, FormEvent } from 'react';
-import GlassCard from '@/components/ui/GlassCard';
-import GlassButton from '@/components/ui/GlassButton';
-import PageHeader from '@/components/ui/PageHeader';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import axios from '@/api/axios';
-import { CloudUpload } from 'lucide-react';
+import ModelViewer from '@/components/ui/ModelViewer';
+import Spinner from '@/components/ui/Spinner';
 
-type RenderStatus = 'pending' | 'processing' | 'complete' | 'failed' | null;
-
-export default function Upload() {
+export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [name, setName] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [uploading, setUploading] = useState<boolean>(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [webmUrl, setWebmUrl] = useState<string | null>(null);
-  const [renderStatus, setRenderStatus] = useState<RenderStatus>(null);
-  const dropzoneRef = useRef<HTMLDivElement | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
+  const [model, setModel] = useState<any>(null);
 
-  const handleFileChange = (f: File) => {
-    if (!f.name.toLowerCase().endsWith('.stl')) {
-      toast.error('❌ Only .stl files are supported.');
-      return;
-    }
-
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    const f = e.target.files[0];
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));
-    setWebmUrl(null);
-    if (!name) setName(f.name.replace(/\.[^/.]+$/, ''));
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const dropped = e.dataTransfer.files?.[0];
-    if (dropped) handleFileChange(dropped);
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
-
-  const pollRenderStatus = (uploadId: string) => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await axios.get(`/upload/status/${uploadId}`);
-        const status: RenderStatus = res.data.status;
-        setRenderStatus(status);
-
-        if (res.data.webm_url) setWebmUrl(res.data.webm_url);
-
-        if (status === 'complete') {
-          toast.success('✅ Model render complete');
-          clearInterval(interval);
-        } else if (status === 'failed') {
-          toast.error('❌ Render failed');
-          clearInterval(interval);
-        }
-      } catch {
-        toast.error('⚠️ Render status polling failed');
-        clearInterval(interval);
-      }
-    }, 3000);
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!file) {
-      toast.error('Please select a file to upload');
-      return;
-    }
+  const handleUpload = async () => {
+    if (!file) return;
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('type', 'model');
-    formData.append('name', name);
-    formData.append('description', description);
+
+    setStatus('uploading');
+    setProgress(0);
 
     try {
-      setUploading(true);
-      setUploadProgress(0);
-
-      const res = await axios.post('/upload/', formData, {
+      const res = await axios.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(percent);
+        onUploadProgress: (e) => {
+          if (e.total) {
+            setProgress(Math.round((e.loaded * 100) / e.total));
           }
         },
       });
 
-      const { id, webm_url } = res.data;
-      if (webm_url) setWebmUrl(webm_url);
-
-      toast.success('✅ Model uploaded successfully');
-      pollRenderStatus(id);
-
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setFile(null);
-      setPreviewUrl(null);
-      setName('');
-      setDescription('');
-    } catch {
-      toast.error('❌ Upload failed');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
+      setModel(res.data);
+      setStatus('done');
+    } catch (err) {
+      console.error(err);
+      setStatus('error');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] px-4 py-8 space-y-6">
-      <PageHeader
-        icon={<CloudUpload className="w-8 h-8 text-zinc-400" />}
-        title="Upload Model"
-      />
+    <div className="flex flex-col items-center gap-6 p-6 min-h-screen bg-gradient-to-br from-[#f8f9fa]/50 to-[#e9ecef]/30 backdrop-blur rounded-xl shadow-lg">
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Upload Model</h1>
 
-      <GlassCard className="max-w-md w-full p-6 rounded-2xl shadow-xl bg-white/30 dark:bg-zinc-800/30 backdrop-blur-md space-y-4">
-        <div
-          ref={dropzoneRef}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed rounded-xl text-zinc-500 dark:text-zinc-400 transition-colors cursor-pointer hover:border-blue-400 hover:bg-blue-50/20 dark:hover:bg-zinc-700/20 relative overflow-hidden"
-          aria-label="File upload drop zone"
+      {/* Dropzone */}
+      <div className="relative w-full max-w-md p-6 rounded-3xl border border-gray-300/50 bg-white/30 backdrop-blur-md shadow-inner">
+        <input
+          type="file"
+          accept=".stl,.3mf"
+          onChange={handleFileChange}
+          className="absolute inset-0 opacity-0 cursor-pointer"
+        />
+        <div className="text-center text-gray-700 dark:text-gray-300">
+          {file ? (
+            <>
+              <p className="font-medium">{file.name}</p>
+              <p className="text-sm">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            </>
+          ) : (
+            <p className="text-lg">Click or drag file here to upload</p>
+          )}
+        </div>
+      </div>
+
+      {/* Upload Button */}
+      {file && (
+        <button
+          onClick={handleUpload}
+          disabled={status === 'uploading'}
+          className="px-6 py-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 disabled:opacity-50"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/20 dark:to-black/20 pointer-events-none rounded-xl"></div>
-          <p className="z-10">Drag & drop an STL here or click below</p>
-          <input
-            type="file"
-            accept=".stl"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              if (e.target.files?.[0]) handleFileChange(e.target.files[0]);
-            }}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            aria-label="File upload input"
+          {status === 'uploading' ? 'Uploading…' : 'Upload'}
+        </button>
+      )}
+
+      {/* Progress Bar */}
+      {status === 'uploading' && (
+        <div className="w-full max-w-md bg-gray-200 rounded-full h-4">
+          <div
+            className="bg-blue-500 h-4 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
           />
         </div>
+      )}
 
-        {(previewUrl || webmUrl) && (
-          <div className="mb-4 text-center">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Preview</p>
-            <div className="w-40 h-40 mx-auto rounded-xl border border-white/30 dark:border-zinc-700 backdrop-blur-md bg-white/10 dark:bg-zinc-900/20 shadow-inner p-2 overflow-hidden">
-              {webmUrl ? (
-                <video
-                  src={webmUrl}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="object-contain w-full h-full rounded-md"
-                />
-              ) : (
-                <img
-                  src={previewUrl!}
-                  alt={`Preview of ${name || 'uploaded model'}`}
-                  loading="lazy"
-                  className="object-contain w-full h-full rounded-md"
-                />
-              )}
-            </div>
-          </div>
-        )}
+      {/* Status */}
+      {status === 'error' && (
+        <p className="text-red-600 mt-2">❌ Upload failed. Try again.</p>
+      )}
+      {status === 'done' && model && (
+        <p className="text-green-600 mt-2">✅ Upload complete!</p>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1">
-              Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl
-                         bg-white/20 dark:bg-zinc-700/40
-                         text-zinc-900 dark:text-white
-                         placeholder-zinc-500 dark:placeholder-zinc-400
-                         backdrop-blur
-                         border border-white/30
-                         focus:outline-none focus:ring-2 focus:ring-blue-400
-                         shadow-inner transition"
-              placeholder="Model name"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl
-                         bg-white/20 dark:bg-zinc-700/40
-                         text-zinc-900 dark:text-white
-                         placeholder-zinc-500 dark:placeholder-zinc-400
-                         backdrop-blur
-                         border border-white/30
-                         focus:outline-none focus:ring-2 focus:ring-blue-400
-                         shadow-inner transition"
-              rows={2}
-              placeholder="Optional description"
-            />
-          </div>
-
-          <GlassButton
-            type="submit"
-            variant={uploading ? 'primary' : 'uploadBlue'}
-            size="md"
-            loading={uploading}
-            disabled={uploading}
-            className="w-full"
-          >
-            Upload Model
-          </GlassButton>
-        </form>
-
-        {uploading && (
-          <div className="mt-4">
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-500 transition-all"
-                style={{ width: `${uploadProgress}%` }}
+      {/* Preview */}
+      {previewUrl && (
+        <div className="w-full max-w-lg mt-6 rounded-3xl bg-white/20 backdrop-blur-md p-4 shadow-lg">
+          <h2 className="text-lg font-medium text-center text-gray-800 dark:text-gray-200 mb-4">
+            Preview
+          </h2>
+          <div className="w-full h-64">
+            {model?.glb_url || model?.stl_url ? (
+              <ModelViewer
+                src={model.glb_url || ''}
+                fallbackSrc={model.stl_url || ''}
+                color="#999999"
               />
-            </div>
-            <p className="text-xs text-center mt-1 text-zinc-600 dark:text-zinc-300">
-              Uploading: {uploadProgress}%
-            </p>
+            ) : (
+              <Spinner />
+            )}
           </div>
-        )}
-
-        {renderStatus && (
-          <div className="mt-4 text-sm text-center text-zinc-600 dark:text-zinc-300">
-            <p>
-              Render Status: <strong className="capitalize">{renderStatus}</strong>
-            </p>
-          </div>
-        )}
-      </GlassCard>
+        </div>
+      )}
     </div>
   );
 }

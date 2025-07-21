@@ -32,12 +32,28 @@ const GlassNavbar = () => {
     { path: '/checkout', label: 'Checkout' },
   ];
 
+  const getAbsoluteUrl = (path: string | null | undefined) => {
+    if (!path) return null;
+    return path.startsWith('http')
+      ? path
+      : `${import.meta.env.VITE_API_URL}${path}`;
+  };
+
   const fallbackUser = {
     username: 'Guest',
     email: 'guest@example.com',
     avatar_url: '/default-avatar.png',
     role: 'guest',
   };
+
+  // if authenticated, enrich user with proper avatar url
+  const resolvedUser = isAuthenticated()
+    ? {
+        ...fallbackUser,
+        ...user,
+        avatar_url: getAbsoluteUrl(user?.avatar_url) || getAbsoluteUrl(user?.thumbnail_url) || '/default-avatar.png',
+      }
+    : fallbackUser;
 
   return (
     <nav
@@ -96,7 +112,7 @@ const GlassNavbar = () => {
 
       <div className="flex items-center gap-2">
         {isAuthenticated() ? (
-          <UserDropdown user={{ ...fallbackUser, ...user }} />
+          <UserDropdown user={resolvedUser} />
         ) : (
           <Link
             to="/auth/signin"

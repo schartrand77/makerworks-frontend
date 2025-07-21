@@ -33,7 +33,10 @@ export default function Estimate() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EstimateResult | null>(null);
   const [filaments, setFilaments] = useState<Filament[]>([]);
-  const [modelUrl] = useState('/example.stl'); // replace with selected model URL
+  const [model, setModel] = useState<{ glb_url?: string; stl_url?: string }>({
+    glb_url: '/example.glb',
+    stl_url: '/example.stl',
+  });
 
   useEffect(() => {
     fetchAvailableFilaments()
@@ -106,7 +109,15 @@ export default function Estimate() {
           {/* Model Viewer */}
           <GlassCard>
             <h2 className="text-lg font-semibold mb-2">Selected Model</h2>
-            <ModelViewer src={modelUrl} />
+            {model.glb_url || model.stl_url ? (
+              <ModelViewer
+                src={model.glb_url}
+                fallbackSrc={model.stl_url}
+                color="#999999"
+              />
+            ) : (
+              <div className="text-sm text-zinc-500">No model selected.</div>
+            )}
           </GlassCard>
 
           {/* Form */}
