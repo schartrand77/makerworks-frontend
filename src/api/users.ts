@@ -25,8 +25,8 @@ export type UpdateProfilePayload = z.infer<typeof UpdateProfileSchema>
 export const uploadAvatar = async (
   file: File
 ): Promise<AvatarUploadResponse | null> => {
-  const token = useAuthStore.getState().token
-  if (!token) {
+  const { token, user } = useAuthStore.getState()
+  if (!token || !user?.id) {
     toast.error('❌ Not authenticated. Please log in.')
     return null
   }
@@ -36,7 +36,7 @@ export const uploadAvatar = async (
 
   try {
     const res = await axios.post<AvatarUploadResponse>(
-      '/users/avatar',
+      `/api/v1/avatar?user_id=${user.id}`,
       formData,
       {
         headers: {
@@ -77,7 +77,7 @@ export const updateUserProfile = async (
   }
 
   try {
-    await axios.patch('/users/me', parsed.data, {
+    await axios.patch('/api/v1/users/me', parsed.data, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -104,7 +104,7 @@ export const deleteAccount = async (): Promise<void> => {
   }
 
   try {
-    await axios.delete('/users/me', {
+    await axios.delete('/api/v1/users/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }

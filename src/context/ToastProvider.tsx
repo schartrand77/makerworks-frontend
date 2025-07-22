@@ -1,9 +1,6 @@
 import React, { createContext, useContext } from 'react';
-// If you’re using sonner (recommended for modern projects), import it:
+// Using sonner (recommended modern toast lib)
 import { Toaster, toast } from 'sonner';
-// If you prefer react-toastify, replace above with:
-// import { ToastContainer, toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
 
 interface ToastContextProps {
   success: (message: string) => void;
@@ -11,7 +8,8 @@ interface ToastContextProps {
   info: (message: string) => void;
 }
 
-const ToastContext = createContext<ToastContextProps | undefined>(undefined);
+// 📝 Export ToastContext so it can be imported elsewhere if needed
+export const ToastContext = createContext<ToastContextProps | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const show = (type: 'success' | 'error' | 'info', message: string) => {
@@ -38,19 +36,21 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {/* Mount the toaster component here */}
+      {/* Mount the sonner toaster component */}
       <Toaster
         position="top-right"
         richColors
         expand
         duration={4000}
       />
-      {/* If using react-toastify, replace above with:
-      <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} /> */}
     </ToastContext.Provider>
   );
 };
 
+/**
+ * Custom hook to consume the ToastContext
+ * Ensures it is used within a ToastProvider
+ */
 export const useToast = (): ToastContextProps => {
   const context = useContext(ToastContext);
   if (!context) {

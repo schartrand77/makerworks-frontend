@@ -12,6 +12,15 @@ interface SignInResponse {
  */
 export async function signIn(payload: { email_or_username: string; password: string }): Promise<SignInResponse> {
   const res = await axios.post<SignInResponse>('/auth/signin', payload);
+
+  const { user, token } = res.data;
+
+  // Save token in localStorage for axios interceptor
+  localStorage.setItem('access_token', token);
+
+  // Save user in Zustand store
+  useAuthStore.getState().setUser(user);
+
   return res.data;
 }
 
@@ -20,6 +29,12 @@ export async function signIn(payload: { email_or_username: string; password: str
  */
 export async function signUp(payload: { email: string; username: string; password: string }): Promise<SignInResponse> {
   const res = await axios.post<SignInResponse>('/auth/signup', payload);
+
+  const { user, token } = res.data;
+
+  localStorage.setItem('access_token', token);
+  useAuthStore.getState().setUser(user);
+
   return res.data;
 }
 
@@ -34,9 +49,10 @@ export async function getCurrentUser(): Promise<UserOut> {
 }
 
 /**
- * Local logout only — clears state.
- * Optional: also call /auth/signout if you implement it.
+ * Local logout — clears state & token.
+ * Optional: also call /auth/signout if backend supports it.
  */
 export function logout() {
+  localStorage.removeItem('access_token');
   useAuthStore.getState().logout();
 }

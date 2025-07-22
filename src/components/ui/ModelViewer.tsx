@@ -22,13 +22,12 @@ export default function ModelViewer({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // if previewImage is provided → skip Three.js entirely
+    if (!containerRef.current) return;
+
     if (previewImage) {
       setLoading(false);
       return;
     }
-
-    if (!containerRef.current) return;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -71,11 +70,25 @@ export default function ModelViewer({
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
 
-    const checkAndLoad = async () => {
+    const checkURLExists = async (url: string): Promise<boolean> => {
       try {
-        setLoading(true);
+        const res = await fetch(url, { method: 'HEAD' });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    };
+
+    const checkAndLoad = async () => {
+      setLoading(true);
+      try {
         const urlToLoad = src || fallbackSrc;
         if (!urlToLoad) throw new Error("No model URL provided.");
+
+        const exists = await checkURLExists(urlToLoad);
+        if (!exists) {
+          throw new Error("Model file not found on server.");
+        }
 
         if (urlToLoad.endsWith('.glb')) {
           loadGLB(urlToLoad);

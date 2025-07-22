@@ -1,121 +1,227 @@
-import { useState } from 'react';
-import axios from '@/api/axios';
-import ModelViewer from '@/components/ui/ModelViewer';
-import Spinner from '@/components/ui/Spinner';
+// src/pages/Upload.tsx
 
-export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [progress, setProgress] = useState<number>(0);
-  const [status, setStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
-  const [model, setModel] = useState<any>(null);
+import React, { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import toast, { Toaster } from 'react-hot-toast';
+import { uploadAvatar } from '@/api/users';
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    const f = e.target.files[0];
-    setFile(f);
-    setPreviewUrl(URL.createObjectURL(f));
-  };
+const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif'];
 
-  const handleUpload = async () => {
-    if (!file) return;
+const UploadPage: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setStatus('uploading');
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections) => {
+    setRejectedFiles([]);
+    setSelectedFile(null);
     setProgress(0);
 
-    try {
-      const res = await axios.post('/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (e) => {
-          if (e.total) {
-            setProgress(Math.round((e.loaded * 100) / e.total));
-          }
-        },
-      });
-
-      setModel(res.data);
-      setStatus('done');
-    } catch (err) {
-      console.error(err);
-      setStatus('error');
+    if (!acceptedFiles.length) {
+      toast.error('❌ No valid file selected.');
+      if (fileRejections.length) {
+        const names = fileRejections.map((rej) => rej.file.name);
+        setRejectedFiles(names);
+      }
+      return;
     }
+
+    const file = acceptedFiles[0];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+
+    if (!allowedExtensions.includes(ext || '')) {
+      toast.error(`❌ Invalid file: ${file.name}. Allowed: ${allowedExtensions.join(', ')}`);
+      setRejectedFiles([file.name]);
+      return;
+    }
+
+    setSelectedFile(file);
+
+    setLoading(true);
+
+    uploadAvatarWithProgress(file)
+      .then((res) => {
+        if (res) {
+          toast.success(`✅ Avatar uploaded: ${res.avatar_url}`);
+        }
+        setSelectedFile(null);
+        setProgress(0);
+      })
+      .catch(() => {
+        toast.error(`❌ Upload failed.`);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  /**
+   * Wrapper to track progress manually
+   */
+  const uploadAvatarWithProgress = async (file: File) => {
+    return new Promise((resolve, reject) => {
+      const { token, user } = require('@/store/useAuthStore').useAuthStore.getState();
+      if (!token || !user?.id) {
+        toast.error('❌ Not authenticated. Please log in.');
+        reject(new Error('Not authenticated'));
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const axios = require('@/api/axios').default;
+
+      axios
+        .post(
+          `/api/v1/avatar?user_id=${user.id}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`,
+            },
+            onUploadProgress: (e: ProgressEvent) => {
+              if (e.total) {
+                setProgress(Math.round((e.loaded / e.total) * 100));
+              }
+            },
+          }
+        )
+        .then((res: any) => {
+          toast.success('✅ Avatar updated.');
+          resolve(res.data);
+        })
+        .catch((err: any) => {
+          console.error('[uploadAvatar] error', err);
+          toast.error(
+            err?.response?.data?.detail || '❌ Failed to upload avatar.'
+          );
+          reject(err);
+        });
+    });
   };
 
-  return (
-    <div className="flex flex-col items-center gap-6 p-6 min-h-screen bg-gradient-to-br from-[#f8f9fa]/50 to-[#e9ecef]/30 backdrop-blur rounded-xl shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Upload Model</h1>
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    multiple: false,
+    disabled: loading,
+    accept: {
+      'image/png': ['.png'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/gif': ['.gif'],
+    },
+  });
 
-      {/* Dropzone */}
-      <div className="relative w-full max-w-md p-6 rounded-3xl border border-gray-300/50 bg-white/30 backdrop-blur-md shadow-inner">
-        <input
-          type="file"
-          accept=".stl,.3mf"
-          onChange={handleFileChange}
-          className="absolute inset-0 opacity-0 cursor-pointer"
-        />
-        <div className="text-center text-gray-700 dark:text-gray-300">
-          {file ? (
-            <>
-              <p className="font-medium">{file.name}</p>
-              <p className="text-sm">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-            </>
-          ) : (
-            <p className="text-lg">Click or drag file here to upload</p>
-          )}
-        </div>
+  return (
+    <div
+      className="upload-container"
+      style={{
+        maxWidth: '600px',
+        margin: '2rem auto',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
+      <Toaster position="top-right" />
+
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#fff' }}>
+        Upload Your Avatar
+      </h2>
+
+      <div
+        {...getRootProps()}
+        className={`dropzone ${isDragActive ? 'active' : ''}`}
+        style={{
+          border: '2px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '16px',
+          padding: '30px',
+          textAlign: 'center',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          opacity: loading ? 0.6 : 1,
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(16px) saturate(180%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+          color: '#fff',
+          transition: 'all 0.3s ease',
+        }}
+      >
+        <input {...getInputProps()} />
+        {isDragActive ? (
+          <p>Drop your avatar here…</p>
+        ) : (
+          <p>
+            Drag & drop an image here or click to select.
+            <br />
+            <strong>Allowed: png, jpg, jpeg, gif</strong>
+          </p>
+        )}
       </div>
 
-      {/* Upload Button */}
-      {file && (
-        <button
-          onClick={handleUpload}
-          disabled={status === 'uploading'}
-          className="px-6 py-2 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 disabled:opacity-50"
+      {selectedFile && (
+        <div
+          style={{
+            marginTop: '1rem',
+            padding: '1rem',
+            borderRadius: '12px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            color: '#fff',
+          }}
         >
-          {status === 'uploading' ? 'Uploading…' : 'Upload'}
-        </button>
-      )}
-
-      {/* Progress Bar */}
-      {status === 'uploading' && (
-        <div className="w-full max-w-md bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-blue-500 h-4 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+          <p>
+            📄 <strong>{selectedFile.name}</strong> (
+            {(selectedFile.size / 1024).toFixed(1)} KB)
+          </p>
+          {loading && (
+            <div
+              style={{
+                height: '10px',
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '4px',
+                marginTop: '0.5rem',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${progress}%`,
+                  height: '100%',
+                  background:
+                    'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
+                  transition: 'width 0.2s ease',
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Status */}
-      {status === 'error' && (
-        <p className="text-red-600 mt-2">❌ Upload failed. Try again.</p>
-      )}
-      {status === 'done' && model && (
-        <p className="text-green-600 mt-2">✅ Upload complete!</p>
+      {loading && (
+        <p style={{ textAlign: 'center', marginTop: '1em', color: '#fff' }}>
+          Uploading… {progress}%
+        </p>
       )}
 
-      {/* Preview */}
-      {previewUrl && (
-        <div className="w-full max-w-lg mt-6 rounded-3xl bg-white/20 backdrop-blur-md p-4 shadow-lg">
-          <h2 className="text-lg font-medium text-center text-gray-800 dark:text-gray-200 mb-4">
-            Preview
-          </h2>
-          <div className="w-full h-64">
-            {model?.glb_url || model?.stl_url ? (
-              <ModelViewer
-                src={model.glb_url || ''}
-                fallbackSrc={model.stl_url || ''}
-                color="#999999"
-              />
-            ) : (
-              <Spinner />
-            )}
-          </div>
+      {rejectedFiles.length > 0 && (
+        <div
+          style={{
+            color: 'red',
+            marginTop: '1em',
+            textAlign: 'center',
+          }}
+        >
+          <p>🚫 Rejected files:</p>
+          <ul>
+            {rejectedFiles.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default UploadPage;
