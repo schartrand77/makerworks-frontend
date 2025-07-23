@@ -24,9 +24,11 @@ npm run dev
 ### Start the FastAPI backend
 
 The backend service is used for authentication tests and local development.
-Run it with:
+You will also need a running Redis instance for session storage.
+Run the backend and Redis with:
 
 ```bash
+redis-server &
 python backend/main.py
 ```
 
