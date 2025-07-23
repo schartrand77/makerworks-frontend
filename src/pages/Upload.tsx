@@ -61,8 +61,8 @@ const UploadPage: React.FC = () => {
    */
   const uploadAvatarWithProgress = async (file: File) => {
     return new Promise((resolve, reject) => {
-      const { token, user } = require('@/store/useAuthStore').useAuthStore.getState();
-      if (!token || !user?.id) {
+      const { user } = require('@/store/useAuthStore').useAuthStore.getState();
+      if (!user?.id) {
         toast.error('❌ Not authenticated. Please log in.');
         reject(new Error('Not authenticated'));
         return;
@@ -80,7 +80,6 @@ const UploadPage: React.FC = () => {
           {
             headers: {
               'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,
             },
             onUploadProgress: (e: ProgressEvent) => {
               if (e.total) {

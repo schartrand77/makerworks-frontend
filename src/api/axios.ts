@@ -1,5 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { useAuthStore } from '@/store/useAuthStore';
+import axios from 'axios'
 
 // ensure baseURL has no trailing slash
 const base =
@@ -8,21 +7,6 @@ const base =
 const instance = axios.create({
   baseURL: base,
   withCredentials: true,
-});
-
-instance.interceptors.request.use((config: AxiosRequestConfig) => {
-  try {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
-  } catch (err) {
-    console.warn('[axios] Could not get token from store:', err);
-  }
-  return config;
-});
+})
 
 export default instance;

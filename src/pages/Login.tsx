@@ -10,11 +10,10 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post('/auth/token', {
+      await axios.post('/auth/token', {
         username,
         password,
-      });
-      localStorage.setItem('access_token', res.data.access_token);
+      })
       toast.success('✅ Login successful');
     } catch (err) {
       console.error(err);
