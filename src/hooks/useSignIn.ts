@@ -3,14 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import axios, { isAxiosError } from 'axios';
 import axiosInstance from '@/api/axios';
 import { useAuthStore } from '@/store/useAuthStore';
-import type { SigninResponse, UserOut } from '@/types/auth';
+import type { UserOut } from '@/types/auth';
+
+interface SigninResponse {
+  user: UserOut
+  token?: string // optional session token
+}
 
 export const useSignIn = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
-  const setToken = useAuthStore((s) => s.setToken);
   const setUser = useAuthStore((s) => s.setUser);
 
   const signIn = async (emailOrUsername: string, password: string) => {
@@ -27,13 +31,13 @@ export const useSignIn = () => {
         password,
       });
 
-      const { user, token } = res.data;
+      const { user } = res.data;
 
-      if (!user || !token) {
-        throw new Error('Invalid response: missing user or token');
+      if (!user) {
+        throw new Error('Invalid response: missing user');
       }
 
-      console.info('[useSignIn] Login successful:', { user, token });
+      console.info('[useSignIn] Login successful:', { user });
 
       // Store avatar path locally (optional, based on your app logic)
       const avatarPath = `/avatars/${user.id}.png`;
@@ -44,7 +48,6 @@ export const useSignIn = () => {
         avatar_url: avatarPath,
       };
 
-      setToken(token);
       setUser(userWithAvatar);
 
       navigate('/dashboard');

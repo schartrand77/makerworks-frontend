@@ -21,7 +21,7 @@ type UseSignUpResult = {
 
 type SignupResponse = {
   user: UserOut;
-  token: string;
+  token?: string; // optional session token
 };
 
 export const useSignUp = (): UseSignUpResult => {
@@ -33,7 +33,6 @@ export const useSignUp = (): UseSignUpResult => {
 
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
-  const setToken = useAuthStore((s) => s.setToken);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,13 +65,12 @@ export const useSignUp = (): UseSignUpResult => {
 
       console.debug('[useSignUp] Response:', res);
 
-      const { user, token } = res.data;
+      const { user } = res.data;
 
-      if (!user || !token) {
-        throw new Error('Invalid response: missing user or token');
+      if (!user) {
+        throw new Error('Invalid response: missing user');
       }
 
-      setToken(token);
       setUser(user);
 
       console.info('[useSignUp] User registered & state updated', user);

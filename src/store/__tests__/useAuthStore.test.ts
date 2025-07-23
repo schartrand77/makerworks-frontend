@@ -27,16 +27,14 @@ describe('useAuthStore.logout', () => {
     vi.resetModules()
     vi.stubGlobal('localStorage', createLocalStorageMock())
     ;({ useAuthStore } = await import('../useAuthStore'))
-    useAuthStore.setState({ token: 'abc', user: { id: '1', email: 'e', username: 'u', role: 'user' } })
+    useAuthStore.setState({ user: { id: '1', email: 'e', username: 'u', role: 'user' } })
   })
 
   it('clears auth-storage without stray keys', () => {
     const before = localStorage.getItem('auth-store')
     expect(before).toBeTruthy()
     useAuthStore.getState().logout()
-    expect(localStorage.getItem('token')).toBeNull()
     const persisted = JSON.parse(localStorage.getItem('auth-store') || '{}')
-    expect(persisted.state.token).toBeNull()
     expect(persisted.state.user).toBeNull()
     expect(localStorage.length).toBe(1)
     expect(localStorage.key(0)).toBe('auth-store')

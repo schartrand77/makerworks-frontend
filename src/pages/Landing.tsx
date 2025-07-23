@@ -6,7 +6,7 @@ import { useDevModeStore } from '@/store/useDevModeStore';
 
 
 const Landing: React.FC = () => {
-  const resolved = useAuthStore((s) => !!s.user || !!s.token);
+  const resolved = useAuthStore((s) => !!s.user);
   const loading = false; // you can replace with proper loading state if desired
   const fetchUser = useAuthStore((s) => s.fetchUser);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);

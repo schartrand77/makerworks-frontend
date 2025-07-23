@@ -7,13 +7,10 @@ import type { UserOut } from '@/types/auth';
 type User = UserOut;
 
 interface AuthState {
-  token: string | null;
-  refreshToken: string | null;
   user: User | null;
   loading: boolean;
   resolved: boolean;
 
-  setToken: (token: string, refreshToken: string) => void;
   setUser: (user: User | null) => void;
   setResolved: (val: boolean) => void;
   logout: () => void;
@@ -25,15 +22,10 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      token: null,
-      refreshToken: null,
       user: null,
       loading: false,
       resolved: false,
 
-      setToken: (token, refreshToken) => {
-        set({ token, refreshToken });
-      },
 
       setUser: (user) => {
         set({ user });
@@ -49,7 +41,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        set({ token: null, refreshToken: null, user: null, loading: false, resolved: false });
+        set({ user: null, loading: false, resolved: false })
         localStorage.removeItem('avatar_url');
         toast.info('You have been signed out.');
       },
@@ -84,8 +76,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       isAuthenticated: () => {
-        const state = get();
-        return !!state.token && !!state.user && state.user.role !== 'guest';
+        const state = get()
+        return !!state.user && state.user.role !== 'guest'
       },
 
       hasRole: (role: string) => {

@@ -12,14 +12,14 @@ function AppContent() {
 }
 
 export default function App() {
-  const token = useAuthStore((s) => s.token);
-  const fetchUser = useAuthStore((s) => s.fetchUser);
+  const user = useAuthStore((s) => s.user)
+  const fetchUser = useAuthStore((s) => s.fetchUser)
 
   useEffect(() => {
-    if (token) {
-      fetchUser();
+    if (!user) {
+      fetchUser()
     }
-  }, [token, fetchUser]);
+  }, [user, fetchUser])
 
   return (
     <>
