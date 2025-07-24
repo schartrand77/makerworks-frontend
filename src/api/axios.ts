@@ -3,9 +3,9 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/useAuthStore'
 
-// Ensure baseURL has no trailing slash, then append /api/v1
+// Ensure baseURL has no trailing slash
 const base =
-  (import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:8000') + '/api/v1'
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:8000'
 
 const instance = axios.create({
   baseURL: base,

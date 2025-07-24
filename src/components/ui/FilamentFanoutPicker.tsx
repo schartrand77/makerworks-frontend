@@ -44,7 +44,7 @@ export default function FilamentFanoutPicker() {
   }
 
   useEffect(() => {
-    axios.get('/api/v1/filaments').then((res) => setFilaments(res.data))
+    axios.get('/filaments').then((res) => setFilaments(res.data))
   }, [])
 
   const categories = Array.from(new Set(filaments.map((f) => f.category)))
