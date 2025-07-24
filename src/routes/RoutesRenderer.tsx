@@ -12,6 +12,7 @@ const Upload = lazy(() => import('@/pages/Upload'));
 const Cart = lazy(() => import('@/pages/Cart'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const Settings = lazy(() => import('@/pages/Settings'));
+const ModelPage = lazy(() => import('@/pages/ModelPage'));
 const SignIn = lazy(() => import('@/components/auth/SignIn'));
 const SignUp = lazy(() => import('@/components/auth/SignUp'));
 const PageNotFound = lazy(() => import('@/pages/PageNotFound'));
@@ -77,6 +78,14 @@ export default function RoutesRenderer() {
           element={
             <RequireAuth fallbackTo={RoutePaths.landing}>
               <Checkout />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={RoutePaths.model}
+          element={
+            <RequireAuth fallbackTo={RoutePaths.landing}>
+              <ModelPage />
             </RequireAuth>
           }
         />

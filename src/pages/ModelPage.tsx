@@ -1,92 +1,56 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from '@/api/axios';
-import ModelViewer from '@/components/ui/ModelViewer';
-import WebmPlayer from '@/components/ui/WebmPlayer';
-import GlassCard from '@/components/ui/GlassCard';
+import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import axios from '@/api/axios'
+import GlassCard from '@/components/ui/GlassCard'
+import MeshlabViewer from '@/components/ui/MeshlabViewer'
 
 interface Model {
-  id: string;
-  name: string;
-  description?: string;
-  uploader_username?: string;
-  stl_url?: string;
-  webm_url?: string;
-  thumbnail_url?: string;
+  id: string
+  name: string
+  description?: string
+  uploader_username?: string
+  stl_url?: string
+  webm_url?: string
+  thumbnail_url?: string
+  created_at?: string
+  updated_at?: string
+  volume_mm3?: number
+  dimensions?: { x: number; y: number; z: number }
+  tags?: string[]
 }
 
 const ModelPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [model, setModel] = useState<Model | null>(null);
+  const { id } = useParams<{ id: string }>()
+  const [model, setModel] = useState<Model | null>(null)
 
   useEffect(() => {
     const fetchModel = async () => {
-      const res = await axios.get<Model>(`/models/${id}`);
-      setModel(res.data);
-    };
-    fetchModel();
-  }, [id]);
-
-  if (!model) {
-    return <div className="text-center py-8">Loading model…</div>;
-  }
-
-  return (
-    <main import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from '@/api/axios';
-import ModelViewer from '@/components/ui/ModelViewer';
-import GlassCard from '@/components/ui/GlassCard';
-
-interface Model {
-  id: string;
-  name: string;
-  description?: string;
-  uploader_username?: string;
-  stl_url?: string;
-  webm_url?: string;
-  thumbnail_url?: string;
-  created_at?: string;
-  updated_at?: string;
-  volume_mm3?: number;
-  dimensions?: { x: number; y: number; z: number };
-  tags?: string[];
-}
-
-const ModelPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [model, setModel] = useState<Model | null>(null);
-
-  useEffect(() => {
-    const fetchModel = async () => {
-      const res = await axios.get<Model>(`/models/${id}`);
-      setModel(res.data);
-    };
-    fetchModel();
-  }, [id]);
+      const res = await axios.get<Model>(`/models/${id}`)
+      setModel(res.data)
+    }
+    fetchModel()
+  }, [id])
 
   if (!model) {
     return (
       <main className="flex justify-center items-center h-[60vh] text-zinc-500 text-lg">
         Loading model…
       </main>
-    );
+    )
   }
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       <GlassCard className="glass p-6 sm:p-8 space-y-6">
         <h1 className="text-3xl font-bold">{model.name}</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">{model.description || 'No description provided.'}</p>
+        <p className="text-zinc-600 dark:text-zinc-400">
+          {model.description || 'No description provided.'}
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="glass rounded-xl overflow-hidden shadow-xl">
-            {model.stl_url || model.thumbnail_url ? (
-              <ModelViewer
-                src={model.stl_url || undefined}
-                previewImage={model.thumbnail_url || undefined}
-                webmVideo={model.webm_url || undefined}
-              />
+            {model.stl_url ? (
+              <MeshlabViewer src={model.stl_url} />
             ) : (
               <div className="flex justify-center items-center h-64 text-zinc-500">
                 No 3D preview available
@@ -138,33 +102,7 @@ const ModelPage: React.FC = () => {
         </div>
       </GlassCard>
     </main>
-  );
-};
+  )
+}
 
-export default ModelPage;="max-w-5xl mx-auto px-4 py-8">
-      <GlassCard className="space-y-4 p-4">
-        <h1 className="text-2xl font-bold">{model.name}</h1>
-        <p>{model.description}</p>
-        {model.uploader_username && (
-          <p className="text-sm text-zinc-500">Uploaded by {model.uploader_username}</p>
-        )}
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {model.stl_url ? (
-            <ModelViewer fileUrl={model.stl_url} />
-          ) : (
-            <div className="text-center text-zinc-500">No 3D preview available</div>
-          )}
-
-          {model.webm_url ? (
-            <WebmPlayer fileUrl={model.webm_url} />
-          ) : (
-            <div className="text-center text-zinc-500">No turntable video</div>
-          )}
-        </div>
-      </GlassCard>
-    </main>
-  );
-};
-
-export default ModelPage;
+export default ModelPage

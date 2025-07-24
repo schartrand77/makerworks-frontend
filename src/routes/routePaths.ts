@@ -10,6 +10,7 @@ const RoutePaths = Object.freeze({
   settings: '/settings',
   signin: '/auth/signin',
   signup: '/auth/signup',
+  model: '/models/:id',
 });
 
 export default RoutePaths;
