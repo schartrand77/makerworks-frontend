@@ -7,7 +7,10 @@ vi.mock('@/api/axios')
 
 beforeEach(() => {
   vi.resetAllMocks()
-  useAuthStore.setState({ user: { id: '1', email: 'e', username: 'u', role: 'user' } } as any)
+  useAuthStore.setState({
+    user: { id: '1', email: 'e', username: 'u', role: 'user' } as any,
+    token: 'test-token',
+  })
 })
 
 describe('users.ts', () => {
@@ -20,7 +23,7 @@ describe('users.ts', () => {
 
     expect(result?.status).toBe('ok')
     expect(axios.post).toHaveBeenCalledWith(
-      '/api/v1/avatar?user_id=1',
+      '/avatar',
       expect.any(FormData),
       expect.any(Object)
     )
@@ -34,7 +37,7 @@ describe('users.ts', () => {
     ).resolves.not.toThrow()
 
     expect(axios.patch).toHaveBeenCalledWith(
-      '/api/v1/users/me',
+      '/users/me',
       expect.objectContaining({ username: 'valid' })
     )
   })
@@ -50,6 +53,6 @@ describe('users.ts', () => {
 
     await expect(deleteAccount()).resolves.not.toThrow()
 
-    expect(axios.delete).toHaveBeenCalledWith('/api/v1/users/me')
+    expect(axios.delete).toHaveBeenCalledWith('/users/me')
   })
 })

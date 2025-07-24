@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useSessionRefresh } from "@/hooks/useSessionRefresh";
 import GlassNavbar from "@/components/ui/GlassNavbar";
 import RoutesRenderer from "@/routes";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -15,6 +16,7 @@ export default function App() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const fetchUser = useAuthStore((s) => s.fetchUser);
+  useSessionRefresh();
 
   useEffect(() => {
     const runAuthFetch = async () => {
