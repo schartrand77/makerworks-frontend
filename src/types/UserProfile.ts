@@ -20,6 +20,9 @@ export interface UserProfile {
   /** Role of the user (usually 'user' or 'admin') */
   role: 'user' | 'admin' | string
 
+  /** Optional groups or roles the user belongs to */
+  groups?: string[]
+
   /** URL to the avatar image */
   avatar_url?: string
 
