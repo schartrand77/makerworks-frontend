@@ -22,15 +22,21 @@ const SignUp = () => {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    setEmail(email.trim());
-    setUsername(username.trim());
-    setPassword(password.trim());
-    setConfirmPassword(confirmPassword.trim());
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirm = confirmPassword.trim();
 
-    if (password.trim() !== confirmPassword.trim()) {
+    if (trimmedPassword !== trimmedConfirm) {
       setPasswordError('Passwords do not match');
       return;
     }
+
+    // Normalize values
+    setEmail(trimmedEmail);
+    setUsername(trimmedUsername);
+    setPassword(trimmedPassword);
+    setConfirmPassword(trimmedConfirm);
 
     setPasswordError(null);
     handleSubmit(e);
@@ -75,7 +81,7 @@ const SignUp = () => {
             type="email"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value.trimStart())}
             required
             disabled={loading}
           />
@@ -90,7 +96,7 @@ const SignUp = () => {
             className="input rounded-full px-4 py-2"
             placeholder="yourusername"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value.trimStart())}
             required
             disabled={loading}
           />

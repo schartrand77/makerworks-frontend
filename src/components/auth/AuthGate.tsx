@@ -1,27 +1,38 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useUser } from '@/hooks/useUser';
-import { ReactNode, useEffect } from 'react';
+// src/components/auth/AuthGate.tsx
+import { Navigate, useLocation } from 'react-router-dom'
+import { useEffect, ReactNode, useState } from 'react'
+import { useAuthStore } from '@/store/useAuthStore'
 
 type AuthGateProps = {
-  children: ReactNode;
-  requiredRoles?: string[];  // optionally enforce roles
-  fallback?: ReactNode;      // optional fallback UI while loading
-};
+  children: ReactNode
+  requiredRoles?: string[]
+  fallback?: ReactNode
+}
 
 export default function AuthGate({
   children,
   requiredRoles,
-  fallback,
+  fallback
 }: AuthGateProps): JSX.Element | null {
-  const { user, loading } = useUser();
-  const location = useLocation();
+  const { user, resolved, isAuthenticated, fetchUser } = useAuthStore()
+  const location = useLocation()
+  const [checking, setChecking] = useState(!resolved)
 
   useEffect(() => {
-    console.debug('[AuthGate] Current user:', user);
-    console.debug('[AuthGate] Required roles:', requiredRoles);
-  }, [user, requiredRoles]);
+    if (!resolved) {
+      fetchUser().finally(() => setChecking(false))
+    } else {
+      setChecking(false)
+    }
+  }, [resolved, fetchUser])
 
-  if (loading) {
+  useEffect(() => {
+    console.debug('[AuthGate] Auth state resolved:', resolved)
+    console.debug('[AuthGate] User:', user)
+    console.debug('[AuthGate] Required roles:', requiredRoles)
+  }, [resolved, user, requiredRoles])
+
+  if (checking) {
     return (
       fallback || (
         <div className="flex items-center justify-center h-screen">
@@ -30,33 +41,33 @@ export default function AuthGate({
           </div>
         </div>
       )
-    );
+    )
   }
 
-  if (!user) {
+  if (!isAuthenticated()) {
     console.warn(
-      '[AuthGate] No user session found → redirecting to /auth/signin',
+      '[AuthGate] No user session → redirecting to /auth/signin',
       { from: location.pathname }
-    );
+    )
     return (
       <Navigate
         to="/auth/signin"
         state={{ from: location }}
         replace
       />
-    );
+    )
   }
 
-  const groups: string[] = Array.isArray(user.groups) ? user.groups : [];
+  const groups = Array.isArray(user?.groups) ? user.groups : []
   if (requiredRoles && !requiredRoles.some((r) => groups.includes(r))) {
     console.warn(
       `[AuthGate] User groups ${JSON.stringify(groups)} lack required roles [${requiredRoles.join(
         ', '
       )}] → redirecting to /unauthorized`,
       { from: location.pathname }
-    );
-    return <Navigate to="/unauthorized" replace />;
+    )
+    return <Navigate to="/unauthorized" replace />
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }

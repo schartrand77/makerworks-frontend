@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import axiosInstance from '@/api/axios';
+import { toast } from 'sonner';
 
 /**
- * Handles sign-out:
- * - Calls backend `/auth/signout` to clear Redis session.
- * - Clears local auth store.
- * - Redirects to `/` (landing page).
- * - Disables button while signing out.
+ * Handles user sign-out process:
+ * - Invalidates backend session
+ * - Clears local auth state
+ * - Redirects to landing page
+ * - Handles disabled state for button UX
  */
 export const useSignOut = () => {
   const [disabled, setDisabled] = useState(false);
@@ -17,29 +18,35 @@ export const useSignOut = () => {
 
   const signOut = async () => {
     if (disabled) {
-      console.warn('[useSignOut] Already in progress — ignored.');
+      console.warn('[useSignOut] Sign-out already in progress — ignoring.');
       return;
     }
 
     setDisabled(true);
-    console.info('[useSignOut] 🔒 Signing out…');
+    console.info('[useSignOut] 🔒 Signing out...');
 
     try {
       await axiosInstance.post('/auth/signout').catch((err) => {
         console.warn(
           '[useSignOut] Backend sign-out failed (continuing anyway):',
-          err
+          err?.response?.data || err.message
         );
       });
 
-      logout();
-
-      console.info('[useSignOut] ✅ Local session cleared.');
+      try {
+        logout();
+        console.info('[useSignOut] ✅ Local session cleared.');
+        toast.success('Signed out successfully.');
+      } catch (logoutErr) {
+        console.error('[useSignOut] Failed to clear local session:', logoutErr);
+        toast.error('⚠️ Local sign-out issue. Please reload.');
+      }
     } catch (err) {
-      console.error('[useSignOut] Unexpected error during sign-out:', err);
+      console.error('[useSignOut] Unexpected sign-out error:', err);
+      toast.error('❌ Sign-out failed.');
     } finally {
       setDisabled(false);
-      navigate('/'); // Always redirect to landing page
+      navigate('/'); // Always return to home
     }
   };
 

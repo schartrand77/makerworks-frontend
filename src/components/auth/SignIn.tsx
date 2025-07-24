@@ -1,23 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import { useSignIn } from '@/hooks/useSignIn';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const SignIn = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  const { signIn, error } = useSignIn();
+  const { signIn, error, loading } = useSignIn();
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (user) {
+      const timeout = setTimeout(() => navigate('/dashboard'), 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [user, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await signIn(emailOrUsername, password);
-    } finally {
-      setLoading(false);
-    }
+    await signIn(emailOrUsername, password);
   };
 
   return (
@@ -92,7 +97,7 @@ const SignIn = () => {
             dark:text-blue-100
             transition-all
             duration-200
-            "
+          "
           type="submit"
           disabled={loading}
         >

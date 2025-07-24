@@ -14,8 +14,7 @@ function AppContent() {
 
 export default function App() {
   const user = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
-  const fetchUser = useAuthStore((s) => s.fetchUser);
+  const { setUser, fetchUser } = useAuthStore.getState(); // ✅ fixed
   useSessionRefresh();
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export default function App() {
     };
 
     runAuthFetch();
-  }, [user, fetchUser, setUser]);
+  }, [user]); // ✅ only track 'user'
 
   return (
     <>

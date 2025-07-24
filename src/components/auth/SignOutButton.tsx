@@ -26,27 +26,28 @@ export default function SignOutButton({
   const handleSignOut = async () => {
     if (loading) return;
 
-    if (confirm && !window.confirm('Are you sure you want to sign out?')) {
-      return;
+    if (confirm) {
+      const confirmed = window.confirm('Are you sure you want to sign out?');
+      if (!confirmed) return;
     }
 
     setLoading(true);
 
     try {
-      // attempt to sign out on the backend
       const res = await axiosInstance.post('/auth/signout');
 
       if (res.status === 200) {
         toast.success('✅ Signed out successfully.');
       } else {
-        console.warn('[SignOutButton] Unexpected signout status', res.status);
-        toast.warning('⚠️ Backend returned unexpected status. Cleared locally.');
+        console.warn('[SignOutButton] Unexpected sign-out status:', res.status);
+        toast.warning('⚠️ Backend returned unexpected status. Session cleared locally.');
       }
-    } catch (err) {
-      console.error('[SignOutButton] Backend signout error:', err);
-      toast.error('⚠️ Could not fully sign out from server. Cleared locally.');
+    } catch (err: any) {
+      console.error('[SignOutButton] Backend sign-out error:', err);
+      toast.error(
+        `⚠️ Sign-out error: ${err?.response?.data?.detail || err?.message || 'unknown error'}`
+      );
     } finally {
-      // always clear frontend session regardless of server result
       logout();
       setLoading(false);
       navigate(redirectTo);

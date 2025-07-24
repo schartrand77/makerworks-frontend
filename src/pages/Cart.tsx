@@ -35,7 +35,10 @@ export default function Cart() {
     <PageLayout>
       <div className="space-y-6 flex flex-col items-center w-full">
         <div className="w-full max-w-4xl">
-          <PageHeader icon={<ShoppingCart className="w-8 h-8" />} title="Your Cart" />
+          <PageHeader
+            icon={<ShoppingCart className="w-8 h-8 text-zinc-400" />}
+            title="Your Cart"
+          />
         </div>
 
         {items.length === 0 ? (
@@ -54,8 +57,10 @@ export default function Cart() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
-                    <h2 className="font-semibold text-lg">{item.name}</h2>
-                    <p className="text-sm text-zinc-500">
+                    <h2 className="font-semibold text-lg text-zinc-800 dark:text-zinc-100">
+                      {item.name}
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       ID: {item.id} • ${item.price.toFixed(2)} each
                     </p>
                     <div className="flex items-center gap-2 mt-2">
@@ -67,7 +72,9 @@ export default function Cart() {
                       >
                         <Minus className="w-4 h-4" />
                       </button>
-                      <span className="px-2">{item.quantity}</span>
+                      <span className="px-2 text-zinc-800 dark:text-zinc-100">
+                        {item.quantity}
+                      </span>
                       <button
                         onClick={() => setItemQuantity(item.id, item.quantity + 1)}
                         className="p-1 rounded bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300"
@@ -90,13 +97,11 @@ export default function Cart() {
 
             <div className="rounded-2xl bg-white/30 dark:bg-zinc-800/30 backdrop-blur-md p-4 shadow-lg border border-white/20">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="text-lg font-semibold">
+                <div className="text-lg font-semibold text-zinc-800 dark:text-zinc-100">
                   Subtotal:{' '}
-                  <span className="text-emerald-600">
-                    ${subtotal.toFixed(2)}
-                  </span>
+                  <span className="text-emerald-600">${subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={clearCart}
                     className="px-4 py-2 rounded-md bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300 text-sm w-full sm:w-auto"
@@ -105,7 +110,7 @@ export default function Cart() {
                   </button>
                   <button
                     onClick={handleCheckout}
-                    className="px-4 py-2 rounded-md bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300 text-sm w-full sm:w-auto"
+                    className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm w-full sm:w-auto"
                   >
                     Proceed to Checkout
                   </button>

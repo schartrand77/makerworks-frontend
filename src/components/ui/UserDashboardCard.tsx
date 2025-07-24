@@ -1,26 +1,31 @@
 // src/components/ui/UserDashboardCard.tsx
-import { useUser } from '@/hooks/useUser';
-import GlassCard from '@/components/ui/GlassCard';
-import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/hooks/useUser'
+import GlassCard from '@/components/ui/GlassCard'
+import { useNavigate } from 'react-router-dom'
 
 const UserDashboardCard = () => {
-  const navigate = useNavigate();
-  const { user, avatar, signOut } = useUser();
+  const navigate = useNavigate()
+  const { user, avatar, signOut } = useUser()
 
-  if (!user) return null;
+  if (!user) return null
 
   const getAbsoluteUrl = (path: string | null | undefined) => {
-    if (!path) return null;
+    if (!path) return null
     return path.startsWith('http')
       ? path
-      : `${import.meta.env.VITE_API_URL}${path}`;
-  };
+      : `${import.meta.env.VITE_API_URL}${path}`
+  }
 
   const avatarSrc =
     avatar ||
     getAbsoluteUrl(user.avatar_url) ||
     getAbsoluteUrl(user.thumbnail_url) ||
-    '/default-avatar.png';
+    '/default-avatar.png'
+
+  const handleSignOut = () => {
+    signOut()
+    navigate('/')
+  }
 
   return (
     <GlassCard className="w-full max-w-md p-6 text-center flex flex-col items-center gap-4 shadow-[0_8px_20px_rgba(128,128,128,0.15)]">
@@ -31,8 +36,10 @@ const UserDashboardCard = () => {
             alt="User avatar"
             className="w-full h-full object-cover rounded-full"
             onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = '/default-avatar.png';
+              if (e.currentTarget.src !== '/default-avatar.png') {
+                e.currentTarget.onerror = null
+                e.currentTarget.src = '/default-avatar.png'
+              }
             }}
           />
         ) : (
@@ -54,32 +61,19 @@ const UserDashboardCard = () => {
       <div className="mt-4 flex gap-3 justify-center">
         <button
           onClick={() => navigate('/settings')}
-          className="
-            px-5 py-2 rounded-full
-            bg-blue-500 text-white
-            shadow hover:bg-blue-600
-            transition text-sm
-          "
+          className="px-5 py-2 rounded-full bg-blue-500 text-white shadow hover:bg-blue-600 transition text-sm"
         >
           Edit Profile
         </button>
         <button
-          onClick={() => {
-            signOut();
-            window.location.href = '/';
-          }}
-          className="
-            px-5 py-2 rounded-full
-            bg-red-500 text-white
-            shadow hover:bg-red-600
-            transition text-sm
-          "
+          onClick={handleSignOut}
+          className="px-5 py-2 rounded-full bg-red-500 text-white shadow hover:bg-red-600 transition text-sm"
         >
           Log Out
         </button>
       </div>
     </GlassCard>
-  );
-};
+  )
+}
 
-export default UserDashboardCard;
+export default UserDashboardCard

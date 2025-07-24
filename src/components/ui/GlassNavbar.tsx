@@ -1,28 +1,28 @@
 // src/components/ui/GlassNavbar.tsx
-import { Link, useLocation } from 'react-router-dom';
-import UserDropdown from '@/components/ui/UserDropdown';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom'
+import UserDropdown from '@/components/ui/UserDropdown'
+import { useAuthStore } from '@/store/useAuthStore'
+import { useEffect, useRef } from 'react'
 
 const GlassNavbar = () => {
-  const user = useAuthStore((s) => s.user);
-  const isAuthenticatedFn = useAuthStore((s) => s.isAuthenticated);
-  const isAuthenticated = typeof isAuthenticatedFn === 'function' ? isAuthenticatedFn() : false;
-  const location = useLocation();
-  const gearRef = useRef<HTMLSpanElement>(null);
+  const user = useAuthStore((s) => s.user)
+  const isAuthenticatedFn = useAuthStore((s) => s.isAuthenticated)
+  const isAuthenticated = typeof isAuthenticatedFn === 'function' ? isAuthenticatedFn() : false
+  const location = useLocation()
+  const gearRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (gearRef.current) {
-        gearRef.current.classList.add('animate-spin-once');
+        gearRef.current.classList.add('animate-spin-once')
         setTimeout(() => {
-          gearRef.current?.classList.remove('animate-spin-once');
-        }, 1000);
+          gearRef.current?.classList.remove('animate-spin-once')
+        }, 1000)
       }
-    }, Math.random() * 8000 + 3000);
+    }, Math.random() * 8000 + 3000)
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   const navRoutes = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -30,83 +30,67 @@ const GlassNavbar = () => {
     { path: '/estimate', label: 'Estimate' },
     { path: '/upload', label: 'Upload' },
     { path: '/cart', label: 'Cart' },
-    { path: '/checkout', label: 'Checkout' },
-  ];
+    { path: '/checkout', label: 'Checkout' }
+  ]
 
-  const getAbsoluteUrl = (path: string | null | undefined) => {
-    if (!path) return null;
-    return path.startsWith('http')
-      ? path
-      : `${import.meta.env.VITE_API_URL}${path}`;
-  };
+  const getAbsoluteUrl = (path?: string | null): string | null => {
+    if (!path) return null
+    return path.startsWith('http') ? path : `${import.meta.env.VITE_API_URL}${path}`
+  }
 
   const fallbackUser = {
     username: 'Guest',
     email: 'guest@example.com',
     avatar_url: '/default-avatar.png',
-    role: 'guest',
-  };
+    role: 'guest'
+  }
 
   const resolvedUser = isAuthenticated
     ? {
         ...fallbackUser,
         ...user,
         avatar_url:
-          getAbsoluteUrl(user?.avatar_url) ||
-          getAbsoluteUrl(user?.thumbnail_url) ||
-          '/default-avatar.png',
+          getAbsoluteUrl(user?.avatar_url) ??
+          getAbsoluteUrl(user?.thumbnail_url) ??
+          '/default-avatar.png'
       }
-    : fallbackUser;
+    : fallbackUser
 
   return (
     <nav
       className="
-        fixed
-        top-4
-        left-1/2
-        transform -translate-x-1/2
-        flex justify-between items-center
-        gap-6
-        px-6 py-2
-        rounded-full
+        fixed top-4 left-1/2 transform -translate-x-1/2
+        flex justify-between items-center gap-6
+        px-6 py-2 rounded-full
         bg-white/30 dark:bg-black/30
-        backdrop-blur-md
-        shadow-md
-        z-50
+        backdrop-blur-md shadow-md z-50
       "
     >
       <div className="flex items-center gap-2">
         <Link to="/" className="text-lg font-bold text-gray-800 dark:text-white">
           MakerW
-          <span ref={gearRef} className="gear">
-            ⚙️
-          </span>
+          <span ref={gearRef} className="gear">⚙️</span>
           rks
         </Link>
 
         {navRoutes.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path
           return (
             <Link
               key={item.path}
               to={item.path}
               className={`
-                text-sm
-                px-3 py-1
-                rounded-full
-                backdrop-blur
+                text-sm px-3 py-1 rounded-full backdrop-blur
                 bg-blue-200/40 dark:bg-blue-300/20
                 text-blue-700 dark:text-blue-200
-                border border-blue-300
-                shadow
-                transition
+                border border-blue-300 shadow transition
                 hover:bg-blue-300/50 dark:hover:bg-blue-400/30
                 ${isActive ? 'bg-blue-500 text-white' : ''}
               `}
             >
               {item.label}
             </Link>
-          );
+          )
         })}
       </div>
 
@@ -117,16 +101,11 @@ const GlassNavbar = () => {
           <Link
             to="/auth/signin"
             className="
-              text-sm
-              px-3 py-1
-              rounded-full
-              backdrop-blur
+              text-sm px-3 py-1 rounded-full backdrop-blur
               bg-blue-200/40 dark:bg-blue-300/20
               text-blue-700 dark:text-blue-200
-              border border-blue-300
-              shadow
+              border border-blue-300 shadow transition
               hover:bg-blue-300/50 dark:hover:bg-blue-400/30
-              transition
             "
           >
             Sign In
@@ -134,7 +113,7 @@ const GlassNavbar = () => {
         )}
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default GlassNavbar;
+export default GlassNavbar

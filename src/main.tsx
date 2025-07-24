@@ -1,4 +1,4 @@
-import React, { StrictMode } from 'react';
+import React, { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import ErrorBoundary from '@/components/system/ErrorBoundary';
 import { ToastProvider } from '@/context/ToastProvider';
 import { UserProvider } from '@/context/UserContext';
 import queryClient from '@/api/queryClient';
+
 import '@/index.css';
 
 const rootElement = document.getElementById('root');
@@ -37,16 +38,17 @@ createRoot(rootElement).render(
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <UserProvider>
-            {/* ToastProvider enables useToast() hook */}
             <ToastProvider>
               <ErrorBoundary>
-                <App />
+                <Suspense fallback={<div className="loading">🔄 Loading MakerWorks...</div>}>
+                  <App />
+                </Suspense>
               </ErrorBoundary>
             </ToastProvider>
           </UserProvider>
 
-          {/* React Query Devtools — development aid */}
-          <ReactQueryDevtools initialIsOpen={false} />
+          {/* Only include devtools in development */}
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </BrowserRouter>
     </HelmetProvider>

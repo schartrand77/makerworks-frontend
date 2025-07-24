@@ -2,6 +2,7 @@ import axios from './axios'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { useAuthStore } from '@/store/useAuthStore'
+import { getCurrentUser } from './auth'
 
 export interface AvatarUploadResponse {
   status: 'ok'
@@ -25,8 +26,8 @@ export type UpdateProfilePayload = z.infer<typeof UpdateProfileSchema>
 export const uploadAvatar = async (
   file: File
 ): Promise<AvatarUploadResponse | null> => {
-  const { token } = useAuthStore.getState()
-  if (!token) {
+  const { token, user, setUser } = useAuthStore.getState()
+  if (!token || !user?.id) {
     toast.error('❌ Not authenticated. Please log in.')
     return null
   }
@@ -45,6 +46,12 @@ export const uploadAvatar = async (
         }
       }
     )
+
+    // Patch the current user with the new avatar URL
+    setUser({
+      ...user,
+      avatar_url: res.data.avatar_url
+    })
 
     toast.success('✅ Avatar updated.')
     return res.data
@@ -79,6 +86,9 @@ export const updateUserProfile = async (
   try {
     await axios.patch('/users/me', parsed.data)
 
+    // Refetch updated profile to hydrate state
+    await getCurrentUser()
+
     toast.success('✅ Profile updated.')
   } catch (err: any) {
     console.error('[updateUserProfile] error', err)
@@ -93,7 +103,7 @@ export const updateUserProfile = async (
  * Delete the current user's account.
  */
 export const deleteAccount = async (): Promise<void> => {
-  const { user } = useAuthStore.getState()
+  const { user, logout } = useAuthStore.getState()
   if (!user) {
     toast.error('❌ Not authenticated. Please log in.')
     throw new Error('Not authenticated')
@@ -101,7 +111,7 @@ export const deleteAccount = async (): Promise<void> => {
 
   try {
     await axios.delete('/users/me')
-
+    logout()
     toast.success('✅ Account deleted.')
   } catch (err: any) {
     console.error('[deleteAccount] error', err)
