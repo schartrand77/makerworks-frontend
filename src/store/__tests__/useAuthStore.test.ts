@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+vi.mock('@/api/axios', () => ({ default: { post: vi.fn() } }))
 
 function createLocalStorageMock() {
   let store: Record<string, string> = {}
@@ -26,17 +27,17 @@ describe('useAuthStore.logout', () => {
   beforeEach(async () => {
     vi.resetModules()
     vi.stubGlobal('localStorage', createLocalStorageMock())
+    vi.stubGlobal('sessionStorage', createLocalStorageMock())
     ;({ useAuthStore } = await import('../useAuthStore'))
     useAuthStore.setState({ user: { id: '1', email: 'e', username: 'u', role: 'user' } })
+    localStorage.setItem('auth-storage', JSON.stringify({ state: { user: { id: '1' } } }))
   })
 
-  it('clears auth-storage without stray keys', () => {
-    const before = localStorage.getItem('auth-store')
+  it('clears auth-storage without stray keys', async () => {
+    const before = localStorage.getItem('auth-storage')
     expect(before).toBeTruthy()
-    useAuthStore.getState().logout()
-    const persisted = JSON.parse(localStorage.getItem('auth-store') || '{}')
-    expect(persisted.state.user).toBeNull()
-    expect(localStorage.length).toBe(1)
-    expect(localStorage.key(0)).toBe('auth-store')
+    await useAuthStore.getState().logout()
+    expect(localStorage.getItem('auth-storage')).toBeNull()
+    expect(localStorage.length).toBe(0)
   })
 })
