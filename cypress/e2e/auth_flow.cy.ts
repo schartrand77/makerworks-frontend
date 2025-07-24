@@ -22,7 +22,7 @@ describe('MakerWorks Authentik OAuth2 Flow', () => {
   it('✅ Successful login and redirects to dashboard', () => {
     localStorage.setItem('auth_state', mockState);
 
-    cy.intercept('POST', '/api/v1/auth/token', {
+    cy.intercept('POST', '/auth/token', {
       statusCode: 200,
       body: {
         token: 'fake-jwt',
@@ -75,7 +75,7 @@ describe('MakerWorks Authentik OAuth2 Flow', () => {
   it('❌ Fails when backend token exchange fails', () => {
     localStorage.setItem('auth_state', mockState);
 
-    cy.intercept('POST', '/api/v1/auth/token', {
+    cy.intercept('POST', '/auth/token', {
       statusCode: 500,
     }).as('tokenExchange');
 

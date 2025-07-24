@@ -38,7 +38,7 @@ export const useUser = () => {
 
       if (u.id) {
         try {
-          const uploadsRes = await axios.get(`/api/v1/users/${u.id}/uploads`)
+          const uploadsRes = await axios.get(`/users/${u.id}/uploads`)
           const uploads: Upload[] = uploadsRes.data?.models ?? []
           u.uploads = uploads.sort(
             (a, b) =>

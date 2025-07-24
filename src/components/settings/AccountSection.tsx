@@ -15,7 +15,7 @@ export default function AccountSection() {
 
     setDeleting(true)
     try {
-      await axios.delete(`/api/v1/users/${user?.id}`)
+      await axios.delete(`/users/${user?.id}`)
       toast.success('🗑️ Account deleted')
       logout()
     } catch (err) {

@@ -58,7 +58,7 @@ const UploadPage: React.FC = () => {
     const formData = new FormData()
     formData.append('file', file)
 
-    return axios.post(`/api/v1/upload`, formData, {
+    return axios.post(`/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`
