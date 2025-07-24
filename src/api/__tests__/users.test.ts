@@ -5,12 +5,35 @@ import { useAuthStore } from '@/store/useAuthStore'
 
 vi.mock('@/api/axios')
 
+function createStorageMock() {
+  let store: Record<string, string> = {}
+  return {
+    getItem: (key: string) => (key in store ? store[key] : null),
+    setItem: (key: string, value: string) => {
+      store[key] = value
+    },
+    removeItem: (key: string) => {
+      delete store[key]
+    },
+    clear: () => {
+      store = {}
+    },
+    key: (i: number) => Object.keys(store)[i] || null,
+    get length() {
+      return Object.keys(store).length
+    },
+  }
+}
+
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.stubGlobal('localStorage', createStorageMock())
+  vi.stubGlobal('sessionStorage', createStorageMock())
   useAuthStore.setState({
     user: { id: '1', email: 'e', username: 'u', role: 'user' } as any,
     token: 'test-token',
   })
+  ;(axios.get as any).mockResolvedValue({ data: { id: '1', email: 'e' } })
 })
 
 describe('users.ts', () => {
