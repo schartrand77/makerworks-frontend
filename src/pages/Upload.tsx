@@ -1,195 +1,136 @@
 // src/pages/Upload.tsx
 
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import toast, { Toaster } from 'react-hot-toast';
-import { uploadAvatar } from '@/api/users';
+import React, { useState, useCallback } from 'react'
+import { useDropzone } from 'react-dropzone'
+import toast, { Toaster } from 'react-hot-toast'
+import axios from '@/api/axios'
+import { useAuthStore } from '@/store/useAuthStore'
 
-const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif'];
+const allowedExtensions = ['stl', '3mf', 'obj']
 
 const UploadPage: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [rejectedFiles, setRejectedFiles] = useState<string[]>([])
+  const { user, token } = useAuthStore()
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections) => {
-    setRejectedFiles([]);
-    setSelectedFile(null);
-    setProgress(0);
+    setRejectedFiles([])
+    setSelectedFile(null)
+    setProgress(0)
 
     if (!acceptedFiles.length) {
-      toast.error('❌ No valid file selected.');
-      if (fileRejections.length) {
-        const names = fileRejections.map((rej) => rej.file.name);
-        setRejectedFiles(names);
-      }
-      return;
+      toast.error('❌ No valid file selected.')
+      const names = fileRejections.map((rej) => rej.file.name)
+      setRejectedFiles(names)
+      return
     }
 
-    const file = acceptedFiles[0];
-    const ext = file.name.split('.').pop()?.toLowerCase();
+    const file = acceptedFiles[0]
+    const ext = file.name.split('.').pop()?.toLowerCase()
 
     if (!allowedExtensions.includes(ext || '')) {
-      toast.error(`❌ Invalid file: ${file.name}. Allowed: ${allowedExtensions.join(', ')}`);
-      setRejectedFiles([file.name]);
-      return;
+      toast.error(`❌ Invalid file: ${file.name}. Allowed: ${allowedExtensions.join(', ')}`)
+      setRejectedFiles([file.name])
+      return
     }
 
-    setSelectedFile(file);
+    setSelectedFile(file)
+    setLoading(true)
 
-    setLoading(true);
-
-    uploadAvatarWithProgress(file)
+    uploadModelWithProgress(file)
       .then((res) => {
-        if (res) {
-          toast.success(`✅ Avatar uploaded: ${res.avatar_url}`);
-        }
-        setSelectedFile(null);
-        setProgress(0);
+        toast.success('✅ Model uploaded.')
+        setSelectedFile(null)
+        setProgress(0)
       })
-      .catch(() => {
-        toast.error(`❌ Upload failed.`);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      .catch(() => toast.error(`❌ Upload failed.`))
+      .finally(() => setLoading(false))
+  }, [])
 
-  /**
-   * Wrapper to track progress manually
-   */
-  const uploadAvatarWithProgress = async (file: File) => {
-    return new Promise((resolve, reject) => {
-      const { user } = require('@/store/useAuthStore').useAuthStore.getState();
-      if (!user?.id) {
-        toast.error('❌ Not authenticated. Please log in.');
-        reject(new Error('Not authenticated'));
-        return;
+  const uploadModelWithProgress = async (file: File) => {
+    if (!token) {
+      toast.error('❌ Not authenticated.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    return axios.post(`/api/v1/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`
+      },
+      onUploadProgress: (e: ProgressEvent) => {
+        if (e.total) setProgress(Math.round((e.loaded / e.total) * 100))
       }
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const axios = require('@/api/axios').default;
-
-      axios
-        .post(
-          `/api/v1/avatar?user_id=${user.id}`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-            onUploadProgress: (e: ProgressEvent) => {
-              if (e.total) {
-                setProgress(Math.round((e.loaded / e.total) * 100));
-              }
-            },
-          }
-        )
-        .then((res: any) => {
-          toast.success('✅ Avatar updated.');
-          resolve(res.data);
-        })
-        .catch((err: any) => {
-          console.error('[uploadAvatar] error', err);
-          toast.error(
-            err?.response?.data?.detail || '❌ Failed to upload avatar.'
-          );
-          reject(err);
-        });
-    });
-  };
+    })
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
     disabled: loading,
     accept: {
-      'image/png': ['.png'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/gif': ['.gif'],
-    },
-  });
+      'model/stl': ['.stl'],
+      'application/octet-stream': ['.3mf', '.obj']
+    }
+  })
 
   return (
-    <div
-      className="upload-container"
-      style={{
-        maxWidth: '600px',
-        margin: '2rem auto',
-        fontFamily: 'system-ui, sans-serif',
-      }}
-    >
+    <div className="upload-container" style={{ maxWidth: '640px', margin: '2rem auto', color: '#d1d5db' }}>
       <Toaster position="top-right" />
-
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#fff' }}>
-        Upload Your Avatar
-      </h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Upload a 3D Model</h2>
 
       <div
         {...getRootProps()}
         className={`dropzone ${isDragActive ? 'active' : ''}`}
         style={{
-          border: '2px solid rgba(255, 255, 255, 0.3)',
+          border: '2px solid rgba(255, 255, 255, 0.15)',
           borderRadius: '16px',
-          padding: '30px',
+          padding: '32px',
           textAlign: 'center',
           cursor: loading ? 'not-allowed' : 'pointer',
           opacity: loading ? 0.6 : 1,
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(16px) saturate(180%)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-          color: '#fff',
-          transition: 'all 0.3s ease',
+          background: 'rgba(255, 255, 255, 0.04)',
+          backdropFilter: 'blur(18px) saturate(180%)',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+          color: '#d1d5db'
         }}
       >
         <input {...getInputProps()} />
-        {isDragActive ? (
-          <p>Drop your avatar here…</p>
-        ) : (
-          <p>
-            Drag & drop an image here or click to select.
-            <br />
-            <strong>Allowed: png, jpg, jpeg, gif</strong>
-          </p>
-        )}
+        <p>
+          {isDragActive ? 'Drop your model here…' : 'Drag and drop your model file or click to browse.'}
+          <br />
+          <strong>Accepted: .stl, .3mf, .obj</strong>
+        </p>
       </div>
 
       {selectedFile && (
         <div
           style={{
-            marginTop: '1rem',
+            marginTop: '1.25rem',
             padding: '1rem',
             borderRadius: '12px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(12px)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            color: '#fff',
+            background: 'rgba(255, 255, 255, 0.04)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            color: '#d1d5db'
           }}
         >
           <p>
-            📄 <strong>{selectedFile.name}</strong> (
-            {(selectedFile.size / 1024).toFixed(1)} KB)
+            📦 <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(1)} KB)
           </p>
           {loading && (
-            <div
-              style={{
-                height: '10px',
-                background: 'rgba(255,255,255,0.2)',
-                borderRadius: '4px',
-                marginTop: '0.5rem',
-                overflow: 'hidden',
-              }}
-            >
+            <div style={{ height: '10px', background: '#333', borderRadius: '5px', marginTop: '0.5rem' }}>
               <div
                 style={{
                   width: `${progress}%`,
                   height: '100%',
-                  background:
-                    'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
-                  transition: 'width 0.2s ease',
+                  background: 'linear-gradient(90deg, #60a5fa, #38bdf8)',
+                  transition: 'width 0.2s ease'
                 }}
               />
             </div>
@@ -198,20 +139,14 @@ const UploadPage: React.FC = () => {
       )}
 
       {loading && (
-        <p style={{ textAlign: 'center', marginTop: '1em', color: '#fff' }}>
-          Uploading… {progress}%
+        <p style={{ textAlign: 'center', marginTop: '1em' }}>
+          Uploading… <strong>{progress}%</strong>
         </p>
       )}
 
       {rejectedFiles.length > 0 && (
-        <div
-          style={{
-            color: 'red',
-            marginTop: '1em',
-            textAlign: 'center',
-          }}
-        >
-          <p>🚫 Rejected files:</p>
+        <div style={{ color: '#f87171', marginTop: '1em', textAlign: 'center' }}>
+          <p>🚫 Rejected:</p>
           <ul>
             {rejectedFiles.map((name) => (
               <li key={name}>{name}</li>
@@ -220,7 +155,7 @@ const UploadPage: React.FC = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default UploadPage;
+export default UploadPage

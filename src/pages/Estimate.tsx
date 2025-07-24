@@ -1,130 +1,131 @@
-import { useState, useEffect } from 'react';
-import PageLayout from '@/components/layout/PageLayout';
-import GlassCard from '@/components/ui/GlassCard';
-import ModelViewer from '@/components/ui/ModelViewer';
-import PageHeader from '@/components/ui/PageHeader';
-import { fetchAvailableFilaments } from '@/api/filaments';
-import { getEstimate } from '@/api/estimate';
-import { Printer } from 'lucide-react';
-import { toast } from 'sonner';
+// src/pages/Estimate.tsx
+
+import { useEffect, useState } from 'react'
+import PageLayout from '@/components/layout/PageLayout'
+import GlassCard from '@/components/ui/GlassCard'
+import MeshLabViewer from '@/components/ui/MeshLabViewer'
+import PageHeader from '@/components/ui/PageHeader'
+import { Printer } from 'lucide-react'
+import { toast } from 'sonner'
+import { useEstimateStore } from '@/store/useEstimateStore'
+import axios from '@/api/axios'
+import { getEstimate } from '@/api/estimate'
+import FilamentFanoutPicker from '@/components/ui/FilamentFanoutPicker'
 
 interface EstimateResult {
-  estimated_time_minutes: number;
-  estimated_cost_usd: number;
+  estimated_time_minutes: number
+  estimated_cost_usd: number
 }
 
 interface Filament {
-  id: string;
-  type: string;
-  color: string;
-  hex: string;
+  id: string
+  type: string
+  color: string
+  hex: string
 }
 
 export default function Estimate() {
-  const [form, setForm] = useState({
-    x_mm: 50,
-    y_mm: 50,
-    z_mm: 50,
-    filament_type: '',
-    colors: [] as string[],
-    custom_text: '',
-    print_profile: 'standard',
-  });
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<EstimateResult | null>(null);
-  const [filaments, setFilaments] = useState<Filament[]>([]);
-  const [model, setModel] = useState<{ glb_url?: string; stl_url?: string }>({
-    glb_url: '/example.glb',
-    stl_url: '/example.stl',
-  });
+  const {
+    form,
+    setForm,
+    activeModel,
+    setEstimateResult,
+    estimateResult
+  } = useEstimateStore()
+
+  const [filaments, setFilaments] = useState<Filament[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetchAvailableFilaments()
-      .then((data) => {
-        setFilaments(data);
-        toast.success('🎨 Filaments loaded successfully');
-      })
-      .catch((err) => {
-        console.error('[Estimate] Failed to load filaments', err);
-        toast.error('⚠️ Failed to load filaments');
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!form.filament_type || form.colors.length === 0) {
-      setResult(null);
-      return;
+    const loadFilaments = async () => {
+      try {
+        const res = await axios.get('/filaments')
+        setFilaments(res.data)
+        toast.success('🎨 Filaments loaded successfully')
+      } catch (err) {
+        console.error('[Estimate] Failed to load filaments', err)
+        toast.error('⚠️ Failed to load filaments')
+      }
     }
 
-    const controller = new AbortController();
+    loadFilaments()
+  }, [])
+
+  useEffect(() => {
+    if (!form || !form.filament_type || !form.colors?.length) {
+      if (typeof setEstimateResult === 'function') {
+        setEstimateResult(null)
+      }
+      return
+    }
+
+    const controller = new AbortController()
     const calculate = async () => {
-      setLoading(true);
+      setLoading(true)
 
       const payload = {
         ...form,
         x_mm: Math.max(50, Math.min(256, form.x_mm)),
         y_mm: Math.max(50, Math.min(256, form.y_mm)),
-        z_mm: Math.max(50, Math.min(256, form.z_mm)),
-      };
+        z_mm: Math.max(50, Math.min(256, form.z_mm))
+      }
 
       try {
-        const data = await getEstimate(payload);
-        setResult(data);
+        const data = await getEstimate(payload)
+        if (typeof setEstimateResult === 'function') {
+          setEstimateResult(data)
+        }
       } catch (err) {
-        console.error('[Estimate] Estimate API failed:', err);
-        toast.error('❌ Failed to calculate estimate');
-        setResult(null);
+        console.error('[Estimate] Estimate API failed:', err)
+        toast.error('❌ Failed to calculate estimate')
+        if (typeof setEstimateResult === 'function') {
+          setEstimateResult(null)
+        }
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    calculate();
+    calculate()
+    return () => controller.abort()
+  }, [form])
 
-    return () => controller.abort();
-  }, [form]);
-
-  const toggleColor = (hex: string) => {
-    setForm((prev) => {
-      const colors = prev.colors.includes(hex)
-        ? prev.colors.filter((c) => c !== hex)
-        : prev.colors.length < 4
-        ? [...prev.colors, hex]
-        : prev.colors;
-
-      if (colors.length === 4 && !prev.colors.includes(hex)) {
-        toast.info('Maximum of 4 colors selected');
-      }
-
-      return { ...prev, colors };
-    });
-  };
+  if (!form) {
+    return (
+      <PageLayout>
+        <PageHeader icon={<Printer className="w-8 h-8 text-zinc-400" />} title="Estimate Print Job" />
+        <GlassCard className="text-center py-12">
+          <p className="text-zinc-500 dark:text-zinc-300 text-sm">Loading estimate form…</p>
+        </GlassCard>
+      </PageLayout>
+    )
+  }
 
   return (
     <PageLayout>
       <div className="space-y-6">
-        <PageHeader icon={<Printer className="w-8 h-8 text-zinc-400" />} title="Estimate Print Job" />
+        <PageHeader
+          icon={<Printer className="w-8 h-8 text-zinc-400" />}
+          title="Estimate Print Job"
+        />
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Model Viewer */}
           <GlassCard>
             <h2 className="text-lg font-semibold mb-2">Selected Model</h2>
-            {model.glb_url || model.stl_url ? (
-              <ModelViewer
-                src={model.glb_url}
-                fallbackSrc={model.stl_url}
-                color="#999999"
+            {activeModel?.glb_url || activeModel?.stl_url ? (
+              <MeshLabViewer
+                src={activeModel.glb_url}
+                fallbackSrc={activeModel.stl_url}
+                background="#f8fafc"
               />
             ) : (
               <div className="text-sm text-zinc-500">No model selected.</div>
             )}
           </GlassCard>
 
-          {/* Form */}
           <GlassCard>
             <h2 className="text-lg font-semibold mb-2">Print Configuration</h2>
             <div className="space-y-4">
-              {/* Dimensions */}
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Dimensions (mm) <span className="text-xs">(50–256)</span>
@@ -138,80 +139,43 @@ export default function Estimate() {
                       min={50}
                       max={256}
                       required
-                      value={form[dim]}
-                      onChange={(e) => setForm((f) => ({ ...f, [dim]: +e.target.value }))}
+                      value={form[dim] ?? ''}
+                      onChange={(e) =>
+                        setForm({ [dim]: +e.target.value })
+                      }
                       placeholder={dim.toUpperCase()}
-                      className="w-full rounded-md border p-2 dark:bg-zinc-800 text-center"
+                      className="w-full rounded-md border p-2 dark:bg-zinc-800 bg-white/80 text-center text-zinc-800 dark:text-zinc-100"
                     />
                   ))}
                 </div>
               </div>
 
-              {/* Filament */}
-              <div>
-                <label htmlFor="filament" className="block text-sm font-medium mb-1">
-                  Filament Type
-                </label>
-                <select
-                  id="filament"
-                  value={form.filament_type}
-                  onChange={(e) => setForm((f) => ({ ...f, filament_type: e.target.value }))}
-                  className="w-full rounded-md border p-2 dark:bg-zinc-800"
-                >
-                  <option value="">Select filament</option>
-                  {filaments.map((f) => (
-                    <option key={f.id} value={f.type}>
-                      {f.type}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <FilamentFanoutPicker filaments={filaments} />
 
-              {/* Colors */}
               <div>
-                <label className="block text-sm font-medium mb-1">Select up to 4 Colors</label>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {filaments.map((f) => (
-                    <button
-                      key={f.hex}
-                      type="button"
-                      onClick={() => toggleColor(f.hex)}
-                      style={{ backgroundColor: f.hex }}
-                      aria-label={`Select color ${f.color}`}
-                      className={`w-6 h-6 rounded-full border-2 transition ${
-                        form.colors.includes(f.hex)
-                          ? 'border-black dark:border-white ring-2 ring-offset-1 ring-zinc-500'
-                          : 'border-transparent'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Text */}
-              <div>
-                <label htmlFor="customText" className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1">
                   Custom Text
                 </label>
                 <input
-                  id="customText"
                   type="text"
-                  value={form.custom_text}
-                  onChange={(e) => setForm((f) => ({ ...f, custom_text: e.target.value }))}
-                  className="w-full rounded-md border p-2 dark:bg-zinc-800"
+                  value={form.custom_text ?? ''}
+                  onChange={(e) =>
+                    setForm({ custom_text: e.target.value })
+                  }
+                  className="w-full rounded-md border p-2 dark:bg-zinc-800 bg-white/80 text-zinc-800 dark:text-zinc-100"
                 />
               </div>
 
-              {/* Print Profile */}
               <div>
-                <label htmlFor="profile" className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1">
                   Print Profile
                 </label>
                 <select
-                  id="profile"
-                  value={form.print_profile}
-                  onChange={(e) => setForm((f) => ({ ...f, print_profile: e.target.value }))}
-                  className="w-full rounded-md border p-2 dark:bg-zinc-800"
+                  value={form.print_profile ?? 'standard'}
+                  onChange={(e) =>
+                    setForm({ print_profile: e.target.value })
+                  }
+                  className="w-full rounded-md border p-2 dark:bg-zinc-800 bg-white/80 text-zinc-800 dark:text-zinc-100"
                 >
                   <option value="standard">Standard</option>
                   <option value="quality">Quality</option>
@@ -222,29 +186,27 @@ export default function Estimate() {
           </GlassCard>
         </div>
 
-        {/* Result */}
         <GlassCard className="mt-6 text-center">
           <h2 className="text-lg font-semibold mb-2">Live Estimate</h2>
+
           {loading && (
-            <div className="text-blue-600 animate-pulse py-2">
-              🔄 Calculating…
-            </div>
+            <div className="text-blue-600 animate-pulse py-2">🔄 Calculating…</div>
           )}
 
-          {!loading && result && (
+          {!loading && estimateResult && (
             <div className="flex flex-col sm:flex-row justify-center gap-6 text-base text-zinc-800 dark:text-zinc-200 mt-2">
               <div className="bg-white/20 dark:bg-zinc-700/30 p-4 rounded-lg shadow backdrop-blur">
                 <strong>Estimated Time</strong>
-                <div>{Math.round(result.estimated_time_minutes)} minutes</div>
+                <div>{Math.round(estimateResult.estimated_time_minutes)} minutes</div>
               </div>
               <div className="bg-white/20 dark:bg-zinc-700/30 p-4 rounded-lg shadow backdrop-blur">
                 <strong>Estimated Cost</strong>
-                <div>${result.estimated_cost_usd.toFixed(2)}</div>
+                <div>${estimateResult.estimated_cost_usd.toFixed(2)}</div>
               </div>
             </div>
           )}
 
-          {!loading && !result && (
+          {!loading && !estimateResult && (
             <div className="text-sm text-zinc-500 mt-2">
               Select filament & at least one color to calculate.
             </div>
@@ -252,5 +214,5 @@ export default function Estimate() {
         </GlassCard>
       </div>
     </PageLayout>
-  );
+  )
 }

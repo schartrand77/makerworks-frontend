@@ -1,29 +1,42 @@
+// src/store/useEstimateStore.ts
 import { create } from 'zustand'
 
-export interface ModelEstimate {
-  id: string
-  name: string
-  volume?: number
-  thumbnailUrl?: string
-  [key: string]: unknown
+interface EstimateForm {
+  x_mm: number
+  y_mm: number
+  z_mm: number
+  filament_type?: string
+  colors?: string[]
+  custom_text?: string
+  print_profile?: string
 }
 
-interface EstimateStoreState {
-  selectedModels: ModelEstimate[]
-  setSelectedModels: (models: ModelEstimate[]) => void
-  clearSelectedModels: () => void
+interface EstimateResult {
+  estimated_time_minutes: number
+  estimated_cost_usd: number
 }
 
-export const useEstimateStore = create<EstimateStoreState>((set) => ({
-  selectedModels: [],
+interface EstimateState {
+  form: EstimateForm
+  estimateResult: EstimateResult | null
+  activeModel: any
+  setForm: (updates: Partial<EstimateForm>) => void
+  setEstimateResult: (result: EstimateResult | null) => void
+  setActiveModel: (model: any) => void
+}
 
-  setSelectedModels: (models: ModelEstimate[]) => {
-    console.debug('[useEstimateStore] setSelectedModels:', models)
-    set({ selectedModels: models })
+export const useEstimateStore = create<EstimateState>((set) => ({
+  form: {
+    x_mm: 100,
+    y_mm: 100,
+    z_mm: 100,
+    colors: [],
+    print_profile: 'standard',
   },
-
-  clearSelectedModels: () => {
-    console.debug('[useEstimateStore] clearSelectedModels()')
-    set({ selectedModels: [] })
-  },
+  estimateResult: null,
+  activeModel: null,
+  setForm: (updates) =>
+    set((state) => ({ form: { ...state.form, ...updates } })),
+  setEstimateResult: (result) => set({ estimateResult: result }),
+  setActiveModel: (model) => set({ activeModel: model }),
 }))

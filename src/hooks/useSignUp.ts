@@ -73,12 +73,8 @@ export const useSignUp = (): UseSignUpResult => {
         throw new Error('Invalid response: missing user')
       }
 
-      const { setUser, setToken } = useAuthStore.getState()
-      setUser(user)
-      if (token) setToken(token)
-
-      localStorage.setItem('user', JSON.stringify(user))
-      if (token) localStorage.setItem('token', token)
+      // ✅ Clean Zustand + localStorage sync
+      useAuthStore.getState().setAuth({ user, token: token || null })
 
       console.info('[useSignUp] ✅ User registered & state updated:', user)
 

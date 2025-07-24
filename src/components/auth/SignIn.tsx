@@ -1,29 +1,30 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import PageLayout from '@/components/layout/PageLayout';
-import { useSignIn } from '@/hooks/useSignIn';
-import { useAuthStore } from '@/store/useAuthStore';
+// src/components/auth/SignIn.tsx
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import PageLayout from '@/components/layout/PageLayout'
+import { useSignIn } from '@/hooks/useSignIn'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const SignIn = () => {
-  const [emailOrUsername, setEmailOrUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [emailOrUsername, setEmailOrUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
-  const { signIn, error, loading } = useSignIn();
-  const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate()
+  const { signIn, loading, error } = useSignIn()
+  const user = useAuthStore((s) => s.user)
 
   useEffect(() => {
     if (user) {
-      const timeout = setTimeout(() => navigate('/dashboard'), 100);
-      return () => clearTimeout(timeout);
+      const timeout = setTimeout(() => navigate('/dashboard'), 100)
+      return () => clearTimeout(timeout)
     }
-  }, [user, navigate]);
+  }, [user, navigate])
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await signIn(emailOrUsername, password);
-  };
+    e.preventDefault()
+    await signIn(emailOrUsername, password)
+  }
 
   return (
     <PageLayout title="Sign In">
@@ -105,7 +106,7 @@ const SignIn = () => {
         </button>
       </form>
     </PageLayout>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn

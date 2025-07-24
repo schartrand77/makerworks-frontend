@@ -3,7 +3,7 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/useAuthStore'
 
-// ensure baseURL has no trailing slash
+// Ensure baseURL has no trailing slash, then append /api/v1
 const base =
   (import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:8000') + '/api/v1'
 
@@ -19,6 +19,10 @@ instance.interceptors.request.use(
       config.headers = config.headers || {}
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // 🔍 Log outgoing requests for debugging
+    console.info(`[axios] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
+
     return config
   },
   (error) => Promise.reject(error)

@@ -13,6 +13,7 @@ interface AuthState {
 
   setUser: (user: UserOut | null) => void
   setToken: (token: string | null) => void
+  setAuth: (payload: { user: UserOut | null; token: string | null }) => void
   setResolved: (val: boolean) => void
   logout: () => Promise<void>
   fetchUser: (force?: boolean) => Promise<UserOut | null>
@@ -51,6 +52,22 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem('token')
         }
         set({ token })
+      },
+
+      setAuth: ({ user, token }) => {
+        if (token) {
+          localStorage.setItem('token', token)
+        } else {
+          localStorage.removeItem('token')
+        }
+
+        if (user?.avatar_url) {
+          localStorage.setItem('avatar_url', user.avatar_url)
+        } else {
+          localStorage.removeItem('avatar_url')
+        }
+
+        set({ user, token })
       },
 
       setResolved: (val) => {

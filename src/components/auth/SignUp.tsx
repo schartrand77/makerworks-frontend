@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import PageLayout from '@/components/layout/PageLayout';
-import { useSignUp } from '@/hooks/useSignUp';
+// src/components/auth/SignUp.tsx
+import { useState } from 'react'
+import PageLayout from '@/components/layout/PageLayout'
+import { useSignUp } from '@/hooks/useSignUp'
 
 const SignUp = () => {
   const {
@@ -12,35 +13,34 @@ const SignUp = () => {
     setPassword,
     loading,
     error,
-    handleSubmit,
-  } = useSignUp();
+    handleSubmit
+  } = useSignUp()
 
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const trimmedEmail = email.trim();
-    const trimmedUsername = username.trim();
-    const trimmedPassword = password.trim();
-    const trimmedConfirm = confirmPassword.trim();
+    const trimmedEmail = email.trim()
+    const trimmedUsername = username.trim()
+    const trimmedPassword = password.trim()
+    const trimmedConfirm = confirmPassword.trim()
 
     if (trimmedPassword !== trimmedConfirm) {
-      setPasswordError('Passwords do not match');
-      return;
+      setPasswordError('Passwords do not match')
+      return
     }
 
-    // Normalize values
-    setEmail(trimmedEmail);
-    setUsername(trimmedUsername);
-    setPassword(trimmedPassword);
-    setConfirmPassword(trimmedConfirm);
+    setEmail(trimmedEmail)
+    setUsername(trimmedUsername)
+    setPassword(trimmedPassword)
+    setConfirmPassword(trimmedConfirm)
+    setPasswordError(null)
 
-    setPasswordError(null);
-    handleSubmit(e);
-  };
+    handleSubmit(e)
+  }
 
   return (
     <PageLayout title="Sign Up">
@@ -76,14 +76,14 @@ const SignUp = () => {
           </label>
           <input
             id="email"
-            className="input rounded-full px-4 py-2"
-            placeholder="you@example.com"
             type="email"
             autoComplete="email"
+            className="input rounded-full px-4 py-2"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value.trimStart())}
-            required
             disabled={loading}
+            required
           />
         </div>
 
@@ -97,8 +97,8 @@ const SignUp = () => {
             placeholder="yourusername"
             value={username}
             onChange={(e) => setUsername(e.target.value.trimStart())}
-            required
             disabled={loading}
+            required
           />
         </div>
 
@@ -108,14 +108,14 @@ const SignUp = () => {
           </label>
           <input
             id="password"
-            className="input rounded-full px-4 py-2 pr-12"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
             autoComplete="new-password"
+            className="input rounded-full px-4 py-2 pr-12"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
             disabled={loading}
+            required
           />
           <button
             type="button"
@@ -132,18 +132,26 @@ const SignUp = () => {
           </label>
           <input
             id="confirmPassword"
-            className="input rounded-full px-4 py-2"
             type={showPassword ? 'text' : 'password'}
-            placeholder="Confirm your password"
             autoComplete="new-password"
+            className="input rounded-full px-4 py-2"
+            placeholder="Confirm your password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            required
             disabled={loading}
+            required
           />
         </div>
 
         <button
+          type="submit"
+          disabled={
+            loading ||
+            !email.trim() ||
+            !username.trim() ||
+            !password.trim() ||
+            !confirmPassword.trim()
+          }
           className="
             mt-4
             rounded-full
@@ -160,20 +168,12 @@ const SignUp = () => {
             transition-all
             duration-200
           "
-          type="submit"
-          disabled={
-            loading ||
-            !email.trim() ||
-            !username.trim() ||
-            !password.trim() ||
-            !confirmPassword.trim()
-          }
         >
           {loading ? 'Signing up…' : 'Sign Up'}
         </button>
       </form>
     </PageLayout>
-  );
-};
+  )
+}
 
-export default SignUp;
+export default SignUp

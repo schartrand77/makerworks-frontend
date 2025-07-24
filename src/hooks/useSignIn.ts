@@ -1,3 +1,4 @@
+// src/hooks/useSignIn.ts
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -20,13 +21,8 @@ export const useSignIn = () => {
       const { token, user } = res.data
       if (!token || !user) throw new Error('Invalid response from server')
 
-      useAuthStore.getState().setAuth({
-        token,
-        user
-      })
-
-      localStorage.setItem('makerworks_token', token)
-      localStorage.setItem('makerworks_user', JSON.stringify(user))
+      // 🔧 Set Zustand store + localStorage in one call
+      useAuthStore.getState().setAuth({ token, user })
 
       toast.success(`Welcome back, ${user.username}!`)
       navigate('/dashboard')
