@@ -75,6 +75,10 @@ Copy `.env.example` to `.env` and customise as needed. Important values include:
 ```bash
 VITE_API_BASE_URL=http://localhost:8000
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_yourkeyhere
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+SESSION_EXPIRE_SECONDS=7200
 ```
 
 `VITE_API_BASE_URL` determines where API calls are sent and

@@ -32,7 +32,7 @@ export const useSignUp = (): UseSignUpResult => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { setUser /*, setToken */ } = useAuthStore.getState();
+  const { setUser, setToken } = useAuthStore.getState();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +72,7 @@ export const useSignUp = (): UseSignUpResult => {
       }
 
       setUser(user);
-      // if (token) setToken(token);
+      if (token) setToken(token);
 
       console.info('[useSignUp] ✅ User registered & state updated:', user);
 
