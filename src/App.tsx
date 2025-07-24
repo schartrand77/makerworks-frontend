@@ -12,14 +12,41 @@ function AppContent() {
 }
 
 export default function App() {
-  const user = useAuthStore((s) => s.user)
-  const fetchUser = useAuthStore((s) => s.fetchUser)
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const fetchUser = useAuthStore((s) => s.fetchUser);
 
   useEffect(() => {
-    if (!user) {
-      fetchUser()
-    }
-  }, [user, fetchUser])
+    const runAuthFetch = async () => {
+      if (!user && typeof fetchUser === "function") {
+        try {
+          const u = await fetchUser();
+          if (!u) {
+            console.warn(
+              "[App.tsx] 🚫 No user returned from fetchUser — clearing auth state"
+            );
+            if (typeof setUser === "function") {
+              setUser(null);
+            }
+          } else {
+            console.info("[App.tsx] ✅ User fetched successfully:", u);
+          }
+        } catch (err) {
+          console.error("[App.tsx] ❌ Error in fetchUser:", err);
+          if (typeof setUser === "function") {
+            setUser(null);
+          }
+        }
+      } else if (typeof fetchUser !== "function") {
+        console.warn("[App.tsx] ⚠️ fetchUser is not defined");
+        if (typeof setUser === "function") {
+          setUser(null);
+        }
+      }
+    };
+
+    runAuthFetch();
+  }, [user, fetchUser, setUser]);
 
   return (
     <>

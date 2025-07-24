@@ -1,8 +1,8 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import RequireAuth from '@/components/auth/RequireAuth';
+import RoutePaths from '@/routes/routePaths';
 
-// Lazy-loaded pages
 const Landing = lazy(() => import('@/pages/Landing'));
 const Admin = lazy(() => import('@/pages/Admin'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -15,20 +15,6 @@ const Settings = lazy(() => import('@/pages/Settings'));
 const SignIn = lazy(() => import('@/components/auth/SignIn'));
 const SignUp = lazy(() => import('@/components/auth/SignUp'));
 const PageNotFound = lazy(() => import('@/pages/PageNotFound'));
-
-export const RoutePaths = Object.freeze({
-  landing: '/',
-  admin: '/admin',
-  dashboard: '/dashboard',
-  browse: '/browse',
-  estimate: '/estimate',
-  upload: '/upload',
-  cart: '/cart',
-  checkout: '/checkout',
-  settings: '/settings',
-  signin: '/auth/signin',
-  signup: '/auth/signup',
-});
 
 export default function RoutesRenderer() {
   return (

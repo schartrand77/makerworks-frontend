@@ -1,9 +1,9 @@
 // src/pages/Landing.tsx
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDevModeStore } from '@/store/useDevModeStore';
-
 
 const Landing: React.FC = () => {
   const resolved = useAuthStore((s) => !!s.user);
@@ -38,7 +38,7 @@ const Landing: React.FC = () => {
   }, [enableDevMode]);
 
   useEffect(() => {
-    if (!loading && isAuthenticated()) {
+    if (!loading && isAuthenticated && isAuthenticated()) {
       window.location.href = '/dashboard';
     }
   }, [loading, user, resolved, isAuthenticated]);
@@ -83,6 +83,11 @@ const Landing: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
+      <Helmet>
+        <title>MakerWorks — Landing</title>
+        <meta name="description" content="Welcome to MakerWorks — upload, estimate, and manage your 3D print jobs." />
+      </Helmet>
+
       <GlassCard>
         <div className="flex flex-col items-center text-center relative">
           <div className="relative h-12 w-full flex justify-center">
@@ -128,7 +133,7 @@ const Landing: React.FC = () => {
 
           {loading ? (
             <p className="text-sm text-zinc-400">Checking authentication status…</p>
-          ) : isAuthenticated() ? (
+          ) : isAuthenticated && isAuthenticated() ? (
             <p className="text-sm text-zinc-400">Redirecting to dashboard…</p>
           ) : (
             <div className="flex gap-4 mt-2">

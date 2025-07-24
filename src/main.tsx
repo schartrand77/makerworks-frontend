@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { HelmetProvider } from 'react-helmet-async';
 
 import App from '@/App';
 import ErrorBoundary from '@/components/system/ErrorBoundary';
@@ -32,21 +33,23 @@ console.debug('[MakerWorks] ✅ Found root element:', rootElement);
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <UserProvider>
-          {/* ToastProvider enables useToast() hook */}
-          <ToastProvider>
-            <ErrorBoundary>
-              <App />
-            </ErrorBoundary>
-          </ToastProvider>
-        </UserProvider>
+    <HelmetProvider>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <UserProvider>
+            {/* ToastProvider enables useToast() hook */}
+            <ToastProvider>
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
+            </ToastProvider>
+          </UserProvider>
 
-        {/* React Query Devtools — development aid */}
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
-    </BrowserRouter>
+          {/* React Query Devtools — development aid */}
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>
 );
 

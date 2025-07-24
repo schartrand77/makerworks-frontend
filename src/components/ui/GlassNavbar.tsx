@@ -6,7 +6,8 @@ import { useEffect, useRef } from 'react';
 
 const GlassNavbar = () => {
   const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticatedFn = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = typeof isAuthenticatedFn === 'function' ? isAuthenticatedFn() : false;
   const location = useLocation();
   const gearRef = useRef<HTMLSpanElement>(null);
 
@@ -16,9 +17,9 @@ const GlassNavbar = () => {
         gearRef.current.classList.add('animate-spin-once');
         setTimeout(() => {
           gearRef.current?.classList.remove('animate-spin-once');
-        }, 1000); // match the animation duration
+        }, 1000);
       }
-    }, Math.random() * 8000 + 3000); // spin every 3–11s
+    }, Math.random() * 8000 + 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -46,12 +47,14 @@ const GlassNavbar = () => {
     role: 'guest',
   };
 
-  // if authenticated, enrich user with proper avatar url
-  const resolvedUser = isAuthenticated()
+  const resolvedUser = isAuthenticated
     ? {
         ...fallbackUser,
         ...user,
-        avatar_url: getAbsoluteUrl(user?.avatar_url) || getAbsoluteUrl(user?.thumbnail_url) || '/default-avatar.png',
+        avatar_url:
+          getAbsoluteUrl(user?.avatar_url) ||
+          getAbsoluteUrl(user?.thumbnail_url) ||
+          '/default-avatar.png',
       }
     : fallbackUser;
 
@@ -73,10 +76,7 @@ const GlassNavbar = () => {
       "
     >
       <div className="flex items-center gap-2">
-        <Link
-          to="/"
-          className="text-lg font-bold text-gray-800 dark:text-white"
-        >
+        <Link to="/" className="text-lg font-bold text-gray-800 dark:text-white">
           MakerW
           <span ref={gearRef} className="gear">
             ⚙️
@@ -111,7 +111,7 @@ const GlassNavbar = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        {isAuthenticated() ? (
+        {isAuthenticated ? (
           <UserDropdown user={resolvedUser} />
         ) : (
           <Link

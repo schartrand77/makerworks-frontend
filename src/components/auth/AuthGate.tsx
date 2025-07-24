@@ -1,11 +1,11 @@
-import { Navigate } from "react-router-dom";
-import { useUser } from "@/hooks/useUser";
-import { ReactNode, useEffect } from "react";
+import { Navigate, useLocation } from 'react-router-dom';
+import { useUser } from '@/hooks/useUser';
+import { ReactNode, useEffect } from 'react';
 
 type AuthGateProps = {
   children: ReactNode;
-  requiredRoles?: string[]; // support multiple roles
-  fallback?: ReactNode;     // optional fallback while loading
+  requiredRoles?: string[];  // optionally enforce roles
+  fallback?: ReactNode;      // optional fallback UI while loading
 };
 
 export default function AuthGate({
@@ -14,10 +14,11 @@ export default function AuthGate({
   fallback,
 }: AuthGateProps): JSX.Element | null {
   const { user, loading } = useUser();
+  const location = useLocation();
 
   useEffect(() => {
-    console.debug("[AuthGate] User:", user);
-    console.debug("[AuthGate] Required Roles:", requiredRoles);
+    console.debug('[AuthGate] Current user:', user);
+    console.debug('[AuthGate] Required roles:', requiredRoles);
   }, [user, requiredRoles]);
 
   if (loading) {
@@ -33,19 +34,26 @@ export default function AuthGate({
   }
 
   if (!user) {
-    console.warn("[AuthGate] No user found. Redirecting to /auth/signin");
-    return <Navigate to="/auth/signin" replace />;
+    console.warn(
+      '[AuthGate] No user session found → redirecting to /auth/signin',
+      { from: location.pathname }
+    );
+    return (
+      <Navigate
+        to="/auth/signin"
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
-  if (
-    requiredRoles &&
-    (!Array.isArray(user.groups) ||
-      !requiredRoles.some((role) => user.groups?.includes(role)))
-  ) {
+  const groups: string[] = Array.isArray(user.groups) ? user.groups : [];
+  if (requiredRoles && !requiredRoles.some((r) => groups.includes(r))) {
     console.warn(
-      `[AuthGate] User lacks required roles [${requiredRoles.join(
-        ", "
-      )}]. Redirecting to /unauthorized`
+      `[AuthGate] User groups ${JSON.stringify(groups)} lack required roles [${requiredRoles.join(
+        ', '
+      )}] → redirecting to /unauthorized`,
+      { from: location.pathname }
     );
     return <Navigate to="/unauthorized" replace />;
   }

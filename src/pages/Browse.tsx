@@ -101,10 +101,6 @@ const Browse: React.FC = () => {
     }
   };
 
-  const handleEstimate = (model: Model) => {
-    navigate('/estimate', { state: { model } });
-  };
-
   const redirectToExternal = (platform: string) => {
     const urls: Record<string, string> = {
       makerworld: 'https://makerworld.com',
@@ -125,6 +121,10 @@ const Browse: React.FC = () => {
   });
 
   const isLoading = loadingInitial;
+
+  const handleViewModel = (id: string) => {
+    navigate(`/models/${id}`);
+  };
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
@@ -179,10 +179,14 @@ const Browse: React.FC = () => {
               filteredModels.map((model) => (
                 <GlassCard
                   key={`model-${model.id}`}
-                  className="relative backdrop-blur bg-white/20 dark:bg-black/20 border border-white/20 shadow-lg glass"
+                  className="relative backdrop-blur bg-white/20 dark:bg-black/20 border border-white/20 shadow-lg glass cursor-pointer"
+                  onClick={() => handleViewModel(model.id)}
                 >
                   <button
-                    onClick={() => toggleFavorite(model.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(model.id);
+                    }}
                     className="absolute top-2 right-2 text-yellow-400 hover:scale-110 transition"
                     aria-label="Favorite"
                   >
@@ -221,12 +225,9 @@ const Browse: React.FC = () => {
                     </p>
                   )}
 
-                  <button
-                    className="mt-2 w-full py-1.5 rounded-full bg-blue-600/80 hover:bg-blue-500 transition text-white text-sm shadow"
-                    onClick={() => handleEstimate(model)}
-                  >
-                    Get Estimate
-                  </button>
+                  <p className="mt-2 w-full py-1.5 rounded-full bg-blue-600/80 text-center text-white text-sm shadow">
+                    View Details →
+                  </p>
                 </GlassCard>
               ))}
           </div>

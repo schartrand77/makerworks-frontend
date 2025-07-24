@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 import axiosInstance from '@/api/axios';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { UserOut } from '@/types/auth';
 
 interface SigninResponse {
-  user: UserOut
-  token?: string // optional session token
+  user: UserOut;
 }
 
 export const useSignIn = () => {
@@ -22,9 +21,7 @@ export const useSignIn = () => {
     setLoading(true);
 
     try {
-      console.debug('[useSignIn] Attempting login with:', {
-        email_or_username: emailOrUsername,
-      });
+      console.debug('[useSignIn] Attempting login with:', { emailOrUsername });
 
       const res = await axiosInstance.post<SigninResponse>('/auth/signin', {
         email_or_username: emailOrUsername,
@@ -39,16 +36,12 @@ export const useSignIn = () => {
 
       console.info('[useSignIn] Login successful:', { user });
 
-      // Store avatar path locally (optional, based on your app logic)
+      // Derive avatar path and store it
       const avatarPath = `/avatars/${user.id}.png`;
       localStorage.setItem('avatar_url', avatarPath);
 
-      const userWithAvatar: UserOut = {
-        ...user,
-        avatar_url: avatarPath,
-      };
-
-      setUser(userWithAvatar);
+      // Update user store with avatar_url injected
+      setUser({ ...user, avatar_url: avatarPath });
 
       navigate('/dashboard');
     } catch (err) {
@@ -60,7 +53,6 @@ export const useSignIn = () => {
         const detail = err.response?.data?.detail;
 
         if (Array.isArray(detail)) {
-          // detail might be a list of validation errors
           message = detail
             .map((e: { loc?: string[]; msg?: string }) =>
               e.loc && e.msg ? `${e.loc.join('.')}: ${e.msg}` : ''

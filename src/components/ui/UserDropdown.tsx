@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Sun, Moon } from 'lucide-react';
+import axiosInstance from '@/api/axios';
+import { toast } from 'sonner';
 import type { UserProfile } from '@/types/UserProfile';
 
 type Props = {
@@ -11,15 +13,31 @@ type Props = {
 
 const UserDropdown = ({ user }: Props) => {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuthStore();
   const { theme, setTheme } = useTheme();
 
   const isDark = theme === 'dark';
 
-  const handleSignOut = () => {
-    logout();
-    window.location.href = '/';
+  const handleSignOut = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await axiosInstance.post('/auth/signout');
+      if (res.status === 200) {
+        toast.success('✅ Signed out successfully');
+      } else {
+        toast.warning(`⚠️ Signout: unexpected status ${res.status}`);
+      }
+    } catch (err) {
+      console.error('[UserDropdown] signout error', err);
+      toast.error('⚠️ Signout failed on server. Cleared locally.');
+    } finally {
+      logout();
+      setLoading(false);
+      navigate('/');
+    }
   };
 
   const handleGoTo = (path: string) => {
@@ -38,7 +56,6 @@ const UserDropdown = ({ user }: Props) => {
       : `${import.meta.env.VITE_API_URL}${path}`;
   };
 
-  // Compute safe avatar URL
   const avatarSrc =
     getAbsoluteUrl(user.avatar_url) ||
     getAbsoluteUrl(user.thumbnail_url) ||
@@ -111,9 +128,12 @@ const UserDropdown = ({ user }: Props) => {
 
           <button
             onClick={handleSignOut}
-            className="w-full text-center py-2 px-4 text-sm rounded-full backdrop-blur bg-white/20 dark:bg-zinc-800/30 border border-white/20 dark:border-zinc-700/30 text-red-600 dark:text-red-300 shadow hover:bg-white/30 dark:hover:bg-zinc-700/50 hover:shadow-md transition"
+            disabled={loading}
+            className={`w-full text-center py-2 px-4 text-sm rounded-full backdrop-blur bg-white/20 dark:bg-zinc-800/30 border border-white/20 dark:border-zinc-700/30 text-red-600 dark:text-red-300 shadow hover:bg-white/30 dark:hover:bg-zinc-700/50 hover:shadow-md transition ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Sign Out
+            {loading ? 'Signing out…' : 'Sign Out'}
           </button>
         </div>
       )}

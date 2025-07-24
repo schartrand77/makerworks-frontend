@@ -6,7 +6,6 @@ export interface Upload {
   id: string;
   name: string;
   created_at: string;
-  // add more fields if your API returns them:
   // size?: number;
   // url?: string;
 }
@@ -30,14 +29,16 @@ export const useUser = () => {
   const hydrate = async () => {
     if (loading) return;
 
-    console.debug('[useUser] Hydrating user via fetchUser()...');
+    console.debug('[useUser] Hydrating user from backend…');
 
     try {
       const u = await fetchUser?.();
 
-      if (!u) throw new Error('User not found');
+      if (!u) {
+        throw new Error('No user returned from backend.');
+      }
 
-      if (u?.avatar_url) {
+      if (u.avatar_url) {
         localStorage.setItem('avatar_url', u.avatar_url);
         setAvatar(u.avatar_url);
       } else {
@@ -45,17 +46,20 @@ export const useUser = () => {
         setAvatar(null);
       }
 
-      // 🔷 fetch recent uploads
-      try {
-        const uploadsRes = await axios.get(`/api/v1/users/${u.id}/uploads`);
-        const uploads: Upload[] = uploadsRes.data?.models ?? [];
-        u.uploads = uploads.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        console.debug('[useUser] fetched uploads:', u.uploads);
-      } catch (uploadsErr) {
-        console.warn('[useUser] failed to fetch uploads:', uploadsErr);
-        u.uploads = [];
+      // fetch uploads if user exists & has ID
+      if (u.id) {
+        try {
+          const uploadsRes = await axios.get(`/api/v1/users/${u.id}/uploads`);
+          const uploads: Upload[] = uploadsRes.data?.models ?? [];
+          u.uploads = uploads.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          console.debug('[useUser] fetched uploads:', u.uploads);
+        } catch (uploadsErr) {
+          console.warn('[useUser] failed to fetch uploads:', uploadsErr);
+          u.uploads = [];
+        }
       }
 
       setUser?.(u);
@@ -69,7 +73,6 @@ export const useUser = () => {
     }
   };
 
-  // always refresh user on mount to get latest avatar, roles & uploads
   useEffect(() => {
     hydrate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,7 +104,7 @@ export const useUser = () => {
     refresh: hydrate,
     setUser,
     signOut: handleSignOut,
-    avatar, // ✅ cached avatar, updated on hydrate()
-    getRecentUploads, // 🔷 new helper to get limited uploads
+    avatar, // updated avatar (from localStorage if present)
+    getRecentUploads,
   };
 };

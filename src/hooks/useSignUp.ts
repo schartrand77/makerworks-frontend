@@ -21,7 +21,7 @@ type UseSignUpResult = {
 
 type SignupResponse = {
   user: UserOut;
-  token?: string; // optional session token
+  token?: string;
 };
 
 export const useSignUp = (): UseSignUpResult => {
@@ -32,7 +32,7 @@ export const useSignUp = (): UseSignUpResult => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const setUser = useAuthStore((s) => s.setUser);
+  const { setUser /*, setToken */ } = useAuthStore.getState();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,19 +65,20 @@ export const useSignUp = (): UseSignUpResult => {
 
       console.debug('[useSignUp] Response:', res);
 
-      const { user } = res.data;
+      const { user, token } = res.data;
 
       if (!user) {
         throw new Error('Invalid response: missing user');
       }
 
       setUser(user);
+      // if (token) setToken(token);
 
-      console.info('[useSignUp] User registered & state updated', user);
+      console.info('[useSignUp] ✅ User registered & state updated:', user);
 
       navigate('/dashboard');
     } catch (err) {
-      console.error('[useSignUp] Signup error raw:', err);
+      console.error('[useSignUp] Signup error:', err);
 
       let message = 'Signup failed. Please try again.';
 

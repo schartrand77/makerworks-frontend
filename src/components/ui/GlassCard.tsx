@@ -29,6 +29,9 @@ interface GlassCardProps<T extends ElementType = 'div'> {
   id?: string;
 }
 
+/**
+ * Liquid Glass card component with configurable options.
+ */
 export default function GlassCard<T extends ElementType = 'div'>({
   as,
   children,
@@ -51,6 +54,12 @@ export default function GlassCard<T extends ElementType = 'div'>({
       id={id}
       className={clsx(
         'glass-card',
+        'backdrop-blur-sm',
+        'bg-white/20 dark:bg-black/20',
+        'rounded-xl',
+        'border border-white/10 dark:border-black/20',
+        'transition',
+        'duration-300',
         elevationClasses[elevation],
         maxWidthClasses[maxWidth],
         padding,
