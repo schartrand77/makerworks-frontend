@@ -7,6 +7,7 @@ import type { UserOut } from '@/types/auth';
 
 interface SigninResponse {
   user: UserOut;
+  token?: string;
 }
 
 export const useSignIn = () => {
@@ -15,6 +16,7 @@ export const useSignIn = () => {
 
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
+  const setToken = useAuthStore((s) => s.setToken);
 
   const signIn = async (emailOrUsername: string, password: string) => {
     setError(null);
@@ -28,7 +30,7 @@ export const useSignIn = () => {
         password,
       });
 
-      const { user } = res.data;
+      const { user, token } = res.data;
 
       if (!user) {
         throw new Error('Invalid response: missing user');
@@ -42,6 +44,7 @@ export const useSignIn = () => {
 
       // Update user store with avatar_url injected
       setUser({ ...user, avatar_url: avatarPath });
+      if (token) setToken(token);
 
       navigate('/dashboard');
     } catch (err) {
