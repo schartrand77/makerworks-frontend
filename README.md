@@ -1,7 +1,6 @@
 # MakerWorks Frontend
 
-This repository contains the MakerWorks React application built with Vite. A small
-FastAPI service is included under the `backend` folder for local development and tests.
+This repository contains the MakerWorks React application built with Vite.
 
 The project uses the official
 [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc)
@@ -19,15 +18,6 @@ npm install
 
 ```bash
 npm run dev
-```
-
-### Start the FastAPI backend
-
-The backend service is used for authentication tests and local development.
-Run it with:
-
-```bash
-python backend/main.py
 ```
 
 ### Build for production
