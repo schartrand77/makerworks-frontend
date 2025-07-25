@@ -24,7 +24,7 @@ export const useSignIn = () => {
     setLoading(true)
     try {
       // ✅ Always hit the correct API route
-      const res = await axios.post<SignInResponse>('/api/v1/auth/signin', {
+      const res = await axios.post<SignInResponse>('/auth/signin', {
         email_or_username: emailOrUsername,
         password
       })
