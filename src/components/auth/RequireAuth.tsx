@@ -3,32 +3,37 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useEffect, useState } from 'react'
 
+interface RequireAuthProps {
+  children: JSX.Element
+  requiredRoles?: string[]
+  fallbackTo?: string
+}
+
 /**
- * Guards a route, redirecting unauthenticated users to fallback
- * and unauthorized users (wrong role) to /unauthorized.
+ * Guards routes and prevents infinite redirect loops by waiting
+ * until Zustand is fully hydrated before redirecting.
  */
 const RequireAuth = ({
   children,
   requiredRoles,
-  fallbackTo = '/', // fallback for unauthenticated
-}: {
-  children: JSX.Element
-  requiredRoles?: string[]
-  fallbackTo?: string
-}) => {
+  fallbackTo = '/auth/signin'
+}: RequireAuthProps) => {
   const { isAuthenticated, user, resolved, fetchUser } = useAuthStore()
   const location = useLocation()
   const [checking, setChecking] = useState(!resolved)
 
   useEffect(() => {
+    let active = true
     if (!resolved) {
-      fetchUser().finally(() => setChecking(false))
+      fetchUser().finally(() => active && setChecking(false))
     } else {
       setChecking(false)
     }
+    return () => { active = false }
   }, [resolved, fetchUser])
 
-  if (checking) {
+  // ✅ Block render until hydration resolves
+  if (checking || !resolved) {
     return (
       <div className="w-full h-screen flex items-center justify-center text-sm text-gray-400">
         <span>🔐 Checking authentication...</span>
@@ -36,30 +41,22 @@ const RequireAuth = ({
     )
   }
 
+  // ✅ Only redirect if fully resolved and definitely not authenticated
   if (!isAuthenticated()) {
-    console.info(
-      '[RequireAuth] User is not authenticated → redirecting to fallback.',
-      { fallbackTo, from: location.pathname }
-    )
+    console.info('[RequireAuth] Not authenticated, redirecting', { from: location.pathname })
     return <Navigate to={fallbackTo} state={{ from: location }} replace />
   }
 
+  // ✅ Optional role-based guard
   const userRole = user?.role
-
-  if (
-    requiredRoles &&
-    (!userRole || !requiredRoles.includes(userRole))
-  ) {
+  if (requiredRoles && (!userRole || !requiredRoles.includes(userRole))) {
     console.info(
-      `[RequireAuth] Authenticated but role "${userRole}" not in [${requiredRoles.join(
-        ', '
-      )}] → redirecting to /unauthorized.`,
-      { from: location.pathname }
+      `[RequireAuth] Authenticated but role "${userRole}" not in [${requiredRoles.join(', ')}], redirecting to /unauthorized`
     )
     return <Navigate to="/unauthorized" replace />
   }
 
-  return <>{children}</>
+  return children
 }
 
 export default RequireAuth

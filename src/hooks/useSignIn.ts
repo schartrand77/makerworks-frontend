@@ -5,15 +5,26 @@ import { toast } from 'sonner'
 import axios from '@/api/axios'
 import { useAuthStore } from '@/store/useAuthStore'
 
+interface SignInResponse {
+  token: string
+  user: {
+    id: string
+    email: string
+    username: string
+    avatar_url?: string | null
+    role: string
+  }
+}
+
 export const useSignIn = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const signIn = async (emailOrUsername: string, password: string) => {
     setLoading(true)
-
     try {
-      const res = await axios.post('/auth/signin', {
+      // ✅ Always hit the correct API route
+      const res = await axios.post<SignInResponse>('/api/v1/auth/signin', {
         email_or_username: emailOrUsername,
         password
       })
@@ -21,14 +32,19 @@ export const useSignIn = () => {
       const { token, user } = res.data
       if (!token || !user) throw new Error('Invalid response from server')
 
-      // 🔧 Set Zustand store + localStorage in one call
-      useAuthStore.getState().setAuth({ token, user })
+      // ✅ Update Zustand + persist auth state
+      const { setAuth } = useAuthStore.getState()
+      setAuth({ token, user })
 
       toast.success(`Welcome back, ${user.username}!`)
-      navigate('/dashboard')
+
+      // ✅ Allow Zustand to flush before navigating to protected route
+      await new Promise((resolve) => setTimeout(resolve, 50))
+
+      navigate('/dashboard', { replace: true })
     } catch (err: any) {
       console.error('[useSignIn] Login failed:', err)
-      toast.error('Login failed. Please check your credentials.')
+      toast.error(err.response?.data?.detail || 'Login failed. Please check your credentials.')
     } finally {
       setLoading(false)
     }

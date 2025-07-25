@@ -13,7 +13,7 @@ interface AuthState {
 
   setUser: (user: UserOut | null) => void
   setToken: (token: string | null) => void
-  setAuth: (payload: { user: UserOut | null; token: string | null }) => void
+  setAuth: (payload: { user: UserOut; token: string }) => void
   setResolved: (val: boolean) => void
   logout: () => Promise<void>
   fetchUser: (force?: boolean) => Promise<UserOut | null>
@@ -21,10 +21,7 @@ interface AuthState {
   hasRole: (role: string) => boolean
 }
 
-const getInitialState = (): Pick<
-  AuthState,
-  'user' | 'token' | 'loading' | 'resolved'
-> => ({
+const getInitialState = (): Pick<AuthState, 'user' | 'token' | 'loading' | 'resolved'> => ({
   user: null,
   token: null,
   loading: false,
@@ -55,11 +52,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setAuth: ({ user, token }) => {
-        if (token) {
-          localStorage.setItem('token', token)
-        } else {
-          localStorage.removeItem('token')
-        }
+        // ✅ Persist token and avatar
+        localStorage.setItem('token', token)
 
         if (user?.avatar_url) {
           localStorage.setItem('avatar_url', user.avatar_url)
@@ -67,12 +61,11 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem('avatar_url')
         }
 
-        set({ user, token })
+        // ✅ Mark resolved to stop redirect loops
+        set({ user, token, resolved: true })
       },
 
-      setResolved: (val) => {
-        set({ resolved: val })
-      },
+      setResolved: (val) => set({ resolved: val }),
 
       logout: async () => {
         set({ loading: true })
@@ -97,34 +90,32 @@ export const useAuthStore = create<AuthState>()(
 
       fetchUser: async (force = false) => {
         const { resolved, user } = get()
-
         if (!force && resolved) return user
 
         set({ loading: true })
 
         try {
-          const res = await axios.get<UserOut>('/auth/me', {
-            withCredentials: true,
-          })
+          const res = await axios.get<UserOut>('/auth/me', { withCredentials: true })
+          const fetchedUser = res.data
 
-          const user = res.data
-          set({ user, loading: false, resolved: true })
-
-          if (user?.avatar_url) {
-            localStorage.setItem('avatar_url', user.avatar_url)
+          if (fetchedUser.avatar_url) {
+            localStorage.setItem('avatar_url', fetchedUser.avatar_url)
+          } else {
+            const saved = localStorage.getItem('avatar_url')
+            if (saved) fetchedUser.avatar_url = saved
           }
 
-          return user
+          set({ user: fetchedUser, loading: false, resolved: true })
+          return fetchedUser
         } catch (err: any) {
           console.warn('[useAuthStore] Failed to fetch user:', err?.response?.status)
 
           if (err?.response?.status === 401) {
-            // Expected — no session
             set({
               user: null,
               token: null,
               loading: false,
-              resolved: true,
+              resolved: true, // ✅ Always mark resolved to prevent loop
             })
           } else {
             toast.error('⚠️ Failed to fetch user.')
@@ -136,18 +127,17 @@ export const useAuthStore = create<AuthState>()(
       },
 
       isAuthenticated: () => {
-        return !!get().user
+        const { token, user } = get()
+        return !!token && !!user
       },
 
       hasRole: (role: string) => {
         const user = get().user
         if (!user) return false
-
         const target = role.toLowerCase()
         if (Array.isArray(user.role)) {
           return user.role.some((r) => r.toLowerCase() === target)
         }
-
         return user.role?.toLowerCase() === target
       },
     }),
@@ -157,8 +147,15 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         token: state.token,
       }),
-      onRehydrateStorage: () => () => {
+      onRehydrateStorage: () => (state) => {
         console.info('[useAuthStore] Rehydrated from localStorage')
+        if (state) {
+          state.resolved = true // ✅ Mark resolved after hydration
+        }
+        const saved = localStorage.getItem('avatar_url')
+        if (saved && state?.user && !state.user.avatar_url) {
+          state.user.avatar_url = saved
+        }
       },
     }
   )

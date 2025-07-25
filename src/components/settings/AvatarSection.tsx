@@ -1,14 +1,19 @@
 // src/components/settings/AvatarSection.tsx
-
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
 import axios from '@/api/axios'
 import { toast } from 'sonner'
 
 export default function AvatarSection() {
-  const { user, token, setUser } = useAuthStore()
+  const { user, token, setUser, fetchUser } = useAuthStore()
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+
+  useEffect(() => {
+    if (!user && token) {
+      fetchUser()
+    }
+  }, [user, token, fetchUser])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -22,19 +27,26 @@ export default function AvatarSection() {
       const headers: Record<string, string> = {
         'Content-Type': 'multipart/form-data',
       }
+      if (token) headers.Authorization = `Bearer ${token}`
 
-      // ✅ If token exists, send Authorization header (Bearer mode)
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
+      console.group('[Avatar Upload Debug]')
+      console.log('Uploading file:', file.name, file.type, file.size)
+      console.log('Endpoint:', '/avatar')
+      console.log('Token:', token)
+      console.log('User:', user)
+      console.log('Headers to send:', headers)
+      console.groupEnd()
 
       const res = await axios.post('/avatar', formData, {
         headers,
-        withCredentials: true, // ✅ Always include cookies (Redis session mode)
+        withCredentials: true,
       })
+
+      console.log('[Avatar Upload Response]', res.status, res.data)
 
       if (res.data?.avatar_url) {
         setUser({ ...user, avatar_url: res.data.avatar_url })
+        await fetchUser(true)
         toast.success('✅ Avatar updated!')
       } else {
         toast.error('❌ Upload failed: no avatar URL returned')
@@ -42,8 +54,19 @@ export default function AvatarSection() {
     } catch (err: any) {
       console.error('[Avatar Upload Error]', err.response?.data || err.message)
 
+      // 🔍 Dump everything we can from the error
+      if (err.response) {
+        console.group('[Avatar Upload Error Detail]')
+        console.log('Status:', err.response.status)
+        console.log('Data:', err.response.data)
+        console.log('Headers:', err.response.headers)
+        console.groupEnd()
+      }
+
       if (err.response?.status === 401) {
         toast.error('🔒 Unauthorized. Please sign in again.')
+      } else if (err.response?.status === 500) {
+        toast.error(`❌ Server error: ${err.response?.data?.detail || 'Avatar render failed'}`)
       } else {
         toast.error('❌ Upload failed')
       }
