@@ -6,7 +6,7 @@ import axios from '@/api/axios'
 import { toast } from 'sonner'
 
 export default function AvatarSection() {
-  const { user, setUser } = useAuthStore()
+  const { user, token, setUser } = useAuthStore()
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
 
@@ -19,11 +19,34 @@ export default function AvatarSection() {
     formData.append('file', file)
 
     try {
-      const res = await axios.post('/users/avatar', formData)
-      setUser({ ...user, avatar_url: res.data.avatar_url })
-      toast.success('✅ Avatar updated!')
-    } catch (err) {
-      toast.error('❌ Upload failed')
+      const headers: Record<string, string> = {
+        'Content-Type': 'multipart/form-data',
+      }
+
+      // ✅ If token exists, send Authorization header (Bearer mode)
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+
+      const res = await axios.post('/avatar', formData, {
+        headers,
+        withCredentials: true, // ✅ Always include cookies (Redis session mode)
+      })
+
+      if (res.data?.avatar_url) {
+        setUser({ ...user, avatar_url: res.data.avatar_url })
+        toast.success('✅ Avatar updated!')
+      } else {
+        toast.error('❌ Upload failed: no avatar URL returned')
+      }
+    } catch (err: any) {
+      console.error('[Avatar Upload Error]', err.response?.data || err.message)
+
+      if (err.response?.status === 401) {
+        toast.error('🔒 Unauthorized. Please sign in again.')
+      } else {
+        toast.error('❌ Upload failed')
+      }
     } finally {
       setUploading(false)
     }

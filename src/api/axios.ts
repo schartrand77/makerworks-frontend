@@ -1,11 +1,10 @@
 // src/api/axios.ts
-
 import axios from 'axios'
 import { useAuthStore } from '@/store/useAuthStore'
 
-// Ensure baseURL has no trailing slash
+// ✅ Ensure correct base URL and remove the stray comma
 const base =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:8000'
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:8000/api/v1'
 
 const instance = axios.create({
   baseURL: base,
@@ -20,9 +19,8 @@ instance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    // 🔍 Log outgoing requests for debugging
+    // ✅ Debug log to verify final URL
     console.info(`[axios] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
-
     return config
   },
   (error) => Promise.reject(error)
