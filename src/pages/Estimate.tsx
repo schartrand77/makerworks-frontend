@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import PageLayout from '@/components/layout/PageLayout'
 import GlassCard from '@/components/ui/GlassCard'
-import MeshLabViewer from '@/components/ui/MeshLabViewer'
+import MeshlabViewer from '@/components/ui/MeshlabViewer'
 import PageHeader from '@/components/ui/PageHeader'
 import { Printer } from 'lucide-react'
 import { toast } from 'sonner'
@@ -113,7 +113,7 @@ export default function Estimate() {
           <GlassCard>
             <h2 className="text-lg font-semibold mb-2">Selected Model</h2>
             {activeModel?.glb_url || activeModel?.stl_url ? (
-              <MeshLabViewer
+              <MeshlabViewer
                 src={activeModel.glb_url}
                 fallbackSrc={activeModel.stl_url}
                 background="#f8fafc"
