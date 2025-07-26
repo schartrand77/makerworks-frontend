@@ -139,12 +139,12 @@ const Browse: React.FC = () => {
           placeholder="Search models…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full sm:w-1/2 rounded-full px-4 py-2 backdrop-blur bg-white/20 dark:bg-black/20 border border-white/30 text-sm shadow placeholder:text-zinc-400 focus:outline-none"
+          className="w-full sm:w-1/2 rounded-full px-4 py-2 glass-card border text-sm shadow placeholder:text-zinc-400 focus:outline-none"
         />
         <select
           value={source}
           onChange={(e) => setSource(e.target.value as typeof source)}
-          className="w-full sm:w-1/4 rounded-full px-4 py-2 backdrop-blur bg-white/20 dark:bg-black/20 border border-white/30 text-sm shadow focus:outline-none"
+          className="w-full sm:w-1/4 rounded-full px-4 py-2 glass-card border text-sm shadow focus:outline-none"
         >
           <option value="local">MakerWorks (Local)</option>
           <option disabled>—— External Links ——</option>
@@ -160,7 +160,7 @@ const Browse: React.FC = () => {
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {isLoading &&
               Array.from({ length: 6 }).map((_, idx) => (
-                <GlassCard key={`skeleton-${idx}`} className="glass animate-pulse">
+                <GlassCard key={`skeleton-${idx}`} className="animate-pulse">
                   <div className="space-y-3">
                     <div className="w-full h-40 bg-zinc-300/20 dark:bg-zinc-600/20 rounded-md animate-pulse" />
                     <div className="h-4 bg-zinc-300/20 dark:bg-zinc-600/20 rounded w-3/4 animate-pulse" />
@@ -179,7 +179,7 @@ const Browse: React.FC = () => {
               filteredModels.map((model) => (
                 <GlassCard
                   key={`model-${model.id}`}
-                  className="relative backdrop-blur bg-white/20 dark:bg-black/20 border border-white/20 shadow-lg glass cursor-pointer"
+                  className="relative cursor-pointer hover:scale-[1.02] transition-transform"
                   onClick={() => handleViewModel(model.id)}
                 >
                   <button

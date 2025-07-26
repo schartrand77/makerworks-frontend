@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
         <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <UserDashboardCard />
 
-          <div className="p-4 rounded-xl bg-white/60 dark:bg-zinc-800/50 shadow backdrop-blur">
+          <div className="p-4 rounded-xl glass-card shadow backdrop-blur">
             <div className="flex items-center gap-2 mb-2">
               <Upload />
               <h2 className="text-lg font-semibold">Your Recent Uploads</h2>

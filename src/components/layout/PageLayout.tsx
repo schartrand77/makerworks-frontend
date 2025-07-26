@@ -68,7 +68,7 @@ export default function PageLayout({
       : 'max-w-xl';
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-white/80 to-zinc-100 dark:from-zinc-900/90 dark:to-zinc-950 text-zinc-900 dark:text-white">
+    <div className="w-full min-h-screen flex flex-col text-zinc-900 dark:text-white">
       <div
         className="w-full flex-1 px-4 py-8 flex justify-center items-center"
         aria-describedby={description ? `${id}-description` : undefined}
