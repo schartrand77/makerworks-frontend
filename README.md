@@ -1,66 +1,59 @@
 # MakerWorks Frontend
 
-This repository contains the MakerWorks React application built with Vite.
+MakerWorks Frontend is a responsive React application powered by Vite and TypeScript. The goal of MakerWorks is to provide a sleek interface for uploading 3D models, estimating material costs and securely checking out prints. It comes with a full authentication flow, admin dashboard and an animated landing page.
 
-The project uses the official
-[@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc)
-plugin for fast refresh during development.
+## Features
+
+- **Modern React stack** – built with React 18, Vite and TypeScript for fast development.
+- **State management** – uses Zustand and React Context providers to handle auth, cart and settings.
+- **3D model previews** – utilises Three.js for rendering STL/OBJ/3MF models before uploading.
+- **Stripe payments** – integrates with Stripe via `@stripe/react-stripe-js` for a smooth checkout experience.
+- **Admin tools** – manage users, filament types and uploaded models from the Admin panel.
+- **Dark mode** – built in theme toggle persists your preference in `localStorage`.
+- **End‑to‑end tests** – Cypress tests ensure core flows work as expected.
+
+## Technology Stack
+
+- **React 18** with hooks
+- **TypeScript** for type safety
+- **Vite** development server
+- **Tailwind CSS** for styling
+- **TanStack Query** for data fetching and caching
+- **Zod** for schema validation
+- **Framer Motion** animations
+- **Cypress** and **Vitest** for testing
 
 ## Getting Started
 
-### Install dependencies
+1. **Install dependencies**
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-### Run the development server
+2. **Run the dev server**
 
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
+   The app will be available at `http://localhost:5173` by default.
 
-### Build for production
+3. **Build for production**
 
-```bash
-npm run build
-```
+   ```bash
+   npm run build
+   ```
+   Production files will be generated in the `dist` folder.
 
-### Linting and tests
+4. **Preview a production build**
 
-Run the linter with:
+   ```bash
+   npm run preview
+   ```
 
-```bash
-npm run lint
-```
+## Environment Variables
 
-Vitest unit tests live under `src/api/__tests__` and can be run with:
-
-```bash
-npm run test
-```
-
-Cypress end-to-end tests are also included. Open the Cypress GUI with:
-
-```bash
-npm run cy:open
-```
-
-Run Cypress headlessly with:
-
-```bash
-npm run cy:run
-```
-
-### Theme Toggle
-
-The navigation bar includes a small sun/moon button that toggles between light
-and dark mode. Your selected theme is saved to `localStorage` and applied on
-future visits.
-
-## Environment variables
-
-Copy `.env.example` to `.env` and customise as needed. Important values include:
+Copy `.env.example` to `.env` and customise the following settings:
 
 ```bash
 VITE_API_BASE_URL=http://localhost:8000
@@ -69,31 +62,50 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_DB=0
 SESSION_EXPIRE_SECONDS=7200
+VITE_APP_NAME=MakerWorks Frontend
+VITE_ENV=development
 ```
 
-`VITE_API_BASE_URL` determines where API calls are sent and
-`VITE_STRIPE_PUBLISHABLE_KEY` is required to run the checkout example. Optional
-settings like `VITE_APP_NAME` and `VITE_ENV` can be used to further configure the
-frontend.
+`VITE_API_BASE_URL` controls where API calls are sent. `VITE_STRIPE_PUBLISHABLE_KEY` is required for Stripe checkout. The Redis variables are used by the backend for session management.
 
-## Folder structure
+## Scripts
 
-- **src/api** – helper methods for network requests
-- **src/components** – reusable React components
-- **src/pages** – top level route pages
-- **src/routes** – React Router configuration
-- **src/store** – Zustand state stores
-- **src/hooks** – custom React hooks
-- **src/lib** – generic utilities
-- **src/config** – app configuration values
-- **src/context** – React context providers
-- **src/assets** – static assets
-- **public** – static files served directly by Vite
+- `npm run dev` – start Vite in development mode
+- `npm run build` – bundle the app for production
+- `npm run preview` – serve the production build locally
+- `npm run lint` – run ESLint over the codebase
+- `npm run test` – execute Vitest unit tests
+- `npm run cy:open` – open the Cypress test runner
+- `npm run cy:run` – run Cypress tests headlessly
 
-## Lint configuration
+## Directory Structure
 
-ESLint ships with sensible defaults. Adjust `eslint.config.js` to tweak rules for your project.
+```
+src/
+├─ api/            # helper methods for API requests
+├─ assets/         # static images and fonts
+├─ components/     # reusable React components
+├─ config/         # global configuration values
+├─ context/        # React context providers
+├─ hooks/          # custom React hooks
+├─ lib/            # generic utilities
+├─ pages/          # top‑level route components
+├─ routes/         # React Router configuration
+├─ store/          # Zustand state stores
+└─ types/          # TypeScript types
+public/            # static files served by Vite
+```
+
+A small utility script `generate_sample_images.py` can be used to create placeholder images during development.
+
+## Testing
+
+Vitest tests reside under `src/**/__tests__` and run in a jsdom environment. Cypress is used for full end‑to‑end tests and is configured in `.github/workflows/cypress.yml` for CI.
+
+## Contributing
+
+Pull requests are welcome! Please make sure `npm run lint` and `npm run test` pass before submitting a PR. For major changes, open an issue first to discuss what you would like to change.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+MakerWorks Frontend is released under the [MIT License](LICENSE).
