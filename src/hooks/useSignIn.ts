@@ -23,8 +23,8 @@ export const useSignIn = () => {
   const signIn = async (emailOrUsername: string, password: string) => {
     setLoading(true)
     try {
-      // ✅ Always hit the correct API route
-      const res = await axios.post<SignInResponse>('/api/v1/auth/signin', {
+      // ✅ Always hit the correct API route (base URL already includes /api/v1)
+      const res = await axios.post<SignInResponse>('/auth/signin', {
         email_or_username: emailOrUsername,
         password
       })
