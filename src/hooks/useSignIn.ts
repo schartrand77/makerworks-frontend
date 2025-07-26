@@ -33,8 +33,15 @@ export const useSignIn = () => {
       if (!token || !user) throw new Error('Invalid response from server')
 
       // ✅ Update Zustand + persist auth state
-      const { setAuth } = useAuthStore.getState()
+      const { setAuth, fetchUser } = useAuthStore.getState()
       setAuth({ token, user })
+
+      // Ensure avatar and other profile details are loaded
+      try {
+        await fetchUser(true)
+      } catch (err) {
+        console.warn('[useSignIn] Failed to fetch full profile:', err)
+      }
 
       toast.success(`Welcome back, ${user.username}!`)
 

@@ -32,6 +32,7 @@ beforeEach(() => {
   useAuthStore.setState({
     user: { id: '1', email: 'e', username: 'u', role: 'user' } as any,
     token: 'test-token',
+    fetchUser: vi.fn().mockResolvedValue(null)
   })
   ;(axios.get as any).mockResolvedValue({ data: { id: '1', email: 'e' } })
 })
@@ -50,6 +51,7 @@ describe('users.ts', () => {
       expect.any(FormData),
       expect.any(Object)
     )
+    expect(useAuthStore.getState().fetchUser).toHaveBeenCalledWith(true)
   })
 
   it('updates user profile', async () => {
