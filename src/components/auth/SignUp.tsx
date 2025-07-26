@@ -1,7 +1,7 @@
 // src/components/auth/SignUp.tsx
-import { useState } from 'react'
-import PageLayout from '@/components/layout/PageLayout'
-import { useSignUp } from '@/hooks/useSignUp'
+import { useState } from 'react';
+import PageLayout from '@/components/layout/PageLayout';
+import { useSignUp } from '@/hooks/useSignUp';
 
 const SignUp = () => {
   const {
@@ -14,33 +14,34 @@ const SignUp = () => {
     loading,
     error,
     handleSubmit
-  } = useSignUp()
+  } = useSignUp();
 
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [showPassword, setShowPassword] = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const trimmedEmail = email.trim()
-    const trimmedUsername = username.trim()
-    const trimmedPassword = password.trim()
-    const trimmedConfirm = confirmPassword.trim()
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirm = confirmPassword.trim();
 
-    if (trimmedPassword !== trimmedConfirm) {
-      setPasswordError('Passwords do not match')
-      return
+    if (showConfirm && trimmedPassword !== trimmedConfirm) {
+      setPasswordError('Passwords do not match');
+      return;
     }
 
-    setEmail(trimmedEmail)
-    setUsername(trimmedUsername)
-    setPassword(trimmedPassword)
-    setConfirmPassword(trimmedConfirm)
-    setPasswordError(null)
+    setEmail(trimmedEmail);
+    setUsername(trimmedUsername);
+    setPassword(trimmedPassword);
+    setConfirmPassword(trimmedConfirm);
+    setPasswordError(null);
 
-    handleSubmit(e)
-  }
+    handleSubmit(e);
+  };
 
   return (
     <PageLayout title="Sign Up">
@@ -126,22 +127,33 @@ const SignUp = () => {
           </button>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="confirmPassword" className="text-sm font-medium">
-            Confirm Password
-          </label>
-          <input
-            id="confirmPassword"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            className="input rounded-full px-4 py-2"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={loading}
-            required
-          />
-        </div>
+        {/* Collapsible Confirm Password */}
+        {showConfirm && (
+          <div className="flex flex-col gap-1 transition-all duration-300">
+            <label htmlFor="confirmPassword" className="text-sm font-medium">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              className="input rounded-full px-4 py-2"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowConfirm(!showConfirm)}
+          className="text-xs text-blue-600 hover:text-blue-800 underline mt-1 self-end"
+        >
+          {showConfirm ? 'Hide Confirm Password' : 'Show Confirm Password'}
+        </button>
 
         <button
           type="submit"
@@ -150,7 +162,7 @@ const SignUp = () => {
             !email.trim() ||
             !username.trim() ||
             !password.trim() ||
-            !confirmPassword.trim()
+            (showConfirm && !confirmPassword.trim())
           }
           className="
             mt-4
@@ -173,7 +185,7 @@ const SignUp = () => {
         </button>
       </form>
     </PageLayout>
-  )
-}
+  );
+};
 
-export default SignUp
+export default SignUp;

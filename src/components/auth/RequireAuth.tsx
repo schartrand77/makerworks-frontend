@@ -1,62 +1,45 @@
 // src/components/auth/RequireAuth.tsx
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useEffect, useState } from 'react'
 
-interface RequireAuthProps {
-  children: JSX.Element
-  requiredRoles?: string[]
-  fallbackTo?: string
-}
-
-/**
- * Guards routes and prevents infinite redirect loops by waiting
- * until Zustand is fully hydrated before redirecting.
- */
-const RequireAuth = ({
-  children,
-  requiredRoles,
-  fallbackTo = '/auth/signin'
-}: RequireAuthProps) => {
-  const { isAuthenticated, user, resolved, fetchUser } = useAuthStore()
+const RequireAuth: React.FC = () => {
+  const { resolved, fetchUser } = useAuthStore()
   const location = useLocation()
-  const [checking, setChecking] = useState(!resolved)
+  const [hydrated, setHydrated] = useState(false)
+
+  // ✅ Access function on each render to avoid stale destructure
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   useEffect(() => {
-    let active = true
-    if (!resolved) {
-      fetchUser().finally(() => active && setChecking(false))
-    } else {
-      setChecking(false)
+    let mounted = true
+    const init = async () => {
+      if (!resolved) {
+        await fetchUser()
+      }
+      if (mounted) setHydrated(true)
     }
-    return () => { active = false }
+    init()
+    return () => {
+      mounted = false
+    }
   }, [resolved, fetchUser])
 
-  // ✅ Block render until hydration resolves
-  if (checking || !resolved) {
+  if (!hydrated || !resolved) {
     return (
-      <div className="w-full h-screen flex items-center justify-center text-sm text-gray-400">
-        <span>🔐 Checking authentication...</span>
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-zinc-500">Loading authentication…</p>
       </div>
     )
   }
 
-  // ✅ Only redirect if fully resolved and definitely not authenticated
-  if (!isAuthenticated()) {
-    console.info('[RequireAuth] Not authenticated, redirecting', { from: location.pathname })
-    return <Navigate to={fallbackTo} state={{ from: location }} replace />
+  // ✅ Guard against undefined
+  if (!isAuthenticated || !isAuthenticated()) {
+    console.log('[RequireAuth] Redirecting to /auth/signin')
+    return <Navigate to="/auth/signin" state={{ from: location }} replace />
   }
 
-  // ✅ Optional role-based guard
-  const userRole = user?.role
-  if (requiredRoles && (!userRole || !requiredRoles.includes(userRole))) {
-    console.info(
-      `[RequireAuth] Authenticated but role "${userRole}" not in [${requiredRoles.join(', ')}], redirecting to /unauthorized`
-    )
-    return <Navigate to="/unauthorized" replace />
-  }
-
-  return children
+  return <Outlet />
 }
 
 export default RequireAuth

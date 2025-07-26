@@ -21,17 +21,17 @@ interface AuthState {
   hasRole: (role: string) => boolean
 }
 
-const getInitialState = (): Pick<AuthState, 'user' | 'token' | 'loading' | 'resolved'> => ({
+const initialState = (): Pick<AuthState, 'user' | 'token' | 'loading' | 'resolved'> => ({
   user: null,
   token: null,
   loading: false,
-  resolved: false,
+  resolved: false
 })
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      ...getInitialState(),
+      ...initialState(),
 
       setUser: (user) => {
         if (user?.avatar_url) {
@@ -52,16 +52,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setAuth: ({ user, token }) => {
-        // ✅ Persist token and avatar
         localStorage.setItem('token', token)
-
         if (user?.avatar_url) {
           localStorage.setItem('avatar_url', user.avatar_url)
         } else {
           localStorage.removeItem('avatar_url')
         }
-
-        // ✅ Mark resolved to stop redirect loops
         set({ user, token, resolved: true })
       },
 
@@ -76,7 +72,14 @@ export const useAuthStore = create<AuthState>()(
           console.error('[useAuthStore] signout error:', err)
           toast.warning('⚠️ Could not fully sign out on server.')
         } finally {
-          set({ ...getInitialState() }, true)
+          // ✅ Reset only values, keep functions intact to avoid isAuthenticated undefined
+          set({
+            user: null,
+            token: null,
+            loading: false,
+            resolved: true
+          })
+
           try {
             localStorage.removeItem('avatar_url')
             localStorage.removeItem('token')
@@ -98,37 +101,31 @@ export const useAuthStore = create<AuthState>()(
           const res = await axios.get<UserOut>('/auth/me', { withCredentials: true })
           const fetchedUser = res.data
 
-          if (fetchedUser.avatar_url) {
+          const savedAvatar = localStorage.getItem('avatar_url')
+          if (!fetchedUser.avatar_url && savedAvatar) {
+            fetchedUser.avatar_url = savedAvatar
+          } else if (fetchedUser.avatar_url) {
             localStorage.setItem('avatar_url', fetchedUser.avatar_url)
-          } else {
-            const saved = localStorage.getItem('avatar_url')
-            if (saved) fetchedUser.avatar_url = saved
           }
 
           set({ user: fetchedUser, loading: false, resolved: true })
           return fetchedUser
         } catch (err: any) {
           console.warn('[useAuthStore] Failed to fetch user:', err?.response?.status)
-
-          if (err?.response?.status === 401) {
-            set({
-              user: null,
-              token: null,
-              loading: false,
-              resolved: true, // ✅ Always mark resolved to prevent loop
-            })
-          } else {
-            toast.error('⚠️ Failed to fetch user.')
-            set({ loading: false, resolved: true })
-          }
-
+          set({
+            user: null,
+            token: null,
+            loading: false,
+            resolved: true
+          })
           return null
         }
       },
 
       isAuthenticated: () => {
-        const { token, user } = get()
-        return !!token && !!user
+        const { token, user, resolved } = get()
+        if (!resolved) return false
+        return Boolean(token && user)
       },
 
       hasRole: (role: string) => {
@@ -139,24 +136,23 @@ export const useAuthStore = create<AuthState>()(
           return user.role.some((r) => r.toLowerCase() === target)
         }
         return user.role?.toLowerCase() === target
-      },
+      }
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
+        token: state.token
       }),
       onRehydrateStorage: () => (state) => {
-        console.info('[useAuthStore] Rehydrated from localStorage')
         if (state) {
-          state.resolved = true // ✅ Mark resolved after hydration
+          state.resolved = true
         }
         const saved = localStorage.getItem('avatar_url')
         if (saved && state?.user && !state.user.avatar_url) {
           state.user.avatar_url = saved
         }
-      },
+      }
     }
   )
 )

@@ -1,45 +1,43 @@
 // src/components/auth/SignIn.tsx
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import PageLayout from '@/components/layout/PageLayout'
-import { useSignIn } from '@/hooks/useSignIn'
-import { useAuthStore } from '@/store/useAuthStore'
+import { useEffect, useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import PageLayout from '@/components/layout/PageLayout';
+import { useSignIn } from '@/hooks/useSignIn';
+import { useAuthStore } from '@/store/useAuthStore';
 
-const SignIn = () => {
-  const [emailOrUsername, setEmailOrUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+const SignIn: React.FC = () => {
+  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const navigate = useNavigate()
-  const { signIn, loading, error } = useSignIn()
-  const user = useAuthStore((s) => s.user)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn, loading, error } = useSignIn();
+  const { user, resolved, isAuthenticated } = useAuthStore();
 
+  // ✅ Only redirect after hydration + successful auth, and avoid looping
   useEffect(() => {
-    if (user) {
-      const timeout = setTimeout(() => navigate('/dashboard'), 100)
-      return () => clearTimeout(timeout)
+    if (resolved && isAuthenticated() && location.pathname !== '/dashboard') {
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate])
+  }, [resolved, isAuthenticated, navigate, location.pathname]);
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await signIn(emailOrUsername, password)
-  }
+    e.preventDefault();
+    await signIn(emailOrUsername, password);
+  };
 
   return (
     <PageLayout title="Sign In">
       <form
-        className="glass-card p-8 flex flex-col gap-4 max-w-sm mx-auto"
         onSubmit={onSubmit}
+        className="glass-card p-8 flex flex-col gap-4 max-w-sm mx-auto"
         noValidate
       >
         <h1 className="text-2xl font-semibold text-center">Sign In</h1>
 
         {error && (
-          <p
-            className="text-red-500 text-sm text-center bg-red-100 border border-red-300 p-2 rounded-full"
-            role="alert"
-          >
+          <p className="text-red-500 text-sm text-center bg-red-100 border border-red-300 p-2 rounded-full" role="alert">
             {error}
           </p>
         )}
@@ -83,30 +81,22 @@ const SignIn = () => {
         </div>
 
         <button
-          className="
-            mt-4
-            rounded-full
-            px-6
-            py-2
-            backdrop-blur-md
-            bg-blue-200/30
-            border border-blue-300/30
-            shadow-inner shadow-blue-100/20
-            hover:bg-blue-200/50
-            hover:shadow-blue-200/30
-            text-blue-900
-            dark:text-blue-100
-            transition-all
-            duration-200
-          "
+          className="mt-4 rounded-full px-6 py-2 backdrop-blur-md bg-blue-200/30 border border-blue-300/30 shadow-inner shadow-blue-100/20 hover:bg-blue-200/50 hover:shadow-blue-200/30 text-blue-900 dark:text-blue-100 transition-all duration-200"
           type="submit"
           disabled={loading}
         >
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
+
+        <p className="text-center text-sm mt-2">
+          Not a member?{' '}
+          <Link to="/auth/signup" className="text-blue-600 hover:text-blue-800 font-medium underline">
+            Sign up
+          </Link>
+        </p>
       </form>
     </PageLayout>
-  )
-}
+  );
+};
 
-export default SignIn
+export default SignIn;
