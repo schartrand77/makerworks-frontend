@@ -15,7 +15,7 @@ function AppContent() {
 }
 
 export default function App() {
-  const user = useAuthStore((s) => s.user)
+  const token = useAuthStore((s) => s.token)
   const { setUser, fetchUser } = useAuthStore.getState()
   useSessionRefresh()
 
@@ -23,9 +23,9 @@ export default function App() {
     let mounted = true
 
     const runAuthFetch = async () => {
-      if (!user && typeof fetchUser === 'function') {
+      if (typeof fetchUser === 'function') {
         try {
-          const u = await fetchUser()
+          const u = await fetchUser(true)
           if (!u && mounted) {
             console.warn('[App.tsx] 🚫 No user returned from fetchUser')
             typeof setUser === 'function' && setUser(null)
@@ -46,7 +46,7 @@ export default function App() {
     return () => {
       mounted = false
     }
-  }, [user])
+  }, [token])
 
   return (
     <>
