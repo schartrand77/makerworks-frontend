@@ -1,15 +1,12 @@
 import React, { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { HelmetProvider } from 'react-helmet-async';
 
 import App from '@/App';
 import ErrorBoundary from '@/components/system/ErrorBoundary';
 import { ToastProvider } from '@/context/ToastProvider';
 import { UserProvider } from '@/context/UserContext';
-import queryClient from '@/api/queryClient';
 
 import '@/index.css';
 
@@ -36,20 +33,15 @@ createRoot(rootElement).render(
   <StrictMode>
     <HelmetProvider>
       <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <UserProvider>
-            <ToastProvider>
-              <ErrorBoundary>
-                <Suspense fallback={<div className="loading">🔄 Loading MakerWorks...</div>}>
-                  <App />
-                </Suspense>
-              </ErrorBoundary>
-            </ToastProvider>
-          </UserProvider>
-
-          {/* Only include devtools in development */}
-          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-        </QueryClientProvider>
+        <UserProvider>
+          <ToastProvider>
+            <ErrorBoundary>
+              <Suspense fallback={<div className="loading">🔄 Loading MakerWorks...</div>}>
+                <App />
+              </Suspense>
+            </ErrorBoundary>
+          </ToastProvider>
+        </UserProvider>
       </BrowserRouter>
     </HelmetProvider>
   </StrictMode>
