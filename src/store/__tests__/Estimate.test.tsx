@@ -5,15 +5,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
 expect.extend(matchers);
 import Estimate from '../../pages/Estimate';
-import * as filamentsApi from '@/api/filaments';
+import axios from '@/api/axios';
 import * as estimateApi from '@/api/estimate';
 vi.mock('@/components/ui/ModelViewer', () => ({
   default: () => <div data-testid="model-viewer" />,
 }));
 
-vi.mock('@/api/filaments', () => ({
-  fetchAvailableFilaments: vi.fn().mockResolvedValue([]),
-}));
 
 vi.mock('@/api/estimate', () => ({
   getEstimate: vi.fn(),
@@ -31,9 +28,9 @@ describe('<Estimate />', () => {
   });
 
   it('loads filaments and shows success toast', async () => {
-    (filamentsApi.fetchAvailableFilaments as any).mockResolvedValue([
-      { id: '1', type: 'PLA', color: 'Red', hex: '#ff0000' },
-    ]);
+    ;(axios.get as any) = vi.fn().mockResolvedValue({
+      data: [{ id: '1', type: 'PLA', color: 'Red', hex: '#ff0000' }]
+    });
     render(<Estimate />);
     await waitFor(() => {
       expect(screen.getAllByText(/Select filament/i)[0]).toBeInTheDocument();
@@ -41,9 +38,9 @@ describe('<Estimate />', () => {
   });
 
   it.skip('shows estimate when form is filled', async () => {
-    (filamentsApi.fetchAvailableFilaments as any).mockResolvedValue([
-      { id: '1', type: 'PLA', color: 'Red', hex: '#ff0000' },
-    ]);
+    ;(axios.get as any) = vi.fn().mockResolvedValue({
+      data: [{ id: '1', type: 'PLA', color: 'Red', hex: '#ff0000' }]
+    });
     (estimateApi.getEstimate as any).mockResolvedValue({
       estimated_time_minutes: 30,
       estimated_cost_usd: 10,

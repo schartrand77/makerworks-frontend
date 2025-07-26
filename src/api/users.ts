@@ -26,7 +26,7 @@ export type UpdateProfilePayload = z.infer<typeof UpdateProfileSchema>
 export const uploadAvatar = async (
   file: File
 ): Promise<AvatarUploadResponse | null> => {
-  const { token, user, setUser } = useAuthStore.getState()
+  const { token, user, setUser, fetchUser } = useAuthStore.getState()
   if (!token || !user?.id) {
     toast.error('❌ Not authenticated. Please log in.')
     return null
@@ -52,6 +52,12 @@ export const uploadAvatar = async (
       ...user,
       avatar_url: res.data.avatar_url
     })
+
+    try {
+      await fetchUser(true)
+    } catch (err) {
+      console.warn('[uploadAvatar] Failed to refresh user:', err)
+    }
 
     toast.success('✅ Avatar updated.')
     return res.data
