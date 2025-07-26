@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
 expect.extend(matchers);
@@ -20,10 +19,6 @@ vi.mock('@/api/estimate', () => ({
   getEstimate: vi.fn(),
 }));
 
-const renderWithClient = (ui: React.ReactElement) => {
-  const queryClient = new QueryClient();
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
-};
 
 describe('<Estimate />', () => {
   beforeEach(() => {
@@ -31,7 +26,7 @@ describe('<Estimate />', () => {
     window.scrollTo = vi.fn();
   });
   it('renders page header', () => {
-    renderWithClient(<Estimate />);
+    render(<Estimate />);
     expect(screen.getByText(/Estimate Print Job/i)).toBeInTheDocument();
   });
 
@@ -39,7 +34,7 @@ describe('<Estimate />', () => {
     (filamentsApi.fetchAvailableFilaments as any).mockResolvedValue([
       { id: '1', type: 'PLA', color: 'Red', hex: '#ff0000' },
     ]);
-    renderWithClient(<Estimate />);
+    render(<Estimate />);
     await waitFor(() => {
       expect(screen.getAllByText(/Select filament/i)[0]).toBeInTheDocument();
     });
@@ -53,7 +48,7 @@ describe('<Estimate />', () => {
       estimated_time_minutes: 30,
       estimated_cost_usd: 10,
     });
-    renderWithClient(<Estimate />);
+    render(<Estimate />);
     await waitFor(() => {
       expect(screen.getAllByText(/Select filament/i)[0]).toBeInTheDocument();
     });

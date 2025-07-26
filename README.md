@@ -18,7 +18,7 @@ MakerWorks Frontend is a responsive React application powered by Vite and TypeSc
 - **TypeScript** for type safety
 - **Vite** development server
 - **Tailwind CSS** for styling
-- **TanStack Query** for data fetching and caching
+- **Axios** for HTTP requests
 - **Zod** for schema validation
 - **Framer Motion** animations
 - **Cypress** and **Vitest** for testing
