@@ -4,6 +4,7 @@ import axios from '@/api/axios';
 import GlassCard from '@/components/ui/GlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { Search } from 'lucide-react';
+import getAbsoluteUrl from '@/lib/getAbsoluteUrl';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useToast } from '@/context/ToastProvider';
 
@@ -196,7 +197,7 @@ const Browse: React.FC = () => {
                   {model.thumbnail_url ? (
                     <img
                       key={`thumb-${model.id}`}
-                      src={model.thumbnail_url}
+                      src={getAbsoluteUrl(model.thumbnail_url) || model.thumbnail_url}
                       alt={model.name ?? 'Model'}
                       className="rounded-md mb-2 w-full h-40 object-cover"
                     />

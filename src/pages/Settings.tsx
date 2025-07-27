@@ -5,18 +5,14 @@ import ProfileSection from '@/components/settings/ProfileSection';
 import AccountSection from '@/components/settings/AccountSection';
 import ThemeSection from '@/components/settings/ThemeSection';
 import { useAuthStore } from '@/store/useAuthStore';
+import getAbsoluteUrl from '@/lib/getAbsoluteUrl';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'avatar' | 'theme'>('profile');
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
-  // ✅ Safe URL builder with fallback to avoid undefined/uploads
-  const getAbsoluteUrl = (path?: string | null): string | null => {
-    if (!path) return null;
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    return path.startsWith('http') ? path : `${apiBase}${path}`;
-  };
+  // ✅ Safe URL builder from shared util
 
   const cachedAvatar = localStorage.getItem('avatar_url');
   const avatarSrc =

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import UserDropdown from '@/components/ui/UserDropdown';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect, useRef } from 'react';
+import getAbsoluteUrl from '@/lib/getAbsoluteUrl';
 
 const GlassNavbar = () => {
   const user = useAuthStore((s) => s.user);
@@ -33,12 +34,7 @@ const GlassNavbar = () => {
     { path: '/checkout', label: 'Checkout' }
   ];
 
-  // ✅ Safe URL builder with fallback
-  const getAbsoluteUrl = (path?: string | null): string | null => {
-    if (!path) return null;
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    return path.startsWith('http') ? path : `${apiBase}${path}`;
-  };
+  // ✅ Safe URL builder from shared util
 
   const fallbackUser = {
     username: 'Guest',
