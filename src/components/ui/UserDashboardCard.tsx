@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '@/components/ui/GlassCard';
 import { useAuthStore } from '@/store/useAuthStore';
+import getAbsoluteUrl from '@/lib/getAbsoluteUrl';
 
 const UserDashboardCard = () => {
   const navigate = useNavigate();
@@ -10,12 +11,7 @@ const UserDashboardCard = () => {
 
   if (!user) return null;
 
-  // ✅ Safe URL builder with fallback
-  const getAbsoluteUrl = (path?: string | null): string | null => {
-    if (!path) return null;
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    return path.startsWith('http') ? path : `${apiBase}${path}`;
-  };
+  // ✅ Safe URL builder from shared util
 
   // ✅ Ensure avatar URL is always resolved from backend or localStorage
   const cachedAvatar = localStorage.getItem('avatar_url');

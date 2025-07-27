@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import axios from '@/api/axios';
 import { toast } from 'sonner';
+import getAbsoluteUrl from '@/lib/getAbsoluteUrl';
 
 interface AvatarSectionProps {
   currentAvatar?: string;
@@ -20,10 +21,7 @@ export default function AvatarSection({ currentAvatar, onAvatarUpdate }: AvatarS
     }
   }, [user, token, fetchUser]);
 
-  const getAbsoluteUrl = (path?: string | null) => {
-    if (!path) return null;
-    return path.startsWith('http') ? path : `${import.meta.env.VITE_API_URL}${path}`;
-  };
+  // ✅ Safe URL builder from shared util
 
   const cachedAvatar = localStorage.getItem('avatar_url');
   const avatarSrc =

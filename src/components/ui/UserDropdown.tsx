@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { Sun, Moon } from 'lucide-react'
 import axiosInstance from '@/api/axios'
 import { toast } from 'sonner'
+import getAbsoluteUrl from '@/lib/getAbsoluteUrl'
 import type { UserProfile } from '@/types/UserProfile'
 
 type Props = {
@@ -48,8 +49,6 @@ const UserDropdown = ({ user }: Props) => {
     setTheme(isDark ? 'light' : 'dark')
   }
 
-  const getAbsoluteUrl = (path?: string | null) =>
-    path?.startsWith('http') ? path : `${import.meta.env.VITE_API_URL}${path}`
 
   const resolvedUser: UserProfile = {
     username: user.username || 'Guest',
