@@ -1,28 +1,28 @@
 // src/components/ui/GlassNavbar.tsx
-import { Link, useLocation } from 'react-router-dom'
-import UserDropdown from '@/components/ui/UserDropdown'
-import { useAuthStore } from '@/store/useAuthStore'
-import { useEffect, useRef } from 'react'
+import { Link, useLocation } from 'react-router-dom';
+import UserDropdown from '@/components/ui/UserDropdown';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useEffect, useRef } from 'react';
 
 const GlassNavbar = () => {
-  const user = useAuthStore((s) => s.user)
-  const isAuthenticatedFn = useAuthStore((s) => s.isAuthenticated)
-  const isAuthenticated = typeof isAuthenticatedFn === 'function' ? isAuthenticatedFn() : false
-  const location = useLocation()
-  const gearRef = useRef<HTMLSpanElement>(null)
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticatedFn = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = typeof isAuthenticatedFn === 'function' ? isAuthenticatedFn() : false;
+  const location = useLocation();
+  const gearRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (gearRef.current) {
-        gearRef.current.classList.add('animate-spin-once')
+        gearRef.current.classList.add('animate-spin-once');
         setTimeout(() => {
-          gearRef.current?.classList.remove('animate-spin-once')
-        }, 1000)
+          gearRef.current?.classList.remove('animate-spin-once');
+        }, 1000);
       }
-    }, Math.random() * 8000 + 3000)
+    }, Math.random() * 8000 + 3000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const navRoutes = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -31,19 +31,24 @@ const GlassNavbar = () => {
     { path: '/upload', label: 'Upload' },
     { path: '/cart', label: 'Cart' },
     { path: '/checkout', label: 'Checkout' }
-  ]
+  ];
 
+  // ✅ Safe URL builder with fallback
   const getAbsoluteUrl = (path?: string | null): string | null => {
-    if (!path) return null
-    return path.startsWith('http') ? path : `${import.meta.env.VITE_API_URL}${path}`
-  }
+    if (!path) return null;
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    return path.startsWith('http') ? path : `${apiBase}${path}`;
+  };
 
   const fallbackUser = {
     username: 'Guest',
     email: 'guest@example.com',
     avatar_url: '/default-avatar.png',
     role: 'guest'
-  }
+  };
+
+  // ✅ Pull cached avatar_url from localStorage if user exists but avatar_url is missing
+  const cachedAvatar = localStorage.getItem('avatar_url');
 
   const resolvedUser = isAuthenticated
     ? {
@@ -52,9 +57,10 @@ const GlassNavbar = () => {
         avatar_url:
           getAbsoluteUrl(user?.avatar_url) ??
           getAbsoluteUrl(user?.thumbnail_url) ??
+          (cachedAvatar ? getAbsoluteUrl(cachedAvatar) : '/default-avatar.png') ??
           '/default-avatar.png'
       }
-    : fallbackUser
+    : fallbackUser;
 
   return (
     <nav
@@ -74,7 +80,7 @@ const GlassNavbar = () => {
         </Link>
 
         {navRoutes.map((item) => {
-          const isActive = location.pathname === item.path
+          const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
@@ -90,7 +96,7 @@ const GlassNavbar = () => {
             >
               {item.label}
             </Link>
-          )
+          );
         })}
       </div>
 
@@ -113,7 +119,7 @@ const GlassNavbar = () => {
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default GlassNavbar
+export default GlassNavbar;

@@ -1,31 +1,34 @@
 // src/components/ui/UserDashboardCard.tsx
-import { useUser } from '@/hooks/useUser'
-import GlassCard from '@/components/ui/GlassCard'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import GlassCard from '@/components/ui/GlassCard';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const UserDashboardCard = () => {
-  const navigate = useNavigate()
-  const { user, avatar, signOut } = useUser()
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
-  if (!user) return null
+  if (!user) return null;
 
-  const getAbsoluteUrl = (path: string | null | undefined) => {
-    if (!path) return null
-    return path.startsWith('http')
-      ? path
-      : `${import.meta.env.VITE_API_URL}${path}`
-  }
+  // ✅ Safe URL builder with fallback
+  const getAbsoluteUrl = (path?: string | null): string | null => {
+    if (!path) return null;
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    return path.startsWith('http') ? path : `${apiBase}${path}`;
+  };
 
+  // ✅ Ensure avatar URL is always resolved from backend or localStorage
+  const cachedAvatar = localStorage.getItem('avatar_url');
   const avatarSrc =
-    avatar ||
     getAbsoluteUrl(user.avatar_url) ||
     getAbsoluteUrl(user.thumbnail_url) ||
-    '/default-avatar.png'
+    (cachedAvatar ? getAbsoluteUrl(cachedAvatar) : null) ||
+    '/default-avatar.png';
 
-  const handleSignOut = () => {
-    signOut()
-    navigate('/')
-  }
+  const handleSignOut = async () => {
+    await logout();
+    navigate('/');
+  };
 
   return (
     <GlassCard className="w-full max-w-md p-6 text-center flex flex-col items-center gap-4 shadow-[0_8px_20px_rgba(128,128,128,0.15)]">
@@ -37,8 +40,8 @@ const UserDashboardCard = () => {
             className="w-full h-full object-cover rounded-full"
             onError={(e) => {
               if (e.currentTarget.src !== '/default-avatar.png') {
-                e.currentTarget.onerror = null
-                e.currentTarget.src = '/default-avatar.png'
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/default-avatar.png';
               }
             }}
           />
@@ -53,9 +56,7 @@ const UserDashboardCard = () => {
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
           {user.username}
         </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {user.email}
-        </p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">{user.email}</p>
       </div>
 
       <div className="mt-4 flex gap-3 justify-center">
@@ -73,7 +74,7 @@ const UserDashboardCard = () => {
         </button>
       </div>
     </GlassCard>
-  )
-}
+  );
+};
 
-export default UserDashboardCard
+export default UserDashboardCard;
