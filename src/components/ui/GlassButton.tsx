@@ -12,7 +12,7 @@ interface GlassButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const variants = {
   primary:
-    'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600',
+    'bg-gradient-to-r from-brand-highlight to-brand-primary text-black hover:opacity-90',
   secondary:
     'bg-zinc-200/80 text-black dark:bg-zinc-700/70 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-600',
   ghost:

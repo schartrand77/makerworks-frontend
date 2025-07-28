@@ -226,7 +226,7 @@ const Browse: React.FC = () => {
                     </p>
                   )}
 
-                  <p className="mt-2 w-full py-1.5 rounded-full bg-blue-600/80 text-center text-white text-sm shadow">
+                  <p className="mt-2 w-full py-1.5 rounded-full bg-brand-primary text-center text-black text-sm shadow">
                     View Details →
                   </p>
                 </GlassCard>
@@ -238,7 +238,7 @@ const Browse: React.FC = () => {
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={loadingMore}
-                className="px-4 py-2 rounded-full bg-blue-600/80 hover:bg-blue-500 transition text-white text-sm shadow disabled:opacity-50"
+                className="px-4 py-2 rounded-full bg-brand-primary hover:bg-brand-highlight transition text-black text-sm shadow disabled:opacity-50"
               >
                 {loadingMore ? 'Loading…' : 'Load more'}
               </button>

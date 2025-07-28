@@ -68,7 +68,7 @@ export default function Cart() {
                         onClick={() =>
                           setItemQuantity(item.id, Math.max(1, item.quantity - 1))
                         }
-                        className="p-1 rounded bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300"
+                        className="p-1 rounded bg-brand-accent/30 hover:bg-brand-accent active:bg-brand-highlight text-brand-secondary"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
@@ -77,7 +77,7 @@ export default function Cart() {
                       </span>
                       <button
                         onClick={() => setItemQuantity(item.id, item.quantity + 1)}
-                        className="p-1 rounded bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300"
+                        className="p-1 rounded bg-brand-accent/30 hover:bg-brand-accent active:bg-brand-highlight text-brand-secondary"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -104,7 +104,7 @@ export default function Cart() {
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={clearCart}
-                    className="px-4 py-2 rounded-md bg-blue-200/30 hover:bg-blue-200 active:bg-[#007aff] text-blue-800 dark:text-blue-300 text-sm w-full sm:w-auto"
+                    className="px-4 py-2 rounded-md bg-brand-accent/30 hover:bg-brand-accent active:bg-brand-highlight text-brand-secondary text-sm w-full sm:w-auto"
                   >
                     Clear Cart
                   </button>

@@ -21,13 +21,13 @@ const Landing = () => {
   }, [hydrated, resolved, isAuthenticated, navigate])
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-800">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-brand-accent to-brand-primary dark:from-brand-secondary dark:to-black">
       <GlassCard>
         <div className="flex flex-col items-center justify-center text-center p-8">
           <h1 className="text-4xl font-bold mb-6">MakerWorks</h1>
           <button
             onClick={() => navigate('/auth/signin')}
-            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full shadow-lg"
+            className="px-8 py-3 bg-brand-primary hover:bg-brand-highlight text-black font-medium rounded-full shadow-lg"
           >
             Enter Site
           </button>

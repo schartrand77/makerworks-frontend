@@ -13,6 +13,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: '#4EF0C1',
+          secondary: '#2B2D31',
+          accent: '#C8CCD2',
+          highlight: '#00D8FF',
+        },
         glass: {
           light: 'rgba(255, 255, 255, 0.6)',
           dark: 'rgba(24, 24, 27, 0.6)',
@@ -73,7 +79,7 @@ export default {
       // Global input & textarea styling
       addBase({
         'input, textarea, select': {
-          '@apply w-full text-gray-800 placeholder-gray-500 bg-white/90 border border-gray-300 rounded-xl px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition': {},
+          '@apply w-full text-gray-800 placeholder-gray-500 bg-white/90 border border-gray-300 rounded-xl px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-highlight transition': {},
         },
         'input:disabled, textarea:disabled, select:disabled': {
           '@apply opacity-50 cursor-not-allowed': {},

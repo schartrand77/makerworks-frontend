@@ -41,7 +41,7 @@ export default function Settings() {
         <button
           onClick={() => setActiveTab('profile')}
           className={`px-4 py-2 rounded-lg ${
-            activeTab === 'profile' ? 'bg-blue-600 text-white' : 'bg-gray-200'
+            activeTab === 'profile' ? 'bg-brand-primary text-black' : 'bg-gray-200'
           }`}
         >
           Profile
@@ -49,7 +49,7 @@ export default function Settings() {
         <button
           onClick={() => setActiveTab('account')}
           className={`px-4 py-2 rounded-lg ${
-            activeTab === 'account' ? 'bg-blue-600 text-white' : 'bg-gray-200'
+            activeTab === 'account' ? 'bg-brand-primary text-black' : 'bg-gray-200'
           }`}
         >
           Account
@@ -57,7 +57,7 @@ export default function Settings() {
         <button
           onClick={() => setActiveTab('avatar')}
           className={`px-4 py-2 rounded-lg ${
-            activeTab === 'avatar' ? 'bg-blue-600 text-white' : 'bg-gray-200'
+            activeTab === 'avatar' ? 'bg-brand-primary text-black' : 'bg-gray-200'
           }`}
         >
           Avatar
@@ -65,7 +65,7 @@ export default function Settings() {
         <button
           onClick={() => setActiveTab('theme')}
           className={`px-4 py-2 rounded-lg ${
-            activeTab === 'theme' ? 'bg-blue-600 text-white' : 'bg-gray-200'
+            activeTab === 'theme' ? 'bg-brand-primary text-black' : 'bg-gray-200'
           }`}
         >
           Theme
