@@ -27,7 +27,7 @@ export default function PageNotFound({ to = "/" }: { to?: string }) {
         <Link
           to={to}
           aria-label="Go to Home"
-          className="mt-6 inline-block px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform"
+          className="mt-6 inline-block px-6 py-2 bg-gradient-to-r from-brand-highlight to-brand-primary text-black rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform"
         >
           ⬅ Go Home
         </Link>

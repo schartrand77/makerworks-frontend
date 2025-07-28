@@ -8,20 +8,14 @@
     @apply min-h-screen transition-colors duration-500;
   }
 
-  /* 🌙 Dark Theme Gradient (Purple/Blue/Black/Grey) */
+  /* 🌙 Dark Theme Gradient (Gunmetal to Black) */
   body.dark {
-    @apply bg-gradient-to-br from-black
-           via-[#0D0D1A] via-[#1A0D2E] via-[#1E1E4F] via-[#2A2A5C]
-           via-[#3A3A6E] via-[#4B4B7F] via-[#5C5C8F] via-[#6E6E9F]
-           to-gray-800 text-white;
+    @apply bg-gradient-to-br from-brand-secondary via-gray-800 to-black text-white;
   }
 
-  /* ☀️ Light Theme Gradient (White/Pink/Orange/Light Green) */
+  /* ☀️ Light Theme Gradient (Silver to Mint) */
   body:not(.dark) {
-    @apply bg-gradient-to-br from-white
-           via-[#FFE6F0] via-[#FFD6CC] via-[#FFE0B3] via-[#FFF2B3]
-           via-[#E6FFCC] via-[#CCFFE6] via-[#D6F5FF] via-[#E6E6FF]
-           to-[#FFFDF7] text-gray-900;
+    @apply bg-gradient-to-br from-white via-brand-accent to-brand-highlight text-gray-900;
   }
 }
 
@@ -33,7 +27,7 @@
            placeholder-white/70 dark:placeholder-white/50
            backdrop-blur-md shadow-vision
            border-white/30 dark:border-white/30
-           focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-300
+           focus:outline-none focus:ring-2 focus:ring-brand-highlight
            transition-all duration-200;
   }
 
