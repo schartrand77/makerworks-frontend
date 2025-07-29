@@ -14,10 +14,10 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: '#4EF0C1',
-          secondary: '#2B2D31',
-          accent: '#C8CCD2',
-          highlight: '#00D8FF',
+          primary: '#FF6A1F',
+          secondary: '#121212',
+          accent: '#C0C0C0',
+          highlight: '#FF6A1F',
         },
         glass: {
           light: 'rgba(255, 255, 255, 0.6)',
