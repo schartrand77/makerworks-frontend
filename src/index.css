@@ -5,12 +5,14 @@
 /* 🌌 Global Gradient Backgrounds */
 @layer base {
   body {
-    @apply min-h-screen transition-colors duration-500 bg-gradient-to-br from-brand-accent via-brand-primary to-brand-highlight text-gray-900;
+    @apply min-h-screen transition-colors duration-500 text-gray-900;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 100%);
   }
 
   /* 🌙 Dark Theme Gradient */
   .dark body {
-    @apply bg-gradient-to-br from-brand-secondary via-brand-secondary to-black text-white;
+    @apply text-white;
+    background: linear-gradient(180deg, #121212 0%, #FF6A1F 100%);
   }
 }
 

@@ -129,7 +129,7 @@ const UploadPage: React.FC = () => {
                 style={{
                   width: `${progress}%`,
                   height: '100%',
-                  background: 'linear-gradient(90deg, #60a5fa, #38bdf8)',
+                  background: 'linear-gradient(90deg, #FF6A1F, #C0C0C0)',
                   transition: 'width 0.2s ease'
                 }}
               />

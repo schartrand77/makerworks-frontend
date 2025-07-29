@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function PageNotFound({ to = "/" }: { to?: string }) {
   return (
-    <main className="flex flex-col items-center justify-center h-screen text-center bg-gradient-to-br from-zinc-50 to-zinc-200 dark:from-zinc-900 dark:to-zinc-800">
+    <main className="flex flex-col items-center justify-center h-screen text-center bg-gradient-to-br from-white to-brand-accent dark:from-brand-secondary dark:to-brand-primary">
       <Helmet>
         <title>404 – Page Not Found</title>
         <meta name="robots" content="noindex" />
@@ -27,7 +27,7 @@ export default function PageNotFound({ to = "/" }: { to?: string }) {
         <Link
           to={to}
           aria-label="Go to Home"
-          className="mt-6 inline-block px-6 py-2 bg-gradient-to-r from-brand-highlight to-brand-primary text-black rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform"
+          className="mt-6 inline-block px-6 py-2 bg-gradient-to-r from-brand-primary to-brand-accent text-black rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform"
         >
           ⬅ Go Home
         </Link>
