@@ -1,5 +1,5 @@
 // src/components/auth/SignUp.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { useSignUp } from '@/hooks/useSignUp';
 
@@ -19,7 +19,15 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Validate matching passwords in real-time
+  useEffect(() => {
+    if (confirmPassword && password !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+    } else {
+      setPasswordError(null);
+    }
+  }, [password, confirmPassword]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +37,8 @@ const SignUp = () => {
     const trimmedPassword = password.trim();
     const trimmedConfirm = confirmPassword.trim();
 
-    if (showConfirm && trimmedPassword !== trimmedConfirm) {
+    if (!trimmedPassword) return; // Prevent submit if no password
+    if (trimmedPassword !== trimmedConfirm) {
       setPasswordError('Passwords do not match');
       return;
     }
@@ -42,6 +51,9 @@ const SignUp = () => {
 
     handleSubmit(e);
   };
+
+  const showConfirm = password.trim().length > 0;
+  const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   return (
     <PageLayout title="Sign Up">
@@ -111,7 +123,13 @@ const SignUp = () => {
             id="password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
-            className="input rounded-full px-4 py-2 pr-12"
+            className={`input rounded-full px-4 py-2 pr-12 ${
+              confirmPassword
+                ? passwordsMatch
+                  ? 'border-green-500 focus:ring-green-400'
+                  : 'border-red-500 focus:ring-red-400'
+                : ''
+            }`}
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -127,7 +145,7 @@ const SignUp = () => {
           </button>
         </div>
 
-        {/* Collapsible Confirm Password */}
+        {/* Confirm Password shows only when password is entered */}
         {showConfirm && (
           <div className="flex flex-col gap-1 transition-all duration-300">
             <label htmlFor="confirmPassword" className="text-sm font-medium">
@@ -137,7 +155,13 @@ const SignUp = () => {
               id="confirmPassword"
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              className="input rounded-full px-4 py-2"
+              className={`input rounded-full px-4 py-2 ${
+                confirmPassword
+                  ? passwordsMatch
+                    ? 'border-green-500 focus:ring-green-400'
+                    : 'border-red-500 focus:ring-red-400'
+                  : ''
+              }`}
               placeholder="Confirm your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -148,21 +172,14 @@ const SignUp = () => {
         )}
 
         <button
-          type="button"
-          onClick={() => setShowConfirm(!showConfirm)}
-          className="text-xs text-blue-600 hover:text-blue-800 underline mt-1 self-end"
-        >
-          {showConfirm ? 'Hide Confirm Password' : 'Show Confirm Password'}
-        </button>
-
-        <button
           type="submit"
           disabled={
             loading ||
             !email.trim() ||
             !username.trim() ||
             !password.trim() ||
-            (showConfirm && !confirmPassword.trim())
+            !confirmPassword.trim() ||
+            password !== confirmPassword
           }
           className="
             mt-4
