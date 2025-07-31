@@ -182,9 +182,8 @@ const Browse: React.FC = () => {
               filteredModels.map((model) => {
                 const modelKey = model.id || model.file_url || Math.random().toString();
                 // ✅ Use full backend URL without normalization
-                const thumbUrl = model.thumbnail_url
-                ? getAbsoluteUrl(`/uploads/thumbnails/${model.thumbnail_url.split('/').pop()}`)
-                : null;
+                // Build thumbnail URL using the helper directly
+                const thumbUrl = getAbsoluteUrl(model.thumbnail_url);
 
                 return (
                   <GlassCard
