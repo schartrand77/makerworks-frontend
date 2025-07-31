@@ -66,7 +66,16 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         set({ loading: true });
         try {
-          await axios.post('/auth/signout');
+          const token = get().token;
+          if (token) {
+            await axios.post(
+              '/auth/signout',
+              {},
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+          }
           toast.info('👋 Signed out successfully.');
         } catch (err) {
           console.error('[useAuthStore] signout error:', err);
@@ -100,7 +109,6 @@ export const useAuthStore = create<AuthState>()(
           const res = await axios.get<UserOut>('/auth/me', { withCredentials: true });
           const fetchedUser = res.data;
 
-          // ✅ Sync avatar with localStorage
           const savedAvatar = localStorage.getItem('avatar_url');
           if (!fetchedUser.avatar_url && savedAvatar) {
             fetchedUser.avatar_url = savedAvatar;

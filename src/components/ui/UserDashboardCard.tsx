@@ -11,9 +11,6 @@ const UserDashboardCard = () => {
 
   if (!user) return null;
 
-  // ✅ Safe URL builder from shared util
-
-  // ✅ Ensure avatar URL is always resolved from backend or localStorage
   const cachedAvatar = localStorage.getItem('avatar_url');
   const avatarSrc =
     getAbsoluteUrl(user.avatar_url) ||
@@ -58,13 +55,13 @@ const UserDashboardCard = () => {
       <div className="mt-4 flex gap-3 justify-center">
         <button
           onClick={() => navigate('/settings')}
-          className="px-5 py-2 rounded-full bg-blue-500 text-white shadow hover:bg-blue-600 transition text-sm"
+          className="px-4 py-1.5 rounded-full bg-brand-primary/90 text-zinc-900 dark:text-white shadow-sm hover:bg-brand-primary transition text-sm font-medium"
         >
           Edit Profile
         </button>
         <button
           onClick={handleSignOut}
-          className="px-5 py-2 rounded-full bg-red-500 text-white shadow hover:bg-red-600 transition text-sm"
+          className="px-4 py-1.5 rounded-full bg-brand-destructive/90 text-white shadow-sm hover:bg-brand-destructive transition text-sm font-medium"
         >
           Log Out
         </button>

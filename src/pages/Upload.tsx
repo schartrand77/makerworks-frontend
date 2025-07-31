@@ -13,7 +13,12 @@ const UploadPage: React.FC = () => {
   const [progress, setProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [rejectedFiles, setRejectedFiles] = useState<string[]>([])
-  const { user, token } = useAuthStore()
+  const { token } = useAuthStore()
+
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [tags, setTags] = useState('')
+  const [credit, setCredit] = useState('')
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections) => {
     setRejectedFiles([])
@@ -37,17 +42,34 @@ const UploadPage: React.FC = () => {
     }
 
     setSelectedFile(file)
-    setLoading(true)
-
-    uploadModelWithProgress(file)
-      .then((res) => {
-        toast.success('✅ Model uploaded.')
-        setSelectedFile(null)
-        setProgress(0)
-      })
-      .catch(() => toast.error(`❌ Upload failed.`))
-      .finally(() => setLoading(false))
   }, [])
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      toast.error('❌ No file selected.')
+      return
+    }
+    if (!name.trim()) {
+      toast.error('❌ Name is required.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      await uploadModelWithProgress(selectedFile)
+      toast.success('✅ Model uploaded.')
+      setSelectedFile(null)
+      setProgress(0)
+      setName('')
+      setDescription('')
+      setTags('')
+      setCredit('')
+    } catch {
+      toast.error(`❌ Upload failed.`)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const uploadModelWithProgress = async (file: File) => {
     if (!token) {
@@ -57,6 +79,10 @@ const UploadPage: React.FC = () => {
 
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('name', name)
+    formData.append('description', description)
+    formData.append('tags', tags)
+    formData.append('credit', credit)
 
     return axios.post(`/upload`, formData, {
       headers: {
@@ -80,10 +106,11 @@ const UploadPage: React.FC = () => {
   })
 
   return (
-    <div className="upload-container" style={{ maxWidth: '640px', margin: '2rem auto', color: '#d1d5db' }}>
+    <div className="upload-container" style={{ maxWidth: '720px', margin: '2rem auto', color: '#d1d5db' }}>
       <Toaster position="top-right" />
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Upload a 3D Model</h2>
 
+      {/* Dropzone FIRST */}
       <div
         {...getRootProps()}
         className={`dropzone ${isDragActive ? 'active' : ''}`}
@@ -97,7 +124,8 @@ const UploadPage: React.FC = () => {
           background: 'rgba(255, 255, 255, 0.04)',
           backdropFilter: 'blur(18px) saturate(180%)',
           boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
-          color: '#d1d5db'
+          color: '#d1d5db',
+          marginBottom: '1rem'
         }}
       >
         <input {...getInputProps()} />
@@ -111,7 +139,7 @@ const UploadPage: React.FC = () => {
       {selectedFile && (
         <div
           style={{
-            marginTop: '1.25rem',
+            marginBottom: '1rem',
             padding: '1rem',
             borderRadius: '12px',
             background: 'rgba(255, 255, 255, 0.04)',
@@ -138,11 +166,69 @@ const UploadPage: React.FC = () => {
         </div>
       )}
 
-      {loading && (
-        <p style={{ textAlign: 'center', marginTop: '1em' }}>
-          Uploading… <strong>{progress}%</strong>
-        </p>
-      )}
+      {/* Metadata fields AFTER dropzone */}
+      <div
+        style={{
+          background: 'rgba(255, 255, 255, 0.04)',
+          backdropFilter: 'blur(18px) saturate(180%)',
+          borderRadius: '16px',
+          padding: '1.5rem',
+          marginBottom: '1rem',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.25)'
+        }}
+      >
+        <label style={{ display: 'block', marginBottom: '.5rem' }}>Name *</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Model name"
+          style={{ width: '100%', padding: '.5rem', marginBottom: '1rem', borderRadius: '8px' }}
+        />
+
+        <label style={{ display: 'block', marginBottom: '.5rem' }}>Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe the model"
+          style={{ width: '100%', padding: '.5rem', marginBottom: '1rem', borderRadius: '8px', minHeight: '80px' }}
+        />
+
+        <label style={{ display: 'block', marginBottom: '.5rem' }}>Tags (comma separated)</label>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="e.g. benchy, calibration, test"
+          style={{ width: '100%', padding: '.5rem', marginBottom: '1rem', borderRadius: '8px' }}
+        />
+
+        <label style={{ display: 'block', marginBottom: '.5rem' }}>Credit (Model creator)</label>
+        <input
+          type="text"
+          value={credit}
+          onChange={(e) => setCredit(e.target.value)}
+          placeholder="Original creator's name"
+          style={{ width: '100%', padding: '.5rem', borderRadius: '8px' }}
+        />
+      </div>
+
+      <button
+        onClick={handleUpload}
+        disabled={loading}
+        style={{
+          marginTop: '1rem',
+          width: '100%',
+          padding: '.75rem',
+          borderRadius: '12px',
+          background: '#FF6A1F',
+          color: '#fff',
+          fontWeight: 'bold',
+          cursor: loading ? 'not-allowed' : 'pointer'
+        }}
+      >
+        {loading ? `Uploading… ${progress}%` : 'Upload Model'}
+      </button>
 
       {rejectedFiles.length > 0 && (
         <div style={{ color: '#f87171', marginTop: '1em', textAlign: 'center' }}>

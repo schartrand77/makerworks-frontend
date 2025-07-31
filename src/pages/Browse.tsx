@@ -9,10 +9,11 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useToast } from '@/context/ToastProvider';
 
 interface Model {
-  id: string;
+  id?: string;
   name?: string | null;
   description?: string | null;
   thumbnail_url?: string | null;
+  file_url?: string | null;
   uploader_username?: string | null;
 }
 
@@ -123,7 +124,8 @@ const Browse: React.FC = () => {
 
   const isLoading = loadingInitial;
 
-  const handleViewModel = (id: string) => {
+  const handleViewModel = (id?: string) => {
+    if (!id) return;
     navigate(`/models/${id}`);
   };
 
@@ -177,60 +179,68 @@ const Browse: React.FC = () => {
             )}
 
             {!isLoading &&
-              filteredModels.map((model) => (
-                <GlassCard
-                  key={`model-${model.id}`}
-                  className="relative cursor-pointer hover:scale-[1.02] transition-transform"
-                  onClick={() => handleViewModel(model.id)}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(model.id);
-                    }}
-                    className="absolute top-2 right-2 text-yellow-400 hover:scale-110 transition"
-                    aria-label="Favorite"
+              filteredModels.map((model) => {
+                const modelKey = model.id || model.file_url || Math.random().toString();
+                // ✅ Use full backend URL without normalization
+                const thumbUrl = model.thumbnail_url
+                ? getAbsoluteUrl(`/uploads/thumbnails/${model.thumbnail_url.split('/').pop()}`)
+                : null;
+
+                return (
+                  <GlassCard
+                    key={`model-${modelKey}`}
+                    className="relative cursor-pointer hover:scale-[1.02] transition-transform"
+                    onClick={() => handleViewModel(model.id)}
                   >
-                    {favorites.has(model.id) ? '★' : '☆'}
-                  </button>
-
-                  {model.thumbnail_url ? (
-                    <img
-                      key={`thumb-${model.id}`}
-                      src={getAbsoluteUrl(model.thumbnail_url) || model.thumbnail_url}
-                      alt={model.name ?? 'Model'}
-                      className="rounded-md mb-2 w-full h-40 object-cover"
-                    />
-                  ) : (
-                    <div
-                      key={`placeholder-${model.id}`}
-                      className="w-full h-40 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-500"
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (model.id) toggleFavorite(model.id);
+                      }}
+                      className="absolute top-2 right-2 text-yellow-400 hover:scale-110 transition"
+                      aria-label="Favorite"
                     >
-                      No preview available
-                    </div>
-                  )}
+                      {model.id && favorites.has(model.id) ? '★' : '☆'}
+                    </button>
 
-                  <h2 className="text-lg font-semibold mb-1">
-                    {model.name || 'Untitled'}
-                  </h2>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
-                    {model.description || 'No description provided.'}
-                  </p>
+                    {thumbUrl ? (
+                      <img
+                        key={`thumb-${modelKey}`}
+                        src={thumbUrl}
+                        alt={model.name ?? 'Model'}
+                        className="rounded-md mb-2 w-full h-40 object-cover"
+                      />
+                    ) : (
+                      <div
+                        key={`placeholder-${modelKey}`}
+                        className="w-full h-40 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-md mb-2 text-sm text-zinc-500"
+                      >
+                        No preview available
+                      </div>
+                    )}
 
-                  {model.uploader_username && (
-                    <p
-                      key={`uploader-${model.id}`}
-                      className="text-xs text-zinc-500 dark:text-zinc-400 mb-2"
-                    >
-                      Uploaded by <span className="font-medium">{model.uploader_username}</span>
+                    <h2 className="text-lg font-semibold mb-1">
+                      {model.name || 'Untitled'}
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                      {model.description || 'No description provided.'}
                     </p>
-                  )}
 
-                  <p className="mt-2 w-full py-1.5 rounded-full bg-brand-primary text-center text-black text-sm shadow">
-                    View Details →
-                  </p>
-                </GlassCard>
-              ))}
+                    {model.uploader_username && (
+                      <p
+                        key={`uploader-${modelKey}`}
+                        className="text-xs text-zinc-500 dark:text-zinc-400 mb-2"
+                      >
+                        Uploaded by <span className="font-medium">{model.uploader_username}</span>
+                      </p>
+                    )}
+
+                    <p className="mt-2 w-full py-1.5 rounded-full bg-brand-primary text-center text-black text-sm shadow">
+                      View Details →
+                    </p>
+                  </GlassCard>
+                );
+              })}
           </div>
 
           {hasMore && !isLoading && (
